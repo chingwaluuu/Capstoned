@@ -2,100 +2,157 @@
 {% set active_tab = "practice" %}
 {% set topbar_sub = "Practice setup" %}
 {% block title %}Practice Setup — Bloom{% endblock %}
-{% block page_header %}{% endblock %}
-{% block content_class %}pro-content-plain{% endblock %}
+{% block body_class %}student-refined practice-setup-page{% endblock %}
+{% block page_title %}Practice setup{% endblock %}
+{% block page_subtitle %}Choose how you want to practice, then begin your check.{% endblock %}
+{% block page_actions %}
+  <a class="editorial-text-link practice-setup-back" href="{{ back_href }}">← Back</a>
+{% endblock %}
 {% block content %}
-    <section class="lobby-card practice-setup-card subject-{{ subject.slug }} subject-accent-{{ subject.slug }}" aria-labelledby="practice-setup-title">
-      <div class="practice-setup-accent" aria-hidden="true"></div>
-      <a class="hub-back" href="{{ back_href }}">Back</a>
-      <div class="status-row practice-setup-badges">
-        <span class="status-pill status-subject subject-{{ subject.slug }}">{{ subject.name }}</span>
-        <span class="status-pill status-practice">Practice check</span>
-      </div>
-      <div class="practice-setup-heading">
-        <div>
-          <h1 id="practice-setup-title" class="section-title">Practice {{ material_title }}</h1>
-          <p class="section-note">Choose the challenge and thinking skills that fit your goal.</p>
-        </div>
-      </div>
+  <section class="practice-setup" aria-labelledby="practice-setup-context">
+    <header class="practice-setup-context">
+      <p class="practice-setup-context-label" id="practice-setup-context">You’re practicing</p>
+      <h2 class="practice-setup-material">{{ material_title }}</h2>
+      <p class="practice-setup-meta">{{ subject.name }} · Self-paced practice check</p>
+    </header>
 
-      <form class="practice-form" method="POST" action="{{ url_for('practice_take', subject_slug=subject.slug, material_slug=material_slug) }}" data-loading="Generating your Practice Check…">
-        <fieldset class="practice-fieldset practice-fieldset-card">
-          <legend><span class="fieldset-ico" aria-hidden="true">1</span> Choose difficulty</legend>
-          <p class="section-note">How challenging do you want your practice?</p>
-          <div class="difficulty-grid">
-            {% for option in difficulties %}
-              <label class="difficulty-card">
-                <input
-                  type="radio"
-                  name="difficulty"
-                  value="{{ option.key }}"
-                  {% if selected_difficulty == option.key %}checked{% endif %}
-                />
-                <span class="difficulty-copy">
-                  <span class="difficulty-name">{{ option.label }}</span>
-                  <span class="difficulty-hint">{{ option.hint }}</span>
-                  <span class="difficulty-state" aria-hidden="true">Selected</span>
-                </span>
+    <form
+      class="practice-form practice-setup-form"
+      method="POST"
+      action="{{ url_for('practice_take', subject_slug=subject.slug, material_slug=material_slug) }}"
+      data-loading="Generating your Practice Check…"
+      data-practice-setup
+    >
+      <fieldset class="practice-setup-section">
+        <legend class="practice-setup-legend">Difficulty</legend>
+        <p class="practice-setup-hint">How challenging should the questions feel?</p>
+        <div class="practice-option-list difficulty-grid" role="radiogroup" aria-label="Difficulty">
+          {% for option in difficulties %}
+            <label class="practice-option {% if selected_difficulty == option.key %}is-selected{% endif %}">
+              <input
+                type="radio"
+                name="difficulty"
+                value="{{ option.key }}"
+                {% if selected_difficulty == option.key %}checked{% endif %}
+              />
+              <span class="practice-option-copy">
+                <span class="practice-option-title">{{ option.label }}</span>
+                <span class="practice-option-desc">{{ option.hint }}</span>
+              </span>
+            </label>
+          {% endfor %}
+        </div>
+      </fieldset>
+
+      <fieldset class="practice-setup-section">
+        <legend class="practice-setup-legend">Thinking focus</legend>
+        <p class="practice-setup-hint">These are Bloom’s thinking skills — not the same as Easy / Medium / Hard.</p>
+        <div class="practice-option-list practice-focus-list" role="radiogroup" aria-label="Thinking focus">
+          <label class="practice-option {% if selected_focus == 'mixed' %}is-selected{% endif %}">
+            <input type="radio" name="focus" value="mixed" {% if selected_focus == 'mixed' %}checked{% endif %} />
+            <span class="practice-option-copy">
+              <span class="practice-option-title">Mixed skills</span>
+              <span class="practice-option-desc">A balanced mix of Analyze, Evaluate, and Create</span>
+            </span>
+          </label>
+          <label class="practice-option {% if selected_focus == 'c4' %}is-selected{% endif %}">
+            <input type="radio" name="focus" value="c4" {% if selected_focus == 'c4' %}checked{% endif %} />
+            <span class="practice-option-copy">
+              <span class="practice-option-title">Analyze</span>
+              <span class="practice-option-desc">Identify patterns and relationships</span>
+            </span>
+          </label>
+          <label class="practice-option {% if selected_focus == 'c5' %}is-selected{% endif %}">
+            <input type="radio" name="focus" value="c5" {% if selected_focus == 'c5' %}checked{% endif %} />
+            <span class="practice-option-copy">
+              <span class="practice-option-title">Evaluate</span>
+              <span class="practice-option-desc">Judge evidence and justify a choice</span>
+            </span>
+          </label>
+          <label class="practice-option {% if selected_focus == 'c6' %}is-selected{% endif %}">
+            <input type="radio" name="focus" value="c6" {% if selected_focus == 'c6' %}checked{% endif %} />
+            <span class="practice-option-copy">
+              <span class="practice-option-title">Create</span>
+              <span class="practice-option-desc">Build or propose something new</span>
+            </span>
+          </label>
+        </div>
+      </fieldset>
+
+      <fieldset class="practice-setup-section" id="question-types-fieldset">
+        <legend class="practice-setup-legend">Length and question types</legend>
+        <p class="practice-setup-hint">Pick how many questions to generate, and which formats to include.</p>
+
+        <div class="practice-setup-build">
+          <div class="practice-count-group">
+            <p class="practice-setup-field-label" id="count-label">Number of questions</p>
+            <div class="count-stepper" data-count-stepper data-min="1" data-max="15">
+              <button type="button" class="count-stepper-btn" data-count-step="-1" aria-label="Fewer questions">−</button>
+              <input
+                class="count-stepper-input"
+                type="number"
+                id="count"
+                name="count"
+                inputmode="numeric"
+                min="1"
+                max="15"
+                step="1"
+                value="{{ selected_count }}"
+                aria-labelledby="count-label"
+                aria-describedby="count-hint"
+              />
+              <button type="button" class="count-stepper-btn" data-count-step="1" aria-label="More questions">+</button>
+              <span class="count-stepper-suffix">questions</span>
+            </div>
+            <p class="count-stepper-hint" id="count-hint">Choose 1–15. More questions means a longer check.</p>
+          </div>
+
+          <div class="type-choice-group">
+            <p class="practice-setup-field-label" id="types-label">Question types</p>
+            <div class="practice-type-list" role="group" aria-labelledby="types-label">
+              <label class="practice-type {% if 'mcq' in selected_types %}is-selected{% endif %}">
+                <input type="checkbox" name="types" value="mcq" {% if 'mcq' in selected_types %}checked{% endif %} />
+                <span>Multiple choice</span>
               </label>
-            {% endfor %}
-          </div>
-        </fieldset>
-
-        <fieldset class="practice-fieldset practice-fieldset-card">
-          <legend><span class="fieldset-ico" aria-hidden="true">2</span> Choose focus</legend>
-          <p class="section-note">These are thinking skills (Bloom’s HOTS) — not Easy / Medium / Hard.</p>
-          <div class="choice-card-grid focus-choice-grid">
-            <label class="choice choice-card"><input type="radio" name="focus" value="mixed" {% if selected_focus == 'mixed' %}checked{% endif %} /><span><strong>Mixed skills</strong><small>A balanced thinking workout</small></span></label>
-            <label class="choice choice-card"><input type="radio" name="focus" value="c4" {% if selected_focus == 'c4' %}checked{% endif %} /><span><strong>Analyze</strong><small>Break ideas apart</small></span></label>
-            <label class="choice choice-card"><input type="radio" name="focus" value="c5" {% if selected_focus == 'c5' %}checked{% endif %} /><span><strong>Evaluate</strong><small>Judge and decide</small></span></label>
-            <label class="choice choice-card"><input type="radio" name="focus" value="c6" {% if selected_focus == 'c6' %}checked{% endif %} /><span><strong>Create</strong><small>Build something new</small></span></label>
-          </div>
-        </fieldset>
-
-        <fieldset class="practice-fieldset practice-fieldset-card" id="question-types-fieldset">
-          <legend><span class="fieldset-ico" aria-hidden="true">3</span> Build your check</legend>
-          <div class="practice-build-grid">
-            <div class="practice-count-group">
-              <p class="field-label" id="count-label">Number of questions</p>
-              <div class="count-stepper" data-count-stepper data-min="1" data-max="15">
-                <button type="button" class="count-stepper-btn" data-count-step="-1" aria-label="Fewer questions">−</button>
-                <input
-                  class="count-stepper-input"
-                  type="number"
-                  id="count"
-                  name="count"
-                  inputmode="numeric"
-                  min="1"
-                  max="15"
-                  step="1"
-                  value="{{ selected_count }}"
-                  aria-labelledby="count-label"
-                  aria-describedby="count-hint"
-                />
-                <button type="button" class="count-stepper-btn" data-count-step="1" aria-label="More questions">+</button>
-                <span class="count-stepper-suffix">questions</span>
-              </div>
-              <p class="count-stepper-hint" id="count-hint">Choose 1–15. More questions means a longer check.</p>
-            </div>
-            <div class="type-choice-group">
-              <p class="field-label">Question types</p>
-              <div class="type-choice-grid">
-                <label class="choice choice-card compact"><input type="checkbox" name="types" value="mcq" {% if 'mcq' in selected_types %}checked{% endif %} /><span>Multiple choice</span></label>
-                <label class="choice choice-card compact"><input type="checkbox" name="types" value="essay" {% if 'essay' in selected_types %}checked{% endif %} /><span>Essay</span></label>
-                <label class="choice choice-card compact"><input type="checkbox" name="types" value="problem" {% if 'problem' in selected_types %}checked{% endif %} /><span>Problem-solving</span></label>
-              </div>
+              <label class="practice-type {% if 'essay' in selected_types %}is-selected{% endif %}">
+                <input type="checkbox" name="types" value="essay" {% if 'essay' in selected_types %}checked{% endif %} />
+                <span>Essay</span>
+              </label>
+              <label class="practice-type {% if 'problem' in selected_types %}is-selected{% endif %}">
+                <input type="checkbox" name="types" value="problem" {% if 'problem' in selected_types %}checked{% endif %} />
+                <span>Problem-solving</span>
+              </label>
             </div>
           </div>
-          <p class="field-error" id="question-types-error" role="alert" hidden></p>
-        </fieldset>
-
-        <div class="practice-submit-panel">
-          <p class="practice-submit-copy"><strong>Ready when you are.</strong> You can review every answer afterward.</p>
-          <button type="submit" class="btn-primary practice-submit-btn">Generate practice check <span aria-hidden="true">→</span></button>
         </div>
-      </form>
-    </section>
+        <p class="field-error" id="question-types-error" role="alert" hidden></p>
+      </fieldset>
+
+      <div class="practice-setup-footer">
+        <div class="practice-setup-summary" data-setup-summary aria-live="polite">
+          <p class="practice-setup-summary-label">Your setup</p>
+          <p class="practice-setup-summary-line" data-setup-summary-line>
+            {{ subject.name }} · {{ material_title }} ·
+            {{ difficulty_label(selected_difficulty) }} ·
+            {% if selected_focus == 'c4' %}Analyze
+            {% elif selected_focus == 'c5' %}Evaluate
+            {% elif selected_focus == 'c6' %}Create
+            {% else %}Mixed skills{% endif %} ·
+            {{ selected_count }} question{% if selected_count != 1 %}s{% endif %}
+          </p>
+          <p class="practice-setup-summary-note">Self-paced. You can review every answer afterward.</p>
+        </div>
+
+        <p class="practice-setup-ready-hint" data-setup-ready-hint hidden>
+          Choose at least one question type to start.
+        </p>
+
+        <button type="submit" class="btn-primary practice-submit-btn" data-setup-submit>
+          Generate practice check
+        </button>
+      </div>
+    </form>
+  </section>
 {% endblock %}
 {% block scripts %}
   <script src="{{ url_for('static', filename='js/practice_setup.js') }}" defer></script>
