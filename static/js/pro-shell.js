@@ -25,6 +25,11 @@ window.addEventListener("DOMContentLoaded", () => {
       : !body.classList.contains("pro-sidebar-collapsed");
 
     toggle.setAttribute("aria-expanded", String(isOpen));
+    if (isMobile) {
+      toggle.setAttribute("aria-label", isOpen ? "Close navigation" : "Open navigation");
+    } else {
+      toggle.setAttribute("aria-label", isOpen ? "Hide navigation" : "Show navigation");
+    }
     backdrop.hidden = !isMobile || !isOpen;
     body.classList.toggle("pro-scroll-locked", isMobile && isOpen);
     setSidebarInert(isMobile && !isOpen);

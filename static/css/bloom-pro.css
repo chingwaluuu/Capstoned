@@ -397,7 +397,6 @@ body.app-body.staff-body > .pro-sidebar-backdrop {
 
 .pro-nav-link.is-active {
   background: rgba(255, 255, 255, 0.14);
-  box-shadow: inset 3px 0 0 var(--pro-gold);
   color: var(--pro-sidebar-active);
 }
 
@@ -7204,6 +7203,8 @@ html.pref-reduce-motion .qol-overlay {
   align-items: center;
   padding: 1rem 0.55rem 1.25rem;
   gap: 1.25rem;
+  overflow: visible;
+  z-index: 1040;
 }
 
 .pro-rail-brand {
@@ -7230,13 +7231,12 @@ html.pref-reduce-motion .qol-overlay {
   padding: 0;
   flex: 1;
   width: 100%;
-  overflow: auto;
+  overflow: visible;
 }
 
 .pro-rail .pro-nav-heading,
 .pro-rail .pro-sidebar-foot,
-.pro-rail .pro-brand > div,
-.pro-rail .pro-nav-link > :not(.pro-nav-ico):not(.rail-dot) {
+.pro-rail .pro-brand > div {
   display: none !important;
 }
 
@@ -7275,6 +7275,37 @@ html.pref-reduce-motion .qol-overlay {
   opacity: 1;
 }
 
+.pro-rail .pro-nav-label {
+  position: absolute;
+  left: calc(100% + 0.7rem);
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1200;
+  width: max-content;
+  max-width: 12rem;
+  padding: 0.38rem 0.6rem;
+  border: 1px solid rgba(20, 35, 61, 0.14);
+  border-radius: 0.4rem;
+  background: #fff;
+  color: var(--pro-heading);
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0;
+  white-space: nowrap;
+  box-shadow: 0 8px 20px rgba(20, 35, 61, 0.16);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 120ms ease, visibility 120ms ease;
+}
+
+.pro-rail .pro-nav-link:hover .pro-nav-label,
+.pro-rail .pro-nav-link:focus-visible .pro-nav-label {
+  opacity: 1;
+  visibility: visible;
+}
+
 .pro-rail .rail-dot {
   position: absolute;
   top: 0.35rem;
@@ -7289,7 +7320,7 @@ html.pref-reduce-motion .qol-overlay {
   background: #f0b4b4;
 }
 
-/* --- Top text navigation --- */
+/* --- Top text navigation (staff/teacher/admin only) --- */
 .pro-topbar {
   display: flex;
   align-items: center;
@@ -7314,6 +7345,11 @@ html.pref-reduce-motion .qol-overlay {
   flex: 1 1 auto;
 }
 
+.pro-top-spacer {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
 .pro-top-link {
   color: var(--pro-muted);
   text-decoration: none;
@@ -7331,18 +7367,6 @@ html.pref-reduce-motion .qol-overlay {
   color: var(--pro-heading);
   font-weight: 650;
   border-bottom-color: var(--bloom-primary);
-}
-
-.top-nav-count {
-  display: inline-block;
-  margin-left: 0.2rem;
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--bloom-primary);
-}
-
-.top-nav-count.is-alert {
-  color: var(--bloom-error);
 }
 
 .pro-context {
@@ -7363,36 +7387,56 @@ html.pref-reduce-motion .qol-overlay {
     display: none;
   }
 
-  .pro-body.pro-sidebar-open .pro-top-nav,
-  body.pro-sidebar-open .pro-top-nav {
-    display: none;
-  }
-
   /* On mobile, rail expands as labeled drawer */
   .pro-sidebar.pro-rail {
     align-items: stretch;
     padding: 1rem 0.75rem;
     width: min(16rem, 86vw);
+    overflow: auto;
   }
 
   .pro-rail-nav {
     align-items: stretch;
+    overflow: auto;
   }
 
   .pro-rail .pro-nav-link {
     width: auto;
     height: auto;
+    min-height: 2.75rem;
     justify-content: flex-start;
-    grid-template-columns: 2rem 1fr;
+    grid-template-columns: 2rem minmax(0, 1fr);
     gap: 0.75rem;
     padding: 0.7rem 0.75rem;
   }
 
-  .pro-rail .pro-nav-link::after {
-    content: attr(title);
+  .pro-rail .pro-nav-label {
+    position: static;
+    left: auto;
+    top: auto;
+    transform: none;
+    z-index: auto;
+    width: auto;
+    max-width: none;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: inherit;
     font-size: 0.95rem;
     font-weight: 600;
-    color: inherit;
+    line-height: 1.25;
+    white-space: normal;
+    box-shadow: none;
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transition: none;
+  }
+
+  .pro-rail .rail-dot {
+    top: 0.85rem;
+    right: 0.85rem;
   }
 }
 
@@ -8105,20 +8149,16 @@ html.pref-reduce-motion .qol-overlay {
   box-shadow: none;
 }
 
-.pro-rail .pro-nav-link.is-active::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 22%;
-  bottom: 22%;
-  width: 2px;
-  border-radius: 1px;
-  background: var(--pro-gold);
-}
-
 .pro-rail .pro-nav-link:hover {
   background: rgba(255, 255, 255, 0.07);
   color: #fff;
+}
+
+@media (max-width: 860px) {
+  .pro-rail .pro-nav-link {
+    width: auto;
+    height: auto;
+  }
 }
 
 /* =============================================================================

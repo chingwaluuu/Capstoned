@@ -1,28 +1,28 @@
+{% set nav = namespace() %}
 {% include "partials/pro_nav_context.html" %}
-<header class="pro-topbar">
+{% set tab = nav.tab %}
+<header class="pro-topbar{% if user and user.role == 'student' %} is-student-topbar{% endif %}">
   <button
     type="button"
     class="pro-menu-btn"
     id="sidebar-toggle"
-    aria-label="Toggle navigation"
+    aria-label="Open navigation"
     aria-controls="pro-sidebar"
     aria-expanded="false"
   >☰</button>
 
-  <nav class="pro-top-nav" aria-label="Sections">
-    {% if user and user.role == 'student' %}
-      <a class="pro-top-link {% if tab == 'home' %}is-active{% endif %}" href="{{ url_for('home') }}">Home</a>
-      <a class="pro-top-link {% if tab == 'practice' %}is-active{% endif %}" href="{{ url_for('practice') }}">Practice</a>
-      <a class="pro-top-link {% if tab == 'results' %}is-active{% endif %}" href="{{ url_for('results') }}">Results</a>
-    {% elif role_nav %}
+  {% if role_nav %}
+    <nav class="pro-top-nav" aria-label="Sections">
       {% for item in role_nav %}
-        <a class="pro-top-link {% if tab == item.key or active_nav == item.key %}is-active{% endif %}" href="{{ url_for(item.endpoint) }}">{{ item.label }}</a>
+        <a
+          class="pro-top-link {% if tab == item.key or active_nav == item.key %}is-active{% endif %}"
+          href="{{ url_for(item.endpoint) }}"
+          {% if tab == item.key or active_nav == item.key %}aria-current="page"{% endif %}
+        >{{ item.label }}</a>
       {% endfor %}
-    {% endif %}
-  </nav>
-
-  {% if topbar_sub %}
-    <p class="pro-context">{{ topbar_sub }}</p>
+    </nav>
+  {% else %}
+    <div class="pro-top-spacer" aria-hidden="true"></div>
   {% endif %}
 
   <div class="pro-top-actions">
@@ -35,8 +35,7 @@
           type="button"
           class="icon-btn"
           id="notify-toggle"
-          aria-label="Announcements{% if unread_announcements %} ({{ unread_announcements }} unread){% endif %}"
-          title="Announcements"
+          aria-label="Announcement alerts{% if unread_announcements %} ({{ unread_announcements }} unread){% endif %}"
           aria-haspopup="true"
           aria-expanded="false"
           aria-controls="notify-dropdown"
