@@ -4,6 +4,7 @@
 
   const layout = document.querySelector(".announce-layout");
   const listPane = document.querySelector(".announce-list-pane");
+  const detailPane = document.querySelector(".announce-detail-pane");
   const items = () => [...document.querySelectorAll(".announce-item")];
   const groups = [...document.querySelectorAll(".announce-group")];
   const input = document.getElementById("announce-q");
@@ -106,8 +107,8 @@
     document.querySelectorAll(".notify-item").forEach((row) => {
       if (!all && String(row.dataset.id) !== String(id)) return;
       row.classList.remove("is-unread");
-      const subject = row.querySelector(".notify-subject");
-      if (subject) subject.textContent = subject.textContent.replace(/\s·\sNew$/, "");
+      const marker = row.querySelector(".notify-new");
+      if (marker) marker.hidden = true;
     });
   };
 
@@ -137,6 +138,7 @@
     const searching = Boolean(input?.value.trim());
     if (searchEmpty) searchEmpty.hidden = anyVisible || !searching;
     if (filterEmpty) filterEmpty.hidden = anyVisible || searching || currentFilter() !== "unread";
+    setHidden(detailPane, !anyVisible);
   };
 
   const setSelected = (item) => {

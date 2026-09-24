@@ -67,9 +67,12 @@
                   href="{{ note.href }}"
                   data-id="{{ note.id }}"
                 >
-                  <p class="notify-subject">{{ note.subject }}{% if note.unread %} · New{% endif %}</p>
-                  <p class="notify-item-title">{{ note.title }}</p>
-                  <p class="notify-meta">{{ note.meta }}</p>
+                  <p class="notify-item-source">{{ note.subject }} · {{ note.teacher }}</p>
+                  <p class="notify-item-title">
+                    {{ note.title }}
+                    <span class="notify-new" {% if not note.unread %}hidden{% endif %}>New</span>
+                  </p>
+                  <time class="notify-meta">{{ note.when }}</time>
                 </a>
               </li>
             {% else %}

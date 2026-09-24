@@ -2,118 +2,129 @@
 {% set active_tab = "results" %}
 {% set topbar_sub = "Results" %}
 {% block title %}{% if kind == 'assessment' %}Assessment{% else %}Practice{% endif %} Results — Bloom{% endblock %}
+{% block body_class %}student-refined{% endblock %}
 {% block page_header %}{% endblock %}
 {% block content_class %}pro-content-plain{% endblock %}
 {% block content %}
-    <section class="result-hero subject-accent-{{ subject.slug }}" aria-labelledby="result-title">
-      <div class="result-hero-main">
-        <div class="status-row result-hero-status">
-          <span class="hero-pill">{{ subject.name }}</span>
-          <span class="hero-pill">{% if kind == 'assessment' %}HOTS assessment{% else %}Practice check{% endif %}</span>
-          {% if difficulty_name %}<span class="hero-pill">{{ difficulty_name }}</span>{% endif %}
-        </div>
-        <h1 id="result-title" class="hero-title">{{ hero_title }}</h1>
-        <p class="hero-note">{{ material_title }} · Assistive learning feedback</p>
-        {% if story_summary and story_summary.total %}
-          <p class="result-story-chips">
-            {% if story_summary.good %}<span class="status-pill status-good">{{ story_summary.good }} strong</span>{% endif %}
-            {% if story_summary.improve %}<span class="status-pill status-improve">{{ story_summary.improve }} to improve</span>{% endif %}
-            <span class="status-pill status-neutral">{{ story_summary.total }} reviewed</span>
-          </p>
-        {% endif %}
-      </div>
-      <div class="result-score-box">
-        <span class="result-score-icon" aria-hidden="true">✓</span>
-        <div>
-          <p class="result-score-label">Your result</p>
-          <p class="result-score">{{ score_label }}</p>
-          <p class="result-message">{{ encouragement }}</p>
-        </div>
-      </div>
-    </section>
+  <div class="review-page">
+    <header class="review-head" aria-labelledby="result-title">
+      <p class="review-context">
+        <span>{{ subject.name }}</span>
+        <span>{% if kind == 'assessment' %}HOTS assessment{% else %}Practice check{% endif %}</span>
+        {% if difficulty_name %}<span>{{ difficulty_name }}</span>{% endif %}
+      </p>
+      <h1 id="result-title" class="pro-hero-title review-title">{{ hero_title }}</h1>
+      <p class="review-source">{{ material_title }} · Assistive learning feedback</p>
 
-    <section class="home-section result-review-section" aria-labelledby="review-title">
-      <div class="section-heading-row">
-        <div>
-          <p class="section-eyebrow">How did I do?</p>
-          <h2 id="review-title" class="section-title section-title-sm">Review your answers</h2>
+      <div class="review-summary">
+        <div class="review-score">
+          <p class="review-summary-label">Your result</p>
+          <p class="review-score-value">{{ score_label }}</p>
         </div>
-        <span class="count-badge">{{ review_items|length }} item{% if review_items|length != 1 %}s{% endif %}</span>
+        {% if story_summary and story_summary.total %}
+          <ul class="review-tally" aria-label="Answer summary">
+            {% if story_summary.good %}<li class="review-tally-good"><strong>{{ story_summary.good }}</strong> strong</li>{% endif %}
+            {% if story_summary.improve %}<li class="review-tally-improve"><strong>{{ story_summary.improve }}</strong> to improve</li>{% endif %}
+            <li><strong>{{ story_summary.total }}</strong> reviewed</li>
+          </ul>
+        {% endif %}
+        <p class="review-encouragement">{{ encouragement }}</p>
       </div>
-      <div class="hub-list review-list">
+    </header>
+
+    <section class="review-answers" aria-labelledby="review-title">
+      <header class="practice-head">
+        <h2 id="review-title" class="practice-head-title">Review your answers</h2>
+        <p class="practice-count">{{ review_items|length }} item{% if review_items|length != 1 %}s{% endif %}</p>
+      </header>
+      <ol class="review-items">
         {% for item in review_items %}
-          <article class="hub-card hub-card-stack review-card review-{{ item.status }}">
-            <div class="review-card-head">
-              <div class="status-row">
-                <span class="status-pill status-thinking">{{ item.bloom }}</span>
-                <span class="review-status review-status-{{ item.status }}">{{ item.status_label }}</span>
-              </div>
-              <h3 class="hub-card-title">{{ item.prompt }}</h3>
+          <li class="review-item is-{{ item.status }}">
+            <div class="review-item-head">
+              <p class="review-item-meta">
+                <span>Question {{ loop.index }}</span>
+                {% if item.bloom %}<span class="review-item-bloom">{{ item.bloom }}</span>{% endif %}
+              </p>
+              <span class="review-item-status is-{{ item.status }}">{{ item.status_label }}</span>
             </div>
-            <div class="review-answer-grid">
-              <div class="review-answer">
-                <p class="review-answer-label">Your answer</p>
-                <p>{{ item.your_answer }}</p>
+            <h3 class="review-item-prompt">{{ item.prompt }}</h3>
+            <div class="review-compare{% if not item.correct_answer %} is-single{% endif %}">
+              <div class="review-compare-cell">
+                <p class="review-label">Your answer</p>
+                <p class="review-compare-text{% if item.your_answer == '(No answer)' %} is-empty{% endif %}">{{ item.your_answer }}</p>
               </div>
               {% if item.correct_answer %}
-                <div class="review-answer review-answer-suggested">
-                  <p class="review-answer-label">Suggested answer</p>
-                  <p>{{ item.correct_answer }}</p>
+                <div class="review-compare-cell is-suggested">
+                  <p class="review-label">Suggested answer</p>
+                  <p class="review-compare-text">{{ item.correct_answer }}</p>
                 </div>
               {% endif %}
             </div>
-            <div class="review-feedback">
-              <p class="review-feedback-label">Why this matters</p>
-              <p class="review-explain">{{ item.explanation }}</p>
+            <div class="review-why">
+              <p class="review-why-text">{{ item.explanation }}</p>
               {% if item.rubric %}
-                <p class="review-rubric">Rubric note: {{ item.rubric }}</p>
+                <p class="review-why-note">Rubric note: {{ item.rubric }}</p>
               {% endif %}
-              <p class="summary-cite">Source: {{ item.citation }}</p>
+              <p class="review-why-source">Source: {{ item.citation }}</p>
             </div>
-          </article>
+          </li>
         {% endfor %}
-      </div>
+      </ol>
     </section>
 
-    {% if next_steps %}
-      <section class="result-next-steps" aria-labelledby="next-steps-title">
-        <div class="section-heading-row">
-          <div>
+    <div class="review-after">
+      {% if next_steps %}
+        {% set primary_steps = next_steps|selectattr("primary")|list %}
+        {% set other_steps = next_steps|rejectattr("primary")|list %}
+        <section class="review-next" aria-labelledby="next-steps-title">
+          <header class="practice-head">
+            <h2 id="next-steps-title" class="practice-head-title">
+              {% if assessment_exhausted %}What you can do next{% else %}Continue learning{% endif %}
+            </h2>
+            {% if assessment_exhausted %}<p class="review-next-status">Assessment closed</p>{% endif %}
+          </header>
+          {% for step in primary_steps %}
+            <div class="review-next-primary">
+              <p class="review-next-kicker">{{ step.kicker }}</p>
+              <h3 class="review-next-title">{{ step.title }}</h3>
+              <p class="review-next-meta">{{ step.meta }}</p>
+              <a class="btn-primary review-next-action" href="{{ step.href }}">{{ step.action }} <span aria-hidden="true">→</span></a>
+            </div>
+          {% endfor %}
+          {% if other_steps %}
+            <ul class="review-next-list">
+              {% for step in other_steps %}
+                <li class="review-next-row">
+                  <div class="review-next-copy">
+                    <p class="review-next-kicker">{{ step.kicker }}</p>
+                    <h3 class="review-next-row-title">{{ step.title }}</h3>
+                    <p class="review-next-meta">{{ step.meta }}</p>
+                  </div>
+                  <a class="editorial-text-link" href="{{ step.href }}">{{ step.action }} <span aria-hidden="true">→</span></a>
+                </li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+        </section>
+      {% endif %}
+
+      <aside class="review-support" aria-label="Help and navigation">
+        {% if ask_teacher %}
+          <div class="review-support-help">
             {% if assessment_exhausted %}
-              <p class="section-eyebrow">Assessment closed</p>
-              <h2 id="next-steps-title" class="section-title section-title-sm">What you can do next</h2>
+              <p class="review-support-note">Need another try? Ask {{ ask_teacher.name }} for an extra attempt.</p>
+              <a class="review-support-btn" href="{{ ask_teacher.href }}">Request extra attempt</a>
             {% else %}
-              <p class="section-eyebrow">What should I do next?</p>
-              <h2 id="next-steps-title" class="section-title section-title-sm">Continue learning</h2>
+              <p class="review-support-note">Still confused? Ask {{ ask_teacher.name }} before you leave.</p>
+              <a class="review-support-btn" href="{{ ask_teacher.href }}">Ask Teacher</a>
             {% endif %}
           </div>
-        </div>
-        <div class="hub-list">
-          {% for step in next_steps %}
-            <article class="hub-card">
-              <div>
-                <p class="hub-card-kicker">{{ step.kicker }}</p>
-                <h3 class="hub-card-title">{{ step.title }}</h3>
-                <p class="hub-card-meta">{{ step.meta }}</p>
-              </div>
-              <a class="today-action {% if not step.primary %}today-action-soft{% endif %}" href="{{ step.href }}">{{ step.action }}</a>
-            </article>
-          {% endfor %}
-        </div>
-      </section>
-    {% endif %}
-
-    <div class="summary-footer result-actions-card">
-      {% if ask_teacher %}
-        {% if assessment_exhausted %}
-          <p class="section-note">Need another try? Ask {{ ask_teacher.name }} for an extra attempt.</p>
-          <a class="btn-primary btn-inline" href="{{ ask_teacher.href }}">Request extra attempt</a>
-        {% else %}
-          <p class="section-note">Still confused? Ask {{ ask_teacher.name }} before you leave.</p>
-          <a class="btn-primary btn-inline" href="{{ ask_teacher.href }}">Ask Teacher</a>
         {% endif %}
-      {% endif %}
-      <a class="today-action today-action-soft" href="{{ url_for('subject_hub', slug=subject.slug, tab='practice') }}">Back to Practice</a>
-      <a class="text-link" href="{{ url_for('home') }}">Go to Home</a>
+        <nav class="review-exit" aria-label="Leave review">
+          <a class="editorial-text-link" href="{{ url_for('subject_hub', slug=subject.slug, tab='practice') }}">Back to Practice</a>
+          <a class="editorial-text-link" href="{{ url_for('home') }}">Go to Home</a>
+        </nav>
+      </aside>
     </div>
+  </div>
 {% endblock %}

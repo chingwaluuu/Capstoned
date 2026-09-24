@@ -1,17 +1,19 @@
 {% extends "layouts/pro.html" %}
 {% set active_tab = "home" %}
 {% block title %}Home — Bloom{% endblock %}
-{% block body_class %}home-editorial{% endblock %}
+{% block body_class %}home-editorial student-home student-refined{% endblock %}
 {% block page_header %}
+  {% set primary = today_items[0] if today_items else none %}
+  {% set secondary = today_items[1:] if today_items|length > 1 else [] %}
   <div class="editorial-page">
     <header class="editorial-greeting" aria-labelledby="home-greeting">
       <h1 class="editorial-title" id="home-greeting">{{ greeting }}</h1>
       <p class="editorial-lede">{{ guide_note }}</p>
       <p class="editorial-meta-line">
         {% if weekly_goal.has_progress %}
-          <a href="{{ url_for('practice') }}">Practice avg {{ weekly_goal.percent }}%</a>
+          <a href="{{ url_for('practice') }}">Practice average {{ weekly_goal.percent }}%</a>
         {% else %}
-          <a class="is-quiet" href="{{ url_for('practice') }}">Practice avg · Not started yet</a>
+          <a class="is-quiet" href="{{ url_for('practice') }}">Practice avg · No score yet</a>
         {% endif %}
         {% if unread_announcements %}
           <span class="meta-sep" aria-hidden="true">·</span>
@@ -24,59 +26,83 @@
       </p>
     </header>
 
-    {% set primary = today_items[0] if today_items else none %}
-    {% set secondary = today_items[1:] if today_items|length > 1 else [] %}
-
-    <section class="editorial-band" aria-label="Continue learning">
-      <article class="editorial-continue">
-        {% if primary %}
-          <p class="editorial-kicker">Do this next</p>
-          <h2 class="editorial-continue-title">{{ primary.title }}</h2>
-          <p class="editorial-continue-copy">
-            {% if primary.subject %}<span class="editorial-subject-label">{{ primary.subject }}</span>{% endif %}
-            {{ primary.meta }}
-          </p>
-          <div class="editorial-continue-actions">
-            {% if primary.actions %}
-              {% for step in primary.actions %}
-                <a
-                  class="{% if loop.first %}btn-primary{% else %}editorial-text-link{% endif %}"
-                  href="{{ step.href }}"
-                >{{ step.label }}{% if loop.first %} <span aria-hidden="true">→</span>{% endif %}</a>
-              {% endfor %}
-            {% else %}
-              <a class="btn-primary" href="{{ primary.href }}">
-                {{ primary.action }} <span aria-hidden="true">→</span>
-              </a>
-              {% if primary.secondary_href and primary.secondary_action %}
-                <a class="editorial-text-link" href="{{ primary.secondary_href }}">{{ primary.secondary_action }}</a>
+    <div class="editorial-band">
+      <div class="editorial-main">
+        <section class="editorial-continue" aria-labelledby="home-next-label">
+          <h2 class="editorial-section-label" id="home-next-label">Do this next</h2>
+          {% if primary %}
+            <h3 class="editorial-continue-title">{{ primary.title }}</h3>
+            <p class="editorial-continue-copy">
+              {% if primary.subject %}<span class="editorial-subject-label">{{ primary.subject }}</span>{% endif %}
+              {{ primary.meta }}
+            </p>
+            <div class="editorial-continue-actions">
+              {% if primary.actions %}
+                {% for step in primary.actions %}
+                  <a
+                    class="{% if loop.first %}btn-primary{% elif step.tone == 'accent' %}editorial-text-link editorial-assessment-link{% else %}editorial-text-link{% endif %}"
+                    href="{{ step.href }}"
+                  >{{ step.label }}{% if loop.first %} <span aria-hidden="true">→</span>{% endif %}</a>
+                {% endfor %}
+              {% else %}
+                <a class="btn-primary" href="{{ primary.href }}">
+                  {{ primary.action }} <span aria-hidden="true">→</span>
+                </a>
+                {% if primary.secondary_href and primary.secondary_action %}
+                  <a class="editorial-text-link" href="{{ primary.secondary_href }}">{{ primary.secondary_action }}</a>
+                {% endif %}
               {% endif %}
-            {% endif %}
-          </div>
-        {% else %}
-          <p class="editorial-kicker">Do this next</p>
-          <h2 class="editorial-continue-title">
-            {% if weekly_goal.has_progress %}You’re all caught up{% else %}Nothing waiting yet{% endif %}
-          </h2>
-          <p class="editorial-continue-copy">
-            {% if weekly_goal.has_progress %}
-              When something needs attention, it will show up here. Open a subject to keep learning.
-            {% else %}
-              {{ weekly_goal.hint }}
-            {% endif %}
-          </p>
-          <div class="editorial-continue-actions">
-            <a class="btn-primary" href="#subjects-title">Browse subjects <span aria-hidden="true">↓</span></a>
-          </div>
-        {% endif %}
-      </article>
+            </div>
+          {% else %}
+            <h3 class="editorial-continue-title">
+              {% if weekly_goal.has_progress %}You’re all caught up{% else %}Nothing waiting yet{% endif %}
+            </h3>
+            <p class="editorial-continue-copy">
+              {% if weekly_goal.has_progress %}
+                When something needs attention, it will show up here. Open a subject to keep learning.
+              {% else %}
+                {{ weekly_goal.hint }}
+              {% endif %}
+            </p>
+            <div class="editorial-continue-actions">
+              <a class="btn-primary" href="#subjects-title">Browse subjects <span aria-hidden="true">↓</span></a>
+            </div>
+          {% endif %}
+        </section>
 
-      <div class="editorial-subjects-wrap">
+        {% if secondary %}
+          <section class="editorial-also" aria-labelledby="also-today-title">
+            <h2 class="editorial-section-label" id="also-today-title">Also today</h2>
+            <div class="editorial-rows is-open" role="list">
+              {% for item in secondary %}
+                <article class="editorial-row" role="listitem">
+                  <div class="editorial-row-main">
+                    <p class="editorial-row-kicker">
+                      {% if item.subject %}{{ item.subject }} · {% endif %}{{ item.kicker }}
+                    </p>
+                    <h3 class="editorial-row-title">{{ item.title }}</h3>
+                    <p class="editorial-row-meta">{{ item.meta }}</p>
+                  </div>
+                  <div class="editorial-row-action">
+                    {% if item.actions %}
+                      <a class="editorial-text-link" href="{{ item.actions[0].href }}">{{ item.actions[0].label }} →</a>
+                    {% else %}
+                      <a class="editorial-text-link" href="{{ item.href }}">{{ item.action }} →</a>
+                    {% endif %}
+                  </div>
+                </article>
+              {% endfor %}
+            </div>
+          </section>
+        {% endif %}
+      </div>
+
+      <section class="editorial-subjects-wrap" aria-labelledby="subjects-title">
         <div class="editorial-subjects-head">
           <h2 class="editorial-subjects-label" id="subjects-title">My Subjects</h2>
-          <p class="editorial-subjects-note">Grade 7</p>
+          <p class="editorial-subjects-note">{{ user.section or "Grade 7" }}</p>
         </div>
-        <div class="editorial-subjects" aria-label="My subjects">
+        <div class="editorial-subjects">
           {% for subject in subjects %}
             {% set has_score = subject.has_progress and subject.progress_percent > 0 %}
             <a class="subject-tile {% if has_score %}has-score{% else %}is-empty{% endif %}" href="{{ url_for('subject_hub', slug=subject.slug) }}">
@@ -99,35 +125,8 @@
             </a>
           {% endfor %}
         </div>
-      </div>
-    </section>
+      </section>
+    </div>
   </div>
 {% endblock %}
-{% block content %}
-  {% set secondary = today_items[1:] if today_items|length > 1 else [] %}
-  {% if secondary %}
-    <section class="editorial-today-list" aria-labelledby="also-today-title">
-      <h2 class="editorial-list-title" id="also-today-title">Also today</h2>
-      <div class="editorial-rows is-open" role="list">
-        {% for item in secondary %}
-          <article class="editorial-row" role="listitem">
-            <div class="editorial-row-main">
-              <p class="editorial-row-kicker">
-                {% if item.subject %}{{ item.subject }} · {% endif %}{{ item.kicker }}
-              </p>
-              <h3 class="editorial-row-title">{{ item.title }}</h3>
-              <p class="editorial-row-meta">{{ item.meta }}</p>
-            </div>
-            <div class="editorial-row-action">
-              {% if item.actions %}
-                <a class="editorial-text-link" href="{{ item.actions[0].href }}">{{ item.actions[0].label }} →</a>
-              {% else %}
-                <a class="editorial-text-link" href="{{ item.href }}">{{ item.action }} →</a>
-              {% endif %}
-            </div>
-          </article>
-        {% endfor %}
-      </div>
-    </section>
-  {% endif %}
-{% endblock %}
+{% block content %}{% endblock %}

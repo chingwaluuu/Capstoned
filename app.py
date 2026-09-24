@@ -589,9 +589,9 @@ def announcements_context(user=None):
             {
                 "id": note.id,
                 "subject": note.subject,
+                "teacher": note.teacher.name if note.teacher else "Your teacher",
                 "title": note.title,
-                "meta": announcement_when_label(note.created_at)
-                + (f" · {note.teacher.name}" if note.teacher else ""),
+                "when": announcement_when_label(note.created_at),
                 "unread": note.id not in read_ids,
                 "href": announcements_url(note.id, arrive=True),
             }
@@ -2497,6 +2497,7 @@ def results():
     else:
         filter_name = "all"
     items = []
+    today = datetime.utcnow().date()
     for attempt in query.all():
         score_pending = bool(
             attempt.kind == "assessment"
@@ -2544,6 +2545,13 @@ def results():
         if attempt.kind == "assessment" and attempt.assessment:
             taken, allowed = assessment_attempt_counts(user["id"], attempt.assessment)
             attempts_exhausted = taken >= allowed
+        submitted_day = attempt.submitted_at.date() if attempt.submitted_at else None
+        if submitted_day == today:
+            history_bucket = "today"
+        elif submitted_day and 0 < (today - submitted_day).days <= 6:
+            history_bucket = "this-week"
+        else:
+            history_bucket = "earlier"
         items.append(
             {
                 "kind": attempt.kind.title(),
@@ -2553,6 +2561,7 @@ def results():
                 "title": attempt.title,
                 "meta": attempt_meta(attempt),
                 "date_label": attempt.submitted_at.strftime("%b %d, %Y") if attempt.submitted_at else "Recent",
+                "history_bucket": history_bucket,
                 "score_label": score_label,
                 "score_percent": score_percent,
                 "score_tone": score_tone,
@@ -2563,6 +2572,12 @@ def results():
                 "attempts_exhausted": attempts_exhausted,
             }
         )
+    result_groups = []
+    if len(items) > 5:
+        for key, label in (("today", "Today"), ("this-week", "This week"), ("earlier", "Earlier")):
+            group_items = [item for item in items if item["history_bucket"] == key]
+            if group_items:
+                result_groups.append({"key": key, "label": label, "items": group_items})
     story = None
     if items:
         latest = items[0]
@@ -2602,7 +2617,13 @@ def results():
                 "cta_href": latest["href"],
                 "cta_label": "Review feedback",
             }
-    context = {"user": user, "filter": filter_name, "result_items": items, "results_story": story}
+    context = {
+        "user": user,
+        "filter": filter_name,
+        "result_items": items,
+        "result_groups": result_groups,
+        "results_story": story,
+    }
     context.update(announcements_context(user))
     return render_template("results.html", **context)
 

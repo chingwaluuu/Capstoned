@@ -2,20 +2,18 @@
 {% from "partials/work_item_card.html" import work_item_card %}
 {% set active_tab = "practice" %}
 {% block title %}Practice — Bloom{% endblock %}
-{% block page_kicker %}Build your skills{% endblock %}
+{% block body_class %}student-refined{% endblock %}
 {% block page_title %}Practice{% endblock %}
 {% block page_subtitle %}Choose a subject and build your thinking skills at your own pace.{% endblock %}
 {% block content %}
   <section class="practice-library" aria-labelledby="practice-ready-title">
-    <div class="section-heading-row">
-      <div>
-        <p class="section-eyebrow">Ready for you</p>
-        <h2 class="section-title section-title-sm" id="practice-ready-title">Practice library</h2>
-      </div>
-      <span class="count-badge {% if practice_available_count == 0 %}count-badge-muted{% endif %}">
-        {{ practice_available_count }} available
-      </span>
-    </div>
+    <header class="practice-head">
+      <h2 class="practice-head-title" id="practice-ready-title">Practice library</h2>
+      <p class="practice-count">{{ practice_available_count }} available</p>
+    </header>
+    {% if practice_available_count %}
+      <p class="practice-library-note">Approved checks are self-paced and take about 10 minutes.</p>
+    {% endif %}
 
     {% if practice_items %}
       <div class="filter-chips subject-filter-row" role="group" aria-label="Filter by subject" data-practice-filters>
@@ -25,10 +23,7 @@
             type="button"
             class="chip-link subject-filter-chip subject-{{ subject.slug }}"
             data-subject-filter="{{ subject.slug }}"
-          >
-            <span class="subject-filter-dot" aria-hidden="true"></span>
-            {{ subject.name }}
-          </button>
+          >{{ subject.name }}</button>
         {% endfor %}
       </div>
 
@@ -38,30 +33,23 @@
             subject_slug=item.subject_slug,
             subject_name=item.subject,
             title=item.title,
-            context_badge=("Locked" if item.locked else "Ready"),
+            context_badge=("Locked" if item.locked else none),
             context_badge_class=("status-locked" if item.locked else "status-ready"),
-            meta_text=item.meta,
+            meta_text=(item.meta if item.locked else none),
             action_href=item.href,
             action_label=("Locked" if item.locked else "Start practice"),
-            action_variant=("disabled" if item.locked else "primary"),
+            action_variant=("disabled" if item.locked else "secondary"),
             locked=item.locked,
             data_subject=item.subject_slug
           ) }}
         {% endfor %}
       </div>
     {% else %}
-      <article class="empty-state-card practice-empty">
-        <span class="empty-state-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
-            <path d="M8 7h8M8 11h5"></path>
-          </svg>
-        </span>
+      <div class="practice-empty">
         <h3 class="empty-title">Nothing to practice yet</h3>
         <p class="empty-copy">Your teacher hasn’t approved practice materials yet. When a lesson is ready, it will show up here for you to start.</p>
-        <a class="wic-btn wic-btn-secondary empty-state-action" href="{{ url_for('home') }}#subjects-title">Go to Study</a>
-      </article>
+        <a class="editorial-text-link" href="{{ url_for('home') }}#subjects-title">Go to your subjects →</a>
+      </div>
     {% endif %}
   </section>
 {% endblock %}

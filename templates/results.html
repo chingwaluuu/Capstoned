@@ -3,72 +3,76 @@
 {% set active_tab = "results" %}
 {% set topbar_sub = "Results" %}
 {% block title %}Results — Bloom{% endblock %}
-{% block page_kicker %}Review and improve{% endblock %}
+{% block body_class %}student-refined{% endblock %}
 {% block page_title %}Results{% endblock %}
 {% block page_subtitle %}See how you did, learn from feedback, and choose what to practice next.{% endblock %}
-{% block page_actions %}
-  <div class="filter-chips on-hero" role="group" aria-label="Result filters">
-    <a class="chip-link {% if filter == 'all' %}active{% endif %}" href="{{ url_for('results', filter='all') }}">All</a>
-    <a class="chip-link {% if filter == 'assessments' %}active{% endif %}" href="{{ url_for('results', filter='assessments') }}">Assessments</a>
-    <a class="chip-link {% if filter == 'practice' %}active{% endif %}" href="{{ url_for('results', filter='practice') }}">Practice</a>
-  </div>
-{% endblock %}
+{% macro result_row(item) %}
+  {{ work_item_card(
+    subject_slug=item.subject_slug,
+    subject_name=item.subject,
+    title=item.title,
+    context_badge=item.kind,
+    context_badge_class="status-" ~ item.kind_slug,
+    meta_text=item.date_label,
+    action_href=item.href,
+    action_label=item.action,
+    action_variant="secondary",
+    avatar_label=("A" if item.kind_slug == "assessment" else "P"),
+    score_tone=item.score_tone,
+    score_label=item.score_label,
+    trend=item.trend,
+    kind_slug=item.kind_slug
+  ) }}
+{% endmacro %}
 {% block content %}
-  {% if results_story %}
-    <section class="results-story subject-{{ result_items[0].subject_slug if result_items else 'general' }}" aria-labelledby="results-story-title">
-      <div class="results-story-copy">
-        <p class="section-eyebrow">{{ results_story.eyebrow }}</p>
-        <h2 id="results-story-title" class="section-title section-title-sm">{{ results_story.title }}</h2>
-        <p class="section-note">{{ results_story.message }}</p>
-      </div>
-      <a class="today-action" href="{{ results_story.cta_href }}">{{ results_story.cta_label }} <span aria-hidden="true">→</span></a>
-    </section>
-  {% endif %}
-
-  <section class="results-library" aria-labelledby="results-history-title">
-    <div class="section-heading-row">
-      <div>
-        <p class="section-eyebrow">Learning history</p>
-        <h2 class="section-title section-title-sm" id="results-history-title">Your recent work</h2>
-      </div>
-      <span class="count-badge {% if not result_items %}count-badge-muted{% endif %}">
-        {{ result_items|length }} result{% if result_items|length != 1 %}s{% endif %}
-      </span>
-    </div>
-
-    {% if result_items %}
-      <div class="work-item-list pro-stagger-in">
-        {% for item in result_items %}
-          {{ work_item_card(
-            subject_slug=item.subject_slug,
-            subject_name=item.subject,
-            title=item.title,
-            context_badge=item.kind,
-            context_badge_class="status-" ~ item.kind_slug,
-            meta_text=item.date_label,
-            action_href=item.href,
-            action_label=item.action,
-            action_variant="secondary",
-            avatar_label=("A" if item.kind_slug == "assessment" else "P"),
-            score_tone=item.score_tone,
-            score_label=item.score_label,
-            trend=item.trend,
-            kind_slug=item.kind_slug
-          ) }}
-        {% endfor %}
-      </div>
-    {% else %}
-      <article class="empty-state-card results-empty">
-        <span class="empty-state-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M9 11l3 3L22 4"></path>
-            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
-          </svg>
-        </span>
-        <h3 class="empty-title">No results yet</h3>
-        <p class="empty-copy">Finish a practice check or assessment, then come back here to review feedback and decide what to try next.</p>
-        <a class="wic-btn wic-btn-secondary empty-state-action" href="{{ url_for('practice') }}">Go to Practice</a>
-      </article>
+  <div class="results-page">
+    {% if results_story %}
+      <section class="results-focus" aria-labelledby="results-story-title">
+        <p class="results-focus-label">{{ results_story.eyebrow }}</p>
+        <h2 id="results-story-title" class="results-focus-title">{{ results_story.title }}</h2>
+        <p class="results-focus-note">{{ results_story.message }}</p>
+        <a class="btn-primary results-focus-action" href="{{ results_story.cta_href }}">{{ results_story.cta_label }} <span aria-hidden="true">→</span></a>
+      </section>
     {% endif %}
-  </section>
+
+    <section class="results-library" aria-labelledby="results-history-title">
+      <header class="practice-head results-head">
+        <h2 class="practice-head-title" id="results-history-title">Your recent work</h2>
+        <p class="practice-count">{{ result_items|length }} result{% if result_items|length != 1 %}s{% endif %}</p>
+      </header>
+
+      <div class="filter-chips subject-filter-row" role="group" aria-label="Result filters">
+        <a class="chip-link {% if filter == 'all' %}active{% endif %}" href="{{ url_for('results', filter='all') }}"{% if filter == 'all' %} aria-current="page"{% endif %}>All</a>
+        <a class="chip-link {% if filter == 'assessments' %}active{% endif %}" href="{{ url_for('results', filter='assessments') }}"{% if filter == 'assessments' %} aria-current="page"{% endif %}>Assessments</a>
+        <a class="chip-link {% if filter == 'practice' %}active{% endif %}" href="{{ url_for('results', filter='practice') }}"{% if filter == 'practice' %} aria-current="page"{% endif %}>Practice</a>
+      </div>
+
+      {% if result_items|length == 1 and results_story %}
+        <p class="results-highlight-note">The result in this view is highlighted above.</p>
+      {% elif result_groups %}
+        {% for group in result_groups %}
+          <section class="results-history-group" aria-labelledby="results-group-{{ group.key }}">
+            <h3 class="results-history-label" id="results-group-{{ group.key }}">{{ group.label }}</h3>
+            <div class="work-item-list pro-stagger-in">
+              {% for item in group.items %}
+                {{ result_row(item) }}
+              {% endfor %}
+            </div>
+          </section>
+        {% endfor %}
+      {% elif result_items %}
+        <div class="work-item-list pro-stagger-in">
+          {% for item in result_items %}
+            {{ result_row(item) }}
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="results-empty">
+          <h3 class="empty-title">No results yet</h3>
+          <p class="empty-copy">Finish a practice check or assessment, then come back here to review feedback and decide what to try next.</p>
+          <a class="editorial-text-link" href="{{ url_for('practice') }}">Go to Practice <span aria-hidden="true">→</span></a>
+        </div>
+      {% endif %}
+    </section>
+  </div>
 {% endblock %}

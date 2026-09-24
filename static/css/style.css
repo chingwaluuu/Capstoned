@@ -1171,14 +1171,6 @@ body {
   background: rgba(11, 61, 145, 0.04);
 }
 
-.notify-subject {
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--quiet);
-}
-
 .notify-item-title {
   margin-top: 0.2rem;
   font-size: 0.95rem;

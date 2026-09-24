@@ -2,8 +2,7 @@
 {% set active_tab = "announcements" %}
 {% set topbar_sub = "Announcements" %}
 {% block title %}{% if selected %}{{ selected.title }} — {% endif %}Announcements — Bloom{% endblock %}
-{% block body_class %}announce-body{% endblock %}
-{% block page_kicker %}From your teachers{% endblock %}
+{% block body_class %}announce-body student-refined{% endblock %}
 {% block page_title %}Announcements{% endblock %}
 {% block page_subtitle %}Important updates from your teachers, organized in one clear place.{% endblock %}
 {% block page_actions %}
@@ -31,10 +30,7 @@
       data-list-href="{{ list_href }}"
       data-mark-all-url="{{ mark_all_url }}"
     >
-      <div class="announce-section-heading">
-        <p class="section-eyebrow">Teacher updates</p>
-        <h2 id="announce-title" class="section-title section-title-sm">Your announcement inbox</h2>
-      </div>
+      <h2 id="announce-title" class="sr-only">Your announcement inbox</h2>
 
       {% if has_announcements %}
         <div class="announce-toolbar">
@@ -70,7 +66,7 @@
           </div>
         </div>
 
-        <div class="announce-layout {% if selected %}is-open{% endif %}">
+        <div class="announce-layout {% if selected %}is-open{% endif %} {% if announcements|length == 1 %}is-single{% endif %}">
           <div class="announce-list-pane">
             {% if groups %}
               {% for group in groups %}
@@ -86,17 +82,16 @@
                         data-search="{{ note.search }}"
                         {% if note.selected %}aria-current="page"{% endif %}
                       >
-                        {% with class_name="avatar announce-avatar", initials=note.initials, photo_url=note.photo_url %}
-                          {% include "partials/user_avatar.html" %}
-                        {% endwith %}
                         <div class="announce-item-copy">
                           <div class="announce-item-top">
-                            <p class="announce-item-title">{{ note.title }}</p>
-                            <span class="status-pill status-new announce-new" {% if not note.unread %}hidden{% endif %}>New</span>
-                            {% if note.unread %}<span class="sr-only announce-unread-label">Unread</span>{% endif %}
+                            <p class="announce-item-meta"><span class="announce-item-source">{{ note.teacher }}</span> · {{ note.subject }}</p>
+                            <time class="announce-item-when" title="{{ note.posted }}">{{ note.when }}</time>
                           </div>
-                          <p class="announce-item-meta"><strong>{{ note.subject }}</strong> · {{ note.teacher }}</p>
-                          <time class="announce-item-when" title="{{ note.posted }}">{{ note.when }}</time>
+                          <p class="announce-item-title">
+                            {% if note.unread %}<span class="sr-only announce-unread-label">Unread:</span>{% endif %}
+                            {{ note.title }}
+                            <span class="announce-new" {% if not note.unread %}hidden{% endif %}>New</span>
+                          </p>
                           {% if note.preview %}
                             <p class="announce-item-preview">{{ note.preview }}</p>
                           {% endif %}
@@ -106,20 +101,17 @@
                   </div>
                 </section>
               {% endfor %}
-              <article class="empty-state-card announce-search-empty" id="announce-search-empty" hidden>
-                <p class="empty-kicker">Search</p>
+              <div class="announce-empty announce-search-empty" id="announce-search-empty" hidden>
                 <h3 class="empty-title">No announcements found</h3>
                 <p class="empty-copy">Try a different search.</p>
-              </article>
-              <article class="empty-state-card" id="announce-filter-empty" hidden>
-                <p class="empty-kicker">Announcements</p>
+              </div>
+              <div class="announce-empty" id="announce-filter-empty" hidden>
                 <h3 class="empty-title">You’re all caught up</h3>
                 <p class="empty-copy">You’ve read all your announcements.</p>
-                <a class="today-action today-action-soft" href="{{ url_for('announcements') }}">View all announcements</a>
-              </article>
+                <a class="editorial-text-link" href="{{ url_for('announcements') }}">View all announcements <span aria-hidden="true">→</span></a>
+              </div>
             {% else %}
-              <article class="empty-state-card">
-                <p class="empty-kicker">Announcements</p>
+              <div class="announce-empty">
                 <h3 class="empty-title">
                   {% if q %}
                     No announcements found
@@ -139,13 +131,13 @@
                   {% endif %}
                 </p>
                 {% if q or filter != 'all' %}
-                  <a class="today-action today-action-soft" href="{{ url_for('announcements') }}">View all announcements</a>
+                  <a class="editorial-text-link" href="{{ url_for('announcements') }}">View all announcements <span aria-hidden="true">→</span></a>
                 {% endif %}
-              </article>
+              </div>
             {% endif %}
           </div>
 
-          <section class="announce-detail-pane" aria-live="polite">
+          <section class="announce-detail-pane" aria-live="polite" {% if not groups %}hidden{% endif %}>
             <h2 class="announce-pane-label">Message</h2>
             <a class="hub-back announce-back" id="announce-back" href="{{ list_href }}" {% if not selected %}hidden{% endif %}>← Back to announcements</a>
             <article
@@ -155,7 +147,7 @@
               {% if selected %}data-announce-id="{{ selected.id }}"{% endif %}
             >
               <div class="announce-detail-meta-row">
-                <p class="announce-detail-kicker status-pill status-subject" id="announce-detail-kicker">{% if selected %}{{ selected.subject }}{% endif %}</p>
+                <p class="announce-detail-kicker" id="announce-detail-kicker">{% if selected %}{{ selected.subject }}{% endif %}</p>
                 <p class="announce-detail-date" id="announce-detail-date" {% if selected %}title="{{ selected.posted }}"{% endif %}>{% if selected %}{{ selected.posted }}{% endif %}</p>
               </div>
               <h2 class="announce-detail-title" id="announce-detail-title">{% if selected %}{{ selected.title }}{% endif %}</h2>
@@ -192,12 +184,10 @@
           </section>
         </div>
       {% else %}
-        <article class="empty-state-card">
-          <span class="today-icon announce-empty-icon" data-type="announcement" aria-hidden="true"></span>
-          <p class="empty-kicker">Announcements</p>
+        <div class="announce-empty announce-empty-inbox">
           <h3 class="empty-title">No announcements yet</h3>
-          <p class="empty-copy">Your teachers haven’t posted anything yet. New announcements will appear here.</p>
-        </article>
+          <p class="empty-copy">When your teachers post an update, it will appear here.</p>
+        </div>
       {% endif %}
     </section>
 {% endblock %}
