@@ -2,13 +2,13 @@
 {% set active_tab = "messages" if user.role == "student" else "" %}
 {% set topbar_sub = "Messages" %}
 {% block title %}{{ other.name }} — Messages — Bloom{% endblock %}
-{% block body_class %}pro-focus{% endblock %}
+{% block body_class %}pro-focus{% if user.role == "student" %} student-refined{% endif %}{% endblock %}
 {% block page_header %}{% endblock %}
 {% block main_class %}chat-main{% endblock %}
 {% block content_class %}pro-content-plain chat-content{% endblock %}
 {% block content %}
     <section
-      class="chat-shell subject-accent-{{ other.subject_slug or 'general' }}"
+      class="chat-shell"
       data-poll-url="{{ poll_url }}"
       data-send-url="{{ send_url }}"
       data-read-url="{{ url_for('messages_mark_read', user_id=other.id) }}"
@@ -21,10 +21,10 @@
           {% endwith %}
           <div class="chat-person-copy">
             <h1 class="chat-name">{{ other.name }}</h1>
-            <div class="status-row">
-              <span class="status-pill status-subject subject-{{ other.subject_slug or 'general' }}">{{ other.meta }}</span>
-              <span class="chat-private"><span aria-hidden="true">●</span> Private academic chat</span>
-            </div>
+            <p class="chat-meta-line">
+              {% if other.meta %}<span class="chat-subject">{{ other.meta }}</span>{% endif %}
+              <span class="chat-private">Private academic chat</span>
+            </p>
           </div>
         </div>
       </header>
@@ -38,10 +38,9 @@
             </article>
           {% endfor %}
         {% else %}
-          <div class="chat-empty pro-toast-in" id="chat-empty">
-            <span class="empty-state-icon" aria-hidden="true">✉</span>
-            <h2>Ask {{ other.name.split(' ')[0] }}</h2>
-            <p>Start with a clear question about a lesson, assessment, or material.</p>
+          <div class="chat-empty" id="chat-empty">
+            <h2 class="empty-title">Ask {{ other.name.split(' ')[0] }}</h2>
+            <p class="empty-copy">Start with a clear question about a lesson, assessment, or material.</p>
           </div>
         {% endif %}
       </div>
@@ -50,7 +49,7 @@
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
         <div class="chat-composer-field">
           <label class="sr-only" for="chat-body">Type a message</label>
-          <textarea id="chat-body" name="body" rows="2" maxlength="2000" placeholder="Write a clear question..." required>{{ draft }}</textarea>
+          <textarea id="chat-body" name="body" rows="2" maxlength="2000" placeholder="Write a clear question…" required>{{ draft }}</textarea>
           <div class="chat-composer-meta">
             <p class="chat-composer-hint">Enter to send · Shift + Enter for a new line</p>
             <p class="chat-char-count" id="chat-char-count" aria-live="polite">0 / 2000</p>
@@ -60,7 +59,7 @@
           <svg class="icon-svg" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M3.4 11.2 20.2 3.6a.8.8 0 0 1 1.1 1.1L13.7 21.5a.8.8 0 0 1-1.5.1l-2.6-6.3-6.3-2.6a.8.8 0 0 1 .1-1.5Z"/></svg>
           <span>Send</span>
         </button>
-        <p class="chat-status pro-toast-in" id="chat-status" hidden role="status" aria-live="polite"></p>
+        <p class="chat-status" id="chat-status" hidden role="status" aria-live="polite"></p>
       </form>
     </section>
 {% endblock %}

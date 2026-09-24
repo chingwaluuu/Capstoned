@@ -49,7 +49,7 @@
     if (!countBadge) return;
     const label = visible === 1 ? "1 conversation" : `${visible} conversations`;
     countBadge.textContent = label;
-    countBadge.classList.toggle("count-badge-muted", visible === 0);
+    countBadge.classList.toggle("is-muted", visible === 0);
   };
 
   const apply = () => {

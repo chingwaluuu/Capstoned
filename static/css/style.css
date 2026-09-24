@@ -1401,11 +1401,6 @@ a.hub-card {
     align-items: start;
   }
 
-  a.message-row {
-    grid-template-columns: auto auto 1fr auto;
-    align-items: center;
-  }
-
   .hub-tab {
     font-size: 0.86rem;
   }
@@ -3296,49 +3291,16 @@ html.pref-reduce-motion *::after {
   }
 }
 
-/* ========== Private student–teacher messages ========== */
+/* ========== Private student–teacher messages (structure only; visuals in bloom-pro) ========== */
 a.message-row {
   text-decoration: none;
   color: inherit;
-  align-items: center;
-  grid-template-columns: auto auto 1fr auto;
-  transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
-}
-
-a.message-row:hover {
-  transform: translateY(-1px);
-  border-color: rgba(11, 61, 145, 0.22);
-}
-
-.unread-dot {
-  width: 0.55rem;
-  height: 0.55rem;
-  border-radius: 50%;
-  background: rgba(148, 163, 184, 0.55);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.8);
-}
-
-.unread-dot.is-on {
-  background: #e67e22;
-  box-shadow: 0 0 0 3px rgba(230, 126, 34, 0.16);
-}
-
-.message-row.is-unread-card {
-  background: rgba(230, 126, 34, 0.06);
-  border-color: rgba(230, 126, 34, 0.22);
-}
-
-.message-when {
-  font-size: 0.75rem;
-  font-weight: 800;
-  color: var(--quiet);
-  white-space: nowrap;
 }
 
 .ask-teacher-link {
   display: inline-block;
   margin-top: 0.55rem;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .chat-main {
@@ -3358,17 +3320,7 @@ a.message-row:hover {
   grid-template-rows: auto 1fr auto;
   flex: 1;
   min-height: min(70vh, 36rem);
-  border-radius: var(--radius-md);
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid var(--line);
-  box-shadow: var(--shadow);
   overflow: hidden;
-}
-
-.chat-head {
-  padding: 0.9rem 1rem 0.85rem;
-  border-bottom: 1px solid var(--line);
-  background: #f8faff;
 }
 
 .chat-person {
@@ -3378,56 +3330,12 @@ a.message-row:hover {
   margin-top: 0.35rem;
 }
 
-.chat-name {
-  font-family: "Inter", "Segoe UI", sans-serif;
-  font-size: 1.15rem;
-  font-weight: 650;
-  color: var(--heading);
-}
-
-.chat-meta {
-  font-size: 0.78rem;
-  font-weight: 700;
-  color: var(--muted);
-}
-
 .chat-thread {
   display: flex;
   flex-direction: column;
   gap: 0.7rem;
-  padding: 1rem 0.9rem;
+  padding: 1rem 0;
   overflow: auto;
-  background: linear-gradient(180deg, #fbfcfe, #f3f6fc);
-}
-
-.chat-empty {
-  margin: auto;
-  max-width: 18rem;
-  text-align: center;
-  font-size: 0.92rem;
-  font-weight: 700;
-  color: var(--muted);
-}
-
-.chat-bubble {
-  max-width: min(82%, 26rem);
-  padding: 0.7rem 0.85rem 0.55rem;
-  border-radius: 16px;
-  box-shadow: var(--shadow-sm);
-}
-
-.chat-bubble.is-theirs {
-  align-self: flex-start;
-  background: #fff;
-  border: 1px solid var(--line);
-  border-bottom-left-radius: 6px;
-}
-
-.chat-bubble.is-mine {
-  align-self: flex-end;
-  background: linear-gradient(145deg, var(--letran-blue-mid), var(--letran-blue));
-  color: #fff;
-  border-bottom-right-radius: 6px;
 }
 
 .chat-bubble.is-sending {
@@ -3440,70 +3348,19 @@ a.message-row:hover {
   border: 1px solid rgba(200, 16, 46, 0.28);
 }
 
-.chat-text {
-  font-size: 0.95rem;
-  font-weight: 700;
-  line-height: 1.4;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-}
-
-.chat-stamp {
-  margin-top: 0.35rem;
-  font-size: 0.7rem;
-  font-weight: 800;
-  opacity: 0.75;
-}
-
-.chat-composer {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 0.55rem;
-  align-items: end;
-  padding: 0.75rem;
-  border-top: 1px solid var(--line);
-  background: #fff;
-}
-
 .chat-composer textarea {
   width: 100%;
-  min-height: 2.8rem;
   max-height: 7rem;
   resize: none;
   padding: 0.7rem 0.85rem;
-  border: 2px solid var(--line);
-  border-radius: 14px;
   font: inherit;
-  font-weight: 700;
-}
-
-.chat-composer textarea:focus {
-  outline: none;
-  border-color: var(--letran-blue-soft);
-  box-shadow: 0 0 0 4px var(--focus);
-}
-
-.chat-send {
-  width: 2.8rem;
-  height: 2.8rem;
-  background: linear-gradient(145deg, var(--letran-blue-mid), var(--letran-blue));
-  color: #fff;
-  border: 0;
-}
-
-.chat-send:hover:not(:disabled) {
-  filter: brightness(1.06);
-}
-
-.chat-send:disabled {
-  opacity: 0.6;
 }
 
 .chat-status {
   grid-column: 1 / -1;
   margin: 0;
   font-size: 0.78rem;
-  font-weight: 800;
+  font-weight: 600;
   color: var(--muted);
 }
 
@@ -3511,21 +3368,6 @@ a.message-row:hover {
   color: var(--danger-text);
 }
 
-@media (max-width: 720px) {
-  a.message-row {
-    grid-template-columns: auto auto 1fr;
-  }
-
-  .message-when {
-    grid-column: 3;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  a.message-row {
-    transition: none;
-  }
-}
 
 /* ========== Student announcements inbox ========== */
 .announce-body .app-main {

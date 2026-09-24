@@ -2,6 +2,7 @@
 {% set active_tab = "messages" if not is_teacher else "" %}
 {% set topbar_sub = "Messages" %}
 {% block title %}Messages — Bloom{% endblock %}
+{% block body_class %}{% if not is_teacher %}student-refined{% endif %}{% endblock %}
 {% block page_kicker %}Private chats{% endblock %}
 {% block page_title %}Messages{% endblock %}
 {% block page_subtitle %}
@@ -13,17 +14,14 @@
 {% endblock %}
 {% block content %}
   <section class="message-inbox" aria-labelledby="conversation-title">
-    <div class="section-heading-row">
-      <div>
-        <p class="section-eyebrow">Private conversations</p>
-        <h2 class="section-title section-title-sm" id="conversation-title">
-          {% if is_teacher %}Student conversations{% else %}Your teachers{% endif %}
-        </h2>
-      </div>
-      <span class="count-badge {% if not threads %}count-badge-muted{% endif %}" data-message-count>
+    <header class="practice-head message-head">
+      <h2 class="practice-head-title" id="conversation-title">
+        {% if is_teacher %}Student conversations{% else %}Your teachers{% endif %}
+      </h2>
+      <p class="practice-count" data-message-count>
         {{ threads|length }} conversation{% if threads|length != 1 %}s{% endif %}
-      </span>
-    </div>
+      </p>
+    </header>
 
     {% if threads %}
       <div class="message-toolbar">
@@ -34,31 +32,30 @@
             id="message-q"
             class="announce-q"
             type="search"
-            placeholder="{% if is_teacher %}Search students or messages...{% else %}Search teachers or messages...{% endif %}"
+            placeholder="{% if is_teacher %}Search students or messages…{% else %}Search teachers or messages…{% endif %}"
             autocomplete="off"
           />
         </form>
-        <div class="filter-chips message-filter-row" role="group" aria-label="Message filters" data-message-filters>
+        <div class="filter-chips message-filter-row subject-filter-row" role="group" aria-label="Message filters" data-message-filters>
           <button type="button" class="chip-link active" data-message-filter="all" aria-pressed="true">All</button>
           <button type="button" class="chip-link" data-message-filter="unread" aria-pressed="false">Unread</button>
           {% for subject in message_subjects %}
             <button
               type="button"
-              class="chip-link subject-filter-chip subject-{{ subject.slug }}"
+              class="chip-link"
               data-message-filter="{{ subject.slug }}"
               aria-pressed="false"
             >
-              <span class="subject-filter-dot" aria-hidden="true"></span>
               {{ subject.name }}
             </button>
           {% endfor %}
         </div>
       </div>
 
-      <div class="hub-list message-list pro-stagger-in" data-message-list>
+      <div class="message-list pro-stagger-in" data-message-list>
         {% for thread in threads %}
           <a
-            class="message-row pro-card-interactive subject-accent-{{ thread.subject_slug }} {% if thread.unread %}is-unread{% endif %} {% if not thread.started %}is-starter{% endif %}"
+            class="message-row {% if thread.unread %}is-unread{% endif %} {% if not thread.started %}is-starter{% endif %}"
             href="{{ thread.href }}"
             data-subject="{{ thread.subject_slug }}"
             data-unread="{{ 1 if thread.unread else 0 }}"
@@ -69,28 +66,28 @@
             {% endwith %}
             <div class="message-row-main">
               <div class="message-row-top">
-                <span class="status-pill status-subject subject-{{ thread.subject_slug }}">{{ thread.meta }}</span>
                 <span class="message-row-name">{{ thread.name }}</span>
+                {% if thread.unread %}
+                  <span class="message-unread-mark">New</span>
+                {% endif %}
               </div>
+              {% if thread.meta %}
+                <p class="message-row-subject">{{ thread.meta }}</p>
+              {% endif %}
               <p class="message-row-snippet {% if not thread.started %}is-empty-preview{% endif %}">{{ thread.preview }}</p>
             </div>
             <div class="message-row-aside">
               {% if thread.when %}<time class="message-when">{{ thread.when }}</time>{% endif %}
-              {% if thread.unread %}
-                <span class="message-unread-dot" aria-label="{{ thread.unread }} unread"></span>
-              {% endif %}
             </div>
           </a>
         {% endfor %}
       </div>
-      <article class="empty-state-card message-filter-empty pro-toast-in" data-message-empty hidden>
+      <div class="message-empty message-filter-empty" data-message-empty hidden>
         <h3 class="empty-title" data-message-empty-title>No conversations found</h3>
         <p class="empty-copy" data-message-empty-copy>Try a different search or filter.</p>
-      </article>
+      </div>
     {% else %}
-      <article class="empty-state-card message-empty pro-toast-in">
-        <span class="empty-state-icon" aria-hidden="true">✉</span>
-        <p class="empty-kicker">Messages</p>
+      <div class="message-empty">
         <h3 class="empty-title">{% if is_teacher %}No student messages yet{% else %}No teachers to message yet{% endif %}</h3>
         <p class="empty-copy">
           {% if is_teacher %}
@@ -99,7 +96,7 @@
             Your subject teachers will show up here when accounts are ready.
           {% endif %}
         </p>
-      </article>
+      </div>
     {% endif %}
   </section>
 {% endblock %}
