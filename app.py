@@ -585,12 +585,18 @@ def announcements_context(user=None):
     preview_notes = (unread + rest)[:6]
     preview = []
     for note in preview_notes:
+        body = normalize_announcement_body(note.body or "")
+        snippet = " ".join(body.split())
+        if len(snippet) > 90:
+            cut = snippet[:87]
+            snippet = (cut.rsplit(" ", 1)[0] if " " in cut else cut) + "…"
         preview.append(
             {
                 "id": note.id,
                 "subject": note.subject,
                 "teacher": note.teacher.name if note.teacher else "Your teacher",
                 "title": note.title,
+                "preview": snippet,
                 "when": announcement_when_label(note.created_at),
                 "unread": note.id not in read_ids,
                 "href": announcements_url(note.id, arrive=True),
@@ -1023,15 +1029,23 @@ def lesson_review_href(subject_slug: str, material: Material | None = None) -> s
 
 
 def build_today(user_id: int) -> list[dict]:
-    """Home Today queue: Learn → Practice → Assess → Improve (calm CTAs)."""
+    """Home Today queue: Learn → Practice → Assess → Improve (calm CTAs).
+
+    Assessments due after tomorrow are reserved for the Home “Coming up” section
+    so Today stays focused on near-term work.
+    """
     learn_assess: list[dict] = []
     practice_items: list[dict] = []
     improve_items: list[dict] = []
     upload_items: list[dict] = []
     now = datetime.utcnow()
+    tomorrow = (now + timedelta(days=1)).date()
 
     for assessment in Assessment.query.filter_by(status="published").all():
         if assessment.deadline and assessment.deadline < now:
+            continue
+        # Farther deadlines belong in Coming up, not Today.
+        if assessment.deadline and assessment.deadline.date() > tomorrow:
             continue
         taken = Attempt.query.filter_by(
             user_id=user_id, assessment_id=assessment.id, kind="assessment"
@@ -1042,7 +1056,7 @@ def build_today(user_id: int) -> list[dict]:
             continue
         due = "Waiting for you"
         if assessment.deadline:
-            if assessment.deadline.date() == (now + timedelta(days=1)).date():
+            if assessment.deadline.date() == tomorrow:
                 due = "Due tomorrow"
             elif assessment.deadline.date() == now.date():
                 due = "Due today"
@@ -1166,6 +1180,71 @@ def build_today(user_id: int) -> list[dict]:
 
     # Learn/Assess (review-first cards) → Practice → Improve → Upload status
     return (learn_assess + practice_items + improve_items + upload_items)[:5]
+
+
+def build_coming_up(user_id: int) -> list[dict]:
+    """Upcoming published assessments with real future deadlines (after tomorrow)."""
+    now = datetime.utcnow()
+    tomorrow = (now + timedelta(days=1)).date()
+    items: list[dict] = []
+    published = Assessment.query.filter_by(status="published").order_by(Assessment.deadline.asc()).all()
+    for assessment in published:
+        if not assessment.deadline or assessment.deadline < now:
+            continue
+        if assessment.deadline.date() <= tomorrow:
+            continue
+        taken = Attempt.query.filter_by(
+            user_id=user_id, assessment_id=assessment.id, kind="assessment"
+        ).count()
+        limit = assessment.attempt_limit if assessment.attempt_limit is not None else 1
+        allowed = limit + (1 if assessment.extra_attempt else 0)
+        if taken >= allowed:
+            continue
+        items.append(
+            {
+                "title": assessment.title,
+                "subject": SUBJECTS.get(assessment.subject_slug, {}).get("name", ""),
+                "due_label": assessment.deadline.strftime("Due %b %d"),
+                "href": url_for("assessment_lobby", slug=assessment.slug),
+                "action": "Open assessment",
+            }
+        )
+        if len(items) >= 3:
+            break
+    return items
+
+
+def build_recent_feedback(user_id: int, exclude_titles: set[str] | None = None) -> list[dict]:
+    """Recently submitted work that already has reviewable feedback."""
+    exclude_titles = exclude_titles or set()
+    items: list[dict] = []
+    attempts = (
+        Attempt.query.filter_by(user_id=user_id)
+        .order_by(Attempt.submitted_at.desc())
+        .limit(12)
+        .all()
+    )
+    for attempt in attempts:
+        if attempt.title in exclude_titles:
+            continue
+        if attempt.kind == "assessment":
+            assessment = attempt.assessment
+            if not assessment or not assessment.release_scores or not assessment.release_feedback:
+                continue
+        summary = attempt_meta(attempt)
+        items.append(
+            {
+                "title": attempt.title,
+                "subject": SUBJECTS.get(attempt.subject_slug, {}).get("name", ""),
+                "kind": "Practice" if attempt.kind == "practice" else "Assessment",
+                "summary": summary,
+                "href": url_for("attempt_review", attempt_id=attempt.id),
+                "action": "Review feedback",
+            }
+        )
+        if len(items) >= 2:
+            break
+    return items
 
 
 def score_answers(questions: list[dict], form) -> tuple[list[dict], int, int, str]:
@@ -1732,10 +1811,16 @@ def home():
             }
         )
     today = build_today(user["id"])
+    announce_ctx = announcements_context(user)
+    today_titles = {item.get("title") for item in today if item.get("title")}
+    teacher_updates = (announce_ctx.get("announcements_preview") or [])[:2]
+    coming_up = build_coming_up(user["id"])
+    recent_feedback = build_recent_feedback(user["id"], exclude_titles=today_titles)
     overall = 0
     tracked = [item for item in subjects if item["has_progress"]]
     if tracked:
         overall = int(round(sum(item["progress_percent"] for item in tracked) / len(tracked)))
+    has_practice_score = bool(tracked) and overall > 0
     context = {
         "user": user,
         "greeting": f"Hi, {first_name}",
@@ -1743,17 +1828,20 @@ def home():
         "guide_note": "Open a subject to keep learning — then check Today for what to do next.",
         "weekly_goal": {
             "percent": overall,
-            "has_progress": bool(tracked),
+            "has_progress": has_practice_score,
             "hint": (
                 "Start a summary or Practice Check to begin tracking your practice average."
-                if overall <= 0
+                if not has_practice_score
                 else "Average of auto-scored practice and assessment items across subjects."
             ),
         },
         "today_items": today,
         "subjects": subjects,
+        "teacher_updates": teacher_updates,
+        "coming_up": coming_up,
+        "recent_feedback": recent_feedback,
     }
-    context.update(announcements_context(user))
+    context.update(announce_ctx)
     return render_template("student_home.html", **context)
 
 

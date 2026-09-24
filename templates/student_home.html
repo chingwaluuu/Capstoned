@@ -5,6 +5,9 @@
 {% block page_header %}
   {% set primary = today_items[0] if today_items else none %}
   {% set secondary = today_items[1:] if today_items|length > 1 else [] %}
+  {% set has_teacher_updates = teacher_updates and teacher_updates|length > 0 %}
+  {% set has_coming_up = coming_up and coming_up|length > 0 %}
+  {% set has_recent_feedback = recent_feedback and recent_feedback|length > 0 %}
   <div class="editorial-page">
     <header class="editorial-greeting" aria-labelledby="home-greeting">
       <h1 class="editorial-title" id="home-greeting">{{ greeting }}</h1>
@@ -69,32 +72,6 @@
             </div>
           {% endif %}
         </section>
-
-        {% if secondary %}
-          <section class="editorial-also" aria-labelledby="also-today-title">
-            <h2 class="editorial-section-label" id="also-today-title">Also today</h2>
-            <div class="editorial-rows is-open" role="list">
-              {% for item in secondary %}
-                <article class="editorial-row" role="listitem">
-                  <div class="editorial-row-main">
-                    <p class="editorial-row-kicker">
-                      {% if item.subject %}{{ item.subject }} · {% endif %}{{ item.kicker }}
-                    </p>
-                    <h3 class="editorial-row-title">{{ item.title }}</h3>
-                    <p class="editorial-row-meta">{{ item.meta }}</p>
-                  </div>
-                  <div class="editorial-row-action">
-                    {% if item.actions %}
-                      <a class="editorial-text-link" href="{{ item.actions[0].href }}">{{ item.actions[0].label }} →</a>
-                    {% else %}
-                      <a class="editorial-text-link" href="{{ item.href }}">{{ item.action }} →</a>
-                    {% endif %}
-                  </div>
-                </article>
-              {% endfor %}
-            </div>
-          </section>
-        {% endif %}
       </div>
 
       <section class="editorial-subjects-wrap" aria-labelledby="subjects-title">
@@ -127,6 +104,114 @@
         </div>
       </section>
     </div>
+
+    <div class="editorial-secondary-band {% if not secondary %}is-single{% endif %}">
+      {% if secondary %}
+        <section class="editorial-also" aria-labelledby="also-today-title">
+          <h2 class="editorial-section-label" id="also-today-title">Also today</h2>
+          <div class="editorial-list" role="list">
+            {% for item in secondary %}
+              <article class="editorial-list-row" role="listitem">
+                <div class="editorial-list-main">
+                  <p class="editorial-list-kicker">
+                    {% if item.subject %}{{ item.subject }} · {% endif %}{{ item.kicker }}
+                  </p>
+                  <h3 class="editorial-list-title">{{ item.title }}</h3>
+                  <p class="editorial-list-meta">{{ item.meta }}</p>
+                </div>
+                <div class="editorial-list-action">
+                  {% if item.actions %}
+                    <a class="editorial-text-link" href="{{ item.actions[0].href }}">{{ item.actions[0].label }} →</a>
+                  {% else %}
+                    <a class="editorial-text-link" href="{{ item.href }}">{{ item.action }} →</a>
+                  {% endif %}
+                </div>
+              </article>
+            {% endfor %}
+          </div>
+        </section>
+      {% endif %}
+
+      <section class="editorial-updates" aria-labelledby="teacher-updates-title">
+        <div class="editorial-section-head">
+          <h2 class="editorial-section-label" id="teacher-updates-title">Teacher updates</h2>
+          <a class="editorial-text-link editorial-section-link" href="{{ url_for('announcements') }}">View all announcements →</a>
+        </div>
+        {% if has_teacher_updates %}
+          <div class="editorial-list" role="list">
+            {% for note in teacher_updates %}
+              <a
+                class="editorial-list-row is-link {% if note.unread %}is-unread{% endif %}"
+                href="{{ note.href }}"
+                role="listitem"
+              >
+                <div class="editorial-list-main">
+                  <p class="editorial-list-kicker">
+                    {{ note.teacher }}{% if note.subject %} · {{ note.subject }}{% endif %}
+                    {% if note.unread %}<span class="editorial-new">New</span>{% endif %}
+                  </p>
+                  <h3 class="editorial-list-title">{{ note.title }}</h3>
+                  {% if note.preview %}
+                    <p class="editorial-list-meta">{{ note.preview }}</p>
+                  {% endif %}
+                  <p class="editorial-list-when">{{ note.when }}</p>
+                </div>
+              </a>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="editorial-quiet-empty">No new teacher updates.</p>
+        {% endif %}
+      </section>
+    </div>
+
+    {% if has_coming_up or has_recent_feedback %}
+      <div class="editorial-lower-band">
+        {% if has_coming_up %}
+          <section class="editorial-coming" aria-labelledby="coming-up-title">
+            <h2 class="editorial-section-label" id="coming-up-title">Coming up</h2>
+            <div class="editorial-list" role="list">
+              {% for item in coming_up %}
+                <article class="editorial-list-row" role="listitem">
+                  <div class="editorial-list-main">
+                    <h3 class="editorial-list-title">{{ item.title }}</h3>
+                    <p class="editorial-list-meta">
+                      {% if item.subject %}{{ item.subject }} · {% endif %}{{ item.due_label }}
+                    </p>
+                  </div>
+                  <div class="editorial-list-action">
+                    <a class="editorial-text-link" href="{{ item.href }}">{{ item.action }} →</a>
+                  </div>
+                </article>
+              {% endfor %}
+            </div>
+          </section>
+        {% endif %}
+
+        {% if has_recent_feedback %}
+          <section class="editorial-feedback" aria-labelledby="recent-feedback-title">
+            <div class="editorial-section-head">
+              <h2 class="editorial-section-label" id="recent-feedback-title">Recent feedback</h2>
+              <a class="editorial-text-link editorial-section-link" href="{{ url_for('results') }}">View all results →</a>
+            </div>
+            <div class="editorial-list" role="list">
+              {% for item in recent_feedback %}
+                <article class="editorial-list-row" role="listitem">
+                  <div class="editorial-list-main">
+                    <p class="editorial-list-kicker">{{ item.kind }}{% if item.subject %} · {{ item.subject }}{% endif %}</p>
+                    <h3 class="editorial-list-title">{{ item.title }}</h3>
+                    <p class="editorial-list-meta">{{ item.summary }}</p>
+                  </div>
+                  <div class="editorial-list-action">
+                    <a class="editorial-text-link" href="{{ item.href }}">{{ item.action }} →</a>
+                  </div>
+                </article>
+              {% endfor %}
+            </div>
+          </section>
+        {% endif %}
+      </div>
+    {% endif %}
   </div>
 {% endblock %}
 {% block content %}{% endblock %}
