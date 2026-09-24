@@ -3310,6 +3310,13 @@ a.message-row {
   padding-bottom: 6.5rem;
 }
 
+.pro-body .chat-main,
+.pro-body.pro-focus .chat-main {
+  min-height: 0;
+  max-height: none;
+  padding-bottom: 0;
+}
+
 .staff-body .chat-main {
   min-height: calc(100dvh - 6rem);
   padding-bottom: 1.5rem;

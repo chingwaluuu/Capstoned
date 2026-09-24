@@ -1281,6 +1281,9 @@ def photo_url_for(user) -> str | None:
         filename = getattr(user, "avatar_filename", None)
     if not user_id or not filename:
         return None
+    # Skip broken DB filenames so templates fall back to initials.
+    if not avatar_file_path(filename):
+        return None
     return url_for("user_photo", user_id=user_id)
 
 

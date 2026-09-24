@@ -1,5 +1,8 @@
 {% if photo_url %}
-  <img class="{{ class_name }} is-photo" src="{{ photo_url }}" alt="" />
+  <span class="{{ class_name }} has-photo is-photo" aria-hidden="true">
+    <span class="avatar-initials">{{ initials }}</span>
+    <img src="{{ photo_url }}" alt="" decoding="async" onerror="this.remove()" />
+  </span>
 {% else %}
   <span class="{{ class_name }}" aria-hidden="true">{{ initials }}</span>
 {% endif %}
