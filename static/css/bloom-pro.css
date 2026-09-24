@@ -43,11 +43,13 @@
   --type-section-label: 0.84rem;
   --type-field-label: 0.76rem;
 
-  /* Content measure — left-aligned max-widths, never auto-centered */
-  --measure-text: 40rem;
-  --measure-list: clamp(56rem, 38rem + 24vw, 68rem);
-  --measure-workspace: clamp(64rem, 44rem + 30vw, 84rem);
-  --measure-page: 72rem;
+  /* Content measure — left-aligned max-widths, never auto-centered.
+     text ≈ reading / empty · list ≈ Practice/Results · page ≈ Home ·
+     workspace ≈ Messages / Review / master-detail */
+  --measure-text: 42rem;
+  --measure-list: clamp(52rem, 34rem + 30vw, 68rem);
+  --measure-workspace: clamp(60rem, 40rem + 34vw, 82rem);
+  --measure-page: clamp(64rem, 46rem + 24vw, 76rem);
 
   /* Container grammar
      section = open, no container
@@ -163,7 +165,13 @@
 /* Student editorial surfaces use a fluid outer margin while their content
    measures remain independent and left-aligned. */
 .pro-body.student-refined {
-  --pro-space-page-x: clamp(1rem, calc(0.25rem + 2.5vw), 3.5rem);
+  --pro-space-page-x: clamp(1rem, 0.35rem + 2.6vw, 4rem);
+}
+
+@media (min-width: 1440px) {
+  .pro-body.student-refined {
+    --pro-space-page-x: clamp(2rem, 1.1rem + 1.8vw, 4rem);
+  }
 }
 
 /* Legacy page structure: sidebar + topbar + main in one grid */
@@ -3365,8 +3373,10 @@ html.pref-reduce-motion .pro-body #notify-dropdown.notify-panel {
   align-items: flex-start;
   gap: 0.4rem;
   margin: 0.35rem 0 2.5rem;
-  padding-top: 1rem;
-  border-top: var(--grammar-rule);
+  padding: 1.05rem 1.1rem 1.15rem;
+  border-top: 0;
+  border-radius: var(--pro-radius-lg);
+  background: color-mix(in srgb, var(--pro-card-soft) 70%, var(--pro-blue-soft));
 }
 
 .results-focus-label {
@@ -4152,8 +4162,8 @@ html.pref-reduce-motion .pro-body #notify-dropdown.notify-panel {
    ----------------------------------------------------------------------------- */
 .pro-body .message-inbox {
   width: 100%;
-  /* Left-oriented list that stops stretching on ultra-wide desktops */
-  max-width: clamp(36rem, 28rem + 22vw, 48rem);
+  /* Workspace-weight list: substantial on laptop, capped on ultra-wide */
+  max-width: clamp(42rem, 30rem + 28vw, 62rem);
 }
 
 .message-toolbar {
@@ -5091,6 +5101,11 @@ html.pref-reduce-motion .pro-body #notify-dropdown.notify-panel {
   border-top: var(--grammar-rule);
 }
 
+/* Empty Announcements stay compact — do not stretch the workspace shell */
+.pro-body .announce-page:has(> .announce-empty-inbox) {
+  max-width: var(--measure-text);
+}
+
 @media (min-width: 840px) {
   .pro-body .announce-page .announce-layout {
     grid-template-columns: minmax(17rem, 22rem) minmax(0, 1fr);
@@ -5141,6 +5156,7 @@ html.pref-reduce-motion .pro-body #notify-dropdown.notify-panel {
   justify-content: flex-start;
   align-items: center;
   gap: 1rem 1.25rem;
+  max-width: min(clamp(42rem, 32rem + 30vw, 72rem), calc(100% - (2 * var(--pro-space-page-x))));
   margin: 0 var(--pro-space-page-x);
   padding: 1.35rem 0 1.15rem;
   border: 0;
@@ -5148,6 +5164,7 @@ html.pref-reduce-motion .pro-body #notify-dropdown.notify-panel {
   border-radius: 0;
   background: transparent;
   box-shadow: none;
+  box-sizing: border-box;
 }
 
 .profile-avatar {
@@ -5260,10 +5277,44 @@ html.pref-reduce-motion .pro-body #notify-dropdown.notify-panel {
 
 .pro-body .profile-shell {
   width: 100%;
-  max-width: clamp(36rem, 28rem + 20vw, 46rem);
+  max-width: clamp(42rem, 32rem + 30vw, 72rem);
   display: grid;
   gap: 2rem;
   margin: 0.35rem 0 2rem;
+}
+
+.profile-main-col,
+.profile-aside-col {
+  display: grid;
+  gap: 2rem;
+  min-width: 0;
+}
+
+@media (min-width: 1100px) {
+  .pro-body.profile-page.student-refined .profile-shell {
+    grid-template-columns: minmax(0, 1.35fr) minmax(16.5rem, 0.8fr);
+    column-gap: clamp(2rem, 3.5vw, 3.25rem);
+    align-items: start;
+  }
+
+  .profile-aside-col {
+    position: sticky;
+    top: 5rem;
+    padding: 1.1rem 1.15rem 1.2rem;
+    border: 1px solid var(--pro-line);
+    border-radius: var(--pro-radius-lg);
+    background: color-mix(in srgb, var(--pro-card) 82%, var(--pro-card-soft));
+  }
+
+  .profile-aside-col .profile-account,
+  .profile-aside-col .profile-security {
+    margin: 0;
+  }
+
+  .profile-aside-col .profile-security {
+    padding-top: 1rem;
+    border-top: var(--grammar-row-rule);
+  }
 }
 
 .profile-section-title {
@@ -7550,7 +7601,7 @@ html.pref-reduce-motion .qol-overlay {
 
 .editorial-band {
   display: grid;
-  grid-template-columns: minmax(0, 1.6fr) minmax(15rem, 1fr);
+  grid-template-columns: minmax(0, 1.4fr) minmax(16rem, 0.8fr);
   gap: clamp(2rem, 4vw, 3.5rem);
   align-items: start;
 }
@@ -7562,6 +7613,7 @@ html.pref-reduce-motion .qol-overlay {
   border-top: var(--grammar-rule);
 }
 
+/* One quiet tonal anchor for the primary learning focus */
 .editorial-section-label,
 .editorial-subjects-label {
   margin: 0 0 0.55rem;
@@ -7576,6 +7628,17 @@ html.pref-reduce-motion .qol-overlay {
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
+}
+
+.student-home .editorial-continue {
+  margin: 0.15rem 0 0;
+  padding: 1.1rem 1.15rem 1.2rem;
+  border-radius: var(--pro-radius-lg);
+  background: color-mix(in srgb, var(--pro-blue-soft) 32%, var(--pro-card-soft));
+}
+
+.student-home .editorial-continue .editorial-section-label {
+  margin-bottom: 0.45rem;
 }
 
 .editorial-continue-title {

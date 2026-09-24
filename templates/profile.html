@@ -22,119 +22,123 @@
 {% endblock %}
 {% block content %}
   <div class="profile-shell">
-    <section class="profile-photo-edit" aria-labelledby="photo-title">
-      <div class="profile-section-intro">
-        <h2 class="profile-section-title" id="photo-title">Profile photo</h2>
-        <p class="profile-section-note">JPG, PNG, or WEBP · up to 2 MB. Appears in messages and your account menu.</p>
-      </div>
-      <form class="profile-photo-form" method="POST" action="{{ url_for('profile') }}" enctype="multipart/form-data" data-loading="Saving photo…">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-        <input type="hidden" name="action" value="photo" />
-        <div class="field profile-photo-field">
-          <label for="photo">Choose a photo</label>
-          <input id="photo" name="photo" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" required />
+    <div class="profile-main-col">
+      <section class="profile-photo-edit" aria-labelledby="photo-title">
+        <div class="profile-section-intro">
+          <h2 class="profile-section-title" id="photo-title">Profile photo</h2>
+          <p class="profile-section-note">JPG, PNG, or WEBP · up to 2 MB. Appears in messages and your account menu.</p>
         </div>
-        <div class="profile-photo-actions">
-          <button type="submit" class="btn-primary profile-photo-save">Save photo</button>
-          {% if user.avatar_url %}
-            <button type="submit" class="editorial-text-link profile-photo-remove" form="remove-photo-form">Remove photo</button>
-          {% endif %}
-        </div>
-      </form>
-      {% if user.avatar_url %}
-        <form id="remove-photo-form" method="POST" action="{{ url_for('profile') }}">
+        <form class="profile-photo-form" method="POST" action="{{ url_for('profile') }}" enctype="multipart/form-data" data-loading="Saving photo…">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-          <input type="hidden" name="action" value="remove_photo" />
+          <input type="hidden" name="action" value="photo" />
+          <div class="field profile-photo-field">
+            <label for="photo">Choose a photo</label>
+            <input id="photo" name="photo" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" required />
+          </div>
+          <div class="profile-photo-actions">
+            <button type="submit" class="btn-primary profile-photo-save">Save photo</button>
+            {% if user.avatar_url %}
+              <button type="submit" class="editorial-text-link profile-photo-remove" form="remove-photo-form">Remove photo</button>
+            {% endif %}
+          </div>
         </form>
-      {% endif %}
-    </section>
-
-    {% if user.role == "student" %}
-      <section class="profile-snapshot" aria-labelledby="learning-title">
-        <h2 class="profile-section-title" id="learning-title">Learning snapshot</h2>
-        <div class="profile-snapshot-metrics" aria-label="Learning overview">
-          {% for stat in profile_stats %}
-            <div class="profile-snapshot-item">
-              <p class="profile-snapshot-label">
-                {% if "message" in stat.label|lower %}Messages{% else %}{{ stat.label }}{% endif %}
-              </p>
-              <p class="profile-snapshot-value{% if 'message' in stat.label|lower and stat.value == 0 %} is-quiet{% endif %}">
-                {% if "message" in stat.label|lower %}
-                  {% if stat.value == 0 %}All caught up{% else %}{{ stat.value }} unread{% endif %}
-                {% elif "practice" in stat.label|lower and stat.value == 0 %}
-                  None yet
-                {% else %}
-                  {{ stat.value }}
-                {% endif %}
-              </p>
-            </div>
-          {% endfor %}
-        </div>
-      </section>
-
-      <section class="profile-subjects" aria-labelledby="subjects-title">
-        <h2 class="profile-section-title" id="subjects-title">Subjects</h2>
-        <div class="profile-subject-list" role="list">
-          {% for subject in profile_subjects %}
-            <a class="profile-subject-row" href="{{ subject.href }}" role="listitem">
-              <span class="profile-subject-name">{{ subject.name }}</span>
-              <span class="profile-subject-meta">{{ subject.progress_label }}</span>
-            </a>
-          {% endfor %}
-        </div>
-      </section>
-
-      <section class="profile-activity" aria-labelledby="activity-title">
-        <h2 class="profile-section-title" id="activity-title">Recent activity</h2>
-        {% if recent_activity %}
-          <div class="profile-activity-list" role="list">
-            {% for item in recent_activity %}
-              <article class="profile-activity-row" role="listitem">
-                <div class="profile-activity-main">
-                  <p class="profile-activity-kicker">{{ item.subject }} · {{ item.kind|title }}</p>
-                  <h3 class="profile-activity-title">{{ item.title }}</h3>
-                  <p class="profile-activity-meta">{{ item.meta }}</p>
-                </div>
-                <a class="editorial-text-link profile-activity-action" href="{{ item.href }}">Review →</a>
-              </article>
-            {% endfor %}
-          </div>
-        {% else %}
-          <div class="profile-empty">
-            <p class="empty-copy">No practice history yet. When you finish a practice check or assessment, it will show up here.</p>
-            <a class="editorial-text-link" href="{{ url_for('practice') }}">Go to Practice →</a>
-          </div>
+        {% if user.avatar_url %}
+          <form id="remove-photo-form" method="POST" action="{{ url_for('profile') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            <input type="hidden" name="action" value="remove_photo" />
+          </form>
         {% endif %}
       </section>
-    {% endif %}
 
-    <section class="profile-account" aria-labelledby="profile-details-title">
-      <h2 class="profile-section-title" id="profile-details-title">Account details</h2>
-      <p class="profile-section-note">School information used throughout Bloom.</p>
-      <dl class="profile-facts">
-        <div>
-          <dt>Name</dt>
-          <dd>{{ user.name }}</dd>
-        </div>
-        <div>
-          <dt>School email</dt>
-          <dd>{{ user.email }}</dd>
-        </div>
-        <div>
-          <dt>Role</dt>
-          <dd>{{ user.role|capitalize }}</dd>
-        </div>
-        <div>
-          <dt>Section</dt>
-          <dd>{{ user.section or "Grade 7 · Pilot Section" }}</dd>
-        </div>
-      </dl>
-    </section>
+      {% if user.role == "student" %}
+        <section class="profile-snapshot" aria-labelledby="learning-title">
+          <h2 class="profile-section-title" id="learning-title">Learning snapshot</h2>
+          <div class="profile-snapshot-metrics" aria-label="Learning overview">
+            {% for stat in profile_stats %}
+              <div class="profile-snapshot-item">
+                <p class="profile-snapshot-label">
+                  {% if "message" in stat.label|lower %}Messages{% else %}{{ stat.label }}{% endif %}
+                </p>
+                <p class="profile-snapshot-value{% if 'message' in stat.label|lower and stat.value == 0 %} is-quiet{% endif %}">
+                  {% if "message" in stat.label|lower %}
+                    {% if stat.value == 0 %}All caught up{% else %}{{ stat.value }} unread{% endif %}
+                  {% elif "practice" in stat.label|lower and stat.value == 0 %}
+                    None yet
+                  {% else %}
+                    {{ stat.value }}
+                  {% endif %}
+                </p>
+              </div>
+            {% endfor %}
+          </div>
+        </section>
 
-    <section class="profile-security" id="account" aria-labelledby="profile-security-title">
-      <h2 class="profile-section-title" id="profile-security-title">Security</h2>
-      <p class="profile-section-note">Manage your password and account access. Appearance preferences stay under the gear menu.</p>
-      <a class="editorial-text-link" href="{{ url_for('profile_password') }}">Change password →</a>
-    </section>
+        <section class="profile-subjects" aria-labelledby="subjects-title">
+          <h2 class="profile-section-title" id="subjects-title">Subjects</h2>
+          <div class="profile-subject-list" role="list">
+            {% for subject in profile_subjects %}
+              <a class="profile-subject-row" href="{{ subject.href }}" role="listitem">
+                <span class="profile-subject-name">{{ subject.name }}</span>
+                <span class="profile-subject-meta">{{ subject.progress_label }}</span>
+              </a>
+            {% endfor %}
+          </div>
+        </section>
+
+        <section class="profile-activity" aria-labelledby="activity-title">
+          <h2 class="profile-section-title" id="activity-title">Recent activity</h2>
+          {% if recent_activity %}
+            <div class="profile-activity-list" role="list">
+              {% for item in recent_activity %}
+                <article class="profile-activity-row" role="listitem">
+                  <div class="profile-activity-main">
+                    <p class="profile-activity-kicker">{{ item.subject }} · {{ item.kind|title }}</p>
+                    <h3 class="profile-activity-title">{{ item.title }}</h3>
+                    <p class="profile-activity-meta">{{ item.meta }}</p>
+                  </div>
+                  <a class="editorial-text-link profile-activity-action" href="{{ item.href }}">Review →</a>
+                </article>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="profile-empty">
+              <p class="empty-copy">No practice history yet. When you finish a practice check or assessment, it will show up here.</p>
+              <a class="editorial-text-link" href="{{ url_for('practice') }}">Go to Practice →</a>
+            </div>
+          {% endif %}
+        </section>
+      {% endif %}
+    </div>
+
+    <aside class="profile-aside-col">
+      <section class="profile-account" aria-labelledby="profile-details-title">
+        <h2 class="profile-section-title" id="profile-details-title">Account details</h2>
+        <p class="profile-section-note">School information used throughout Bloom.</p>
+        <dl class="profile-facts">
+          <div>
+            <dt>Name</dt>
+            <dd>{{ user.name }}</dd>
+          </div>
+          <div>
+            <dt>School email</dt>
+            <dd>{{ user.email }}</dd>
+          </div>
+          <div>
+            <dt>Role</dt>
+            <dd>{{ user.role|capitalize }}</dd>
+          </div>
+          <div>
+            <dt>Section</dt>
+            <dd>{{ user.section or "Grade 7 · Pilot Section" }}</dd>
+          </div>
+        </dl>
+      </section>
+
+      <section class="profile-security" id="account" aria-labelledby="profile-security-title">
+        <h2 class="profile-section-title" id="profile-security-title">Security</h2>
+        <p class="profile-section-note">Manage your password and account access. Appearance preferences stay under the gear menu.</p>
+        <a class="editorial-text-link" href="{{ url_for('profile_password') }}">Change password →</a>
+      </section>
+    </aside>
   </div>
 {% endblock %}
