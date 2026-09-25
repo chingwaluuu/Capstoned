@@ -2,7 +2,7 @@
 {% set active_tab = "profile" %}
 {% set topbar_sub = "Profile" %}
 {% block title %}Profile — Bloom{% endblock %}
-{% block body_class %}profile-page{% if user.role == "student" %} student-refined{% endif %}{% endblock %}
+{% block body_class %}profile-page student-refined{% endblock %}
 {% block page_header %}
   {% set name_parts = user.name.split(" ") %}
   {% set avatar_initials = (name_parts[0][:1] ~ (name_parts[-1][:1] if name_parts|length > 1 else ""))|upper %}

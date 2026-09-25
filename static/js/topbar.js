@@ -34,17 +34,20 @@
     window.matchMedia("(prefers-reduced-motion: reduce)").matches ||
     document.documentElement.classList.contains("pref-reduce-motion");
 
-  const overlay = (message) => {
+  const overlay = (message, options = {}) => {
     let node = document.getElementById("qol-overlay");
     if (!node) {
       node = document.createElement("div");
       node.id = "qol-overlay";
       node.className = "qol-overlay";
       node.hidden = true;
-      node.innerHTML = `<div class="qol-overlay-card" role="status" aria-live="assertive"><span class="qol-spinner" aria-hidden="true"></span><p></p></div>`;
+      node.innerHTML = `<div class="qol-overlay-card" role="status" aria-live="assertive"><span class="qol-spinner" aria-hidden="true"></span><p class="qol-overlay-msg"></p></div>`;
       document.body.appendChild(node);
     }
-    node.querySelector("p").textContent = message;
+    const pageNav = Boolean(options.pageNav);
+    node.classList.toggle("is-page-nav", pageNav);
+    const msg = node.querySelector(".qol-overlay-msg") || node.querySelector("p");
+    msg.textContent = message || (pageNav ? "Loading page…" : "");
     node.hidden = false;
     if (prefersReducedMotion()) {
       node.classList.add("is-visible");
@@ -60,18 +63,56 @@
     const node = document.getElementById("qol-overlay");
     if (!node) return;
     if (prefersReducedMotion() || !node.classList.contains("is-visible")) {
-      node.classList.remove("is-visible");
+      node.classList.remove("is-visible", "is-page-nav");
       node.hidden = true;
       return;
     }
     const finish = (event) => {
       if (event && event.target !== node) return;
       node.removeEventListener("transitionend", finish);
-      if (!node.classList.contains("is-visible")) node.hidden = true;
+      if (!node.classList.contains("is-visible")) {
+        node.classList.remove("is-page-nav");
+        node.hidden = true;
+      }
     };
     node.addEventListener("transitionend", finish);
     node.classList.remove("is-visible");
   };
+
+  const shouldShowPageLoading = (anchor, event) => {
+    if (!(anchor instanceof HTMLAnchorElement)) return false;
+    if (event.defaultPrevented) return false;
+    if (event.button !== 0) return false;
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return false;
+    if (anchor.hasAttribute("download")) return false;
+    if (anchor.dataset.noLoading != null) return false;
+    if (anchor.getAttribute("aria-disabled") === "true") return false;
+    const target = (anchor.getAttribute("target") || "").toLowerCase();
+    if (target && target !== "_self") return false;
+    const href = anchor.getAttribute("href");
+    if (!href || href.startsWith("#") || href.startsWith("javascript:")) return false;
+    let url;
+    try {
+      url = new URL(anchor.href, window.location.href);
+    } catch {
+      return false;
+    }
+    if (url.origin !== window.location.origin) return false;
+    if (url.pathname === window.location.pathname && url.search === window.location.search && url.hash) {
+      return false;
+    }
+    return true;
+  };
+
+  document.addEventListener(
+    "click",
+    (event) => {
+      const anchor = event.target.closest?.("a[href]");
+      if (!shouldShowPageLoading(anchor, event)) return;
+      overlay("Loading page…", { pageNav: true });
+    },
+    true
+  );
 
   const confirmAction = (message, options = {}) =>
     new Promise((resolve) => {

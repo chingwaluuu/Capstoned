@@ -2,7 +2,7 @@
 {% set active_tab = "messages" if user.role == "student" else "" %}
 {% set topbar_sub = "Messages" %}
 {% block title %}{{ other.name }} — Messages — Bloom{% endblock %}
-{% block body_class %}pro-focus{% if user.role == "student" %} student-refined{% endif %}{% endblock %}
+{% block body_class %}pro-focus student-refined{% endblock %}
 {% block page_header %}{% endblock %}
 {% block main_class %}chat-main{% endblock %}
 {% block content_class %}pro-content-plain chat-content{% endblock %}

@@ -1,6 +1,6 @@
 {% extends "layouts/pro.html" %}
 {% block title %}Teacher Home — Bloom{% endblock %}
-{% block body_class %}home-editorial teacher-home-editorial subject-accent-{{ subject_slug }}{% endblock %}
+{% block body_class %}home-editorial teacher-home-editorial student-refined subject-accent-{{ subject_slug }}{% endblock %}
 {% block page_header %}
   <div class="editorial-page">
     <header class="editorial-greeting" aria-labelledby="teacher-greeting">
@@ -9,62 +9,62 @@
       <p class="editorial-meta-line">
         <a href="{{ class_pulse.href }}">{{ class_pulse.label }}: {{ class_pulse.value }}</a>
         {% if unread_messages %}
-          <span aria-hidden="true">·</span>
+          <span class="meta-sep" aria-hidden="true">·</span>
           <a href="{{ url_for('messages_inbox') }}">{{ unread_messages }} unread chat{% if unread_messages != 1 %}s{% endif %}</a>
         {% endif %}
       </p>
     </header>
-  </div>
-{% endblock %}
-{% block content %}
-  <section class="editorial-today-list" aria-labelledby="teacher-queue-title">
-    <div class="editorial-list-head">
-      <h2 class="section-title section-title-sm" id="teacher-queue-title">Open items</h2>
-      {% if attention %}
-        <span class="editorial-count">{{ attention|length }} pending</span>
-      {% else %}
-        <span class="editorial-count is-muted">None</span>
-      {% endif %}
-    </div>
 
-    {% if attention %}
-      <div class="editorial-rows" role="list">
-        {% for item in attention %}
-          <article class="editorial-row" role="listitem">
-            <div class="editorial-row-main">
-              <p class="editorial-row-kicker">{{ item.kicker }}</p>
-              <h3 class="editorial-row-title">{{ item.title }}</h3>
-              <p class="editorial-row-meta">{{ item.meta }}</p>
-            </div>
-            <div class="editorial-row-action">
-              <a class="editorial-text-link" href="{{ item.href }}">{{ item.action }} →</a>
-            </div>
-          </article>
+    <section class="editorial-today-list" aria-labelledby="teacher-queue-title">
+      <div class="editorial-list-head">
+        <h2 class="editorial-section-label" id="teacher-queue-title">Open items</h2>
+        {% if attention %}
+          <span class="editorial-count">{{ attention|length }} pending</span>
+        {% else %}
+          <span class="editorial-count is-muted">None</span>
+        {% endif %}
+      </div>
+
+      {% if attention %}
+        <div class="editorial-rows" role="list">
+          {% for item in attention %}
+            <article class="editorial-row" role="listitem">
+              <div class="editorial-row-main">
+                <p class="editorial-row-kicker">{{ item.kicker }}</p>
+                <h3 class="editorial-row-title">{{ item.title }}</h3>
+                <p class="editorial-row-meta">{{ item.meta }}</p>
+              </div>
+              <div class="editorial-row-action">
+                <a class="editorial-text-link" href="{{ item.href }}">{{ item.action }} →</a>
+              </div>
+            </article>
+          {% endfor %}
+        </div>
+      {% else %}
+        <article class="editorial-empty">
+          <h3 class="empty-title">{{ empty_cta.title }}</h3>
+          <p class="empty-copy">{{ empty_cta.note }}</p>
+          <a class="editorial-text-link" href="{{ empty_cta.href }}">{{ empty_cta.action }} →</a>
+        </article>
+      {% endif %}
+    </section>
+
+    <section class="teacher-stat-section" aria-labelledby="teacher-stats-title">
+      <div class="editorial-list-head">
+        <h2 id="teacher-stats-title" class="editorial-section-label">At a glance</h2>
+        <span class="editorial-count is-muted">{{ subject_name }}</span>
+      </div>
+
+      <div class="teacher-stat-grid">
+        {% for card in stats %}
+          <a class="teacher-stat-card tone-{{ card.tone }}" href="{{ card.href }}">
+            <span class="teacher-stat-label">{{ card.label }}</span>
+            <strong class="teacher-stat-value">{{ card.value }}</strong>
+            <span class="teacher-stat-note">{{ card.meta }}</span>
+          </a>
         {% endfor %}
       </div>
-    {% else %}
-      <article class="editorial-empty">
-        <h3 class="empty-title">{{ empty_cta.title }}</h3>
-        <p class="empty-copy">{{ empty_cta.note }}</p>
-        <a class="editorial-text-link" href="{{ empty_cta.href }}">{{ empty_cta.action }} →</a>
-      </article>
-    {% endif %}
-  </section>
-
-  <section class="home-section teacher-stat-section" aria-labelledby="teacher-stats-title">
-    <div class="editorial-list-head">
-      <h2 id="teacher-stats-title" class="section-title section-title-sm">At a glance</h2>
-      <span class="editorial-count is-muted">{{ subject_name }}</span>
-    </div>
-
-    <div class="teacher-stat-grid">
-      {% for card in stats %}
-        <a class="teacher-stat-card tone-{{ card.tone }}" href="{{ card.href }}">
-          <span class="teacher-stat-label">{{ card.label }}</span>
-          <strong class="teacher-stat-value">{{ card.value }}</strong>
-          <span class="teacher-stat-note">{{ card.meta }}</span>
-        </a>
-      {% endfor %}
-    </div>
-  </section>
+    </section>
+  </div>
 {% endblock %}
+{% block content %}{% endblock %}

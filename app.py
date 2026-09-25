@@ -2668,7 +2668,7 @@ def results():
         for key, label in (("today", "Today"), ("this-week", "This week"), ("earlier", "Earlier")):
             group_items = [item for item in items if item["history_bucket"] == key]
             if group_items:
-                result_groups.append({"key": key, "label": label, "items": group_items})
+                result_groups.append({"key": key, "label": label, "entries": group_items})
     story = None
     if items:
         latest = items[0]

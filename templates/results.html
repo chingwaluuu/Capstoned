@@ -47,14 +47,12 @@
         <a class="chip-link {% if filter == 'practice' %}active{% endif %}" href="{{ url_for('results', filter='practice') }}"{% if filter == 'practice' %} aria-current="page"{% endif %}>Practice</a>
       </div>
 
-      {% if result_items|length == 1 and results_story %}
-        <p class="results-highlight-note">The result in this view is highlighted above.</p>
-      {% elif result_groups %}
+      {% if result_groups %}
         {% for group in result_groups %}
           <section class="results-history-group" aria-labelledby="results-group-{{ group.key }}">
             <h3 class="results-history-label" id="results-group-{{ group.key }}">{{ group.label }}</h3>
             <div class="work-item-list pro-stagger-in">
-              {% for item in group.items %}
+              {% for item in group.entries %}
                 {{ result_row(item) }}
               {% endfor %}
             </div>

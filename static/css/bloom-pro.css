@@ -162,13 +162,14 @@
   font-family: var(--pro-font-ui);
 }
 
-/* Student editorial surfaces use a fluid outer margin while their content
-   measures remain independent and left-aligned. */
+/* Page gutters — student Home is the reference for every Pro page. */
+.pro-body,
 .pro-body.student-refined {
   --pro-space-page-x: clamp(1rem, 0.35rem + 2.6vw, 4rem);
 }
 
 @media (min-width: 1440px) {
+  .pro-body,
   .pro-body.student-refined {
     --pro-space-page-x: clamp(2rem, 1.1rem + 1.8vw, 4rem);
   }
@@ -2029,36 +2030,45 @@ html.pref-reduce-motion .pro-body #notify-dropdown.notify-panel {
   min-height: 0;
 }
 
-/* Home command center  -  Today leads; stats become quiet chips */
+/* -----------------------------------------------------------------------------
+   Shared page shell — teacher/admin/staff match student Practice/Results width
+   ----------------------------------------------------------------------------- */
+.pro-body.teacher-workspace .pro-content,
+.pro-body.admin-monitor-body .pro-content,
+.pro-body.staff-workspace .pro-content,
+.pro-body.subject-hub-page .pro-content {
+  max-width: var(--measure-page);
+}
+
+/* Home command center — Today leads; stats become quiet chips */
 .pro-body.home-command .pro-hero {
   display: none;
 }
 
-.home-first-region {
-  margin: var(--pro-space-page-y) var(--pro-space-page-x) 0.15rem;
+/* Monitor / admin heroes — flush editorial treatment like student titles */
+.pro-body .home-first-region {
+  margin: clamp(1.25rem, 2.5vw, 1.85rem) var(--pro-space-page-x) 0;
+  max-width: var(--measure-page);
 }
 
 .home-command-hero {
   display: flex;
-  align-items: flex-end;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 1rem;
-  margin-bottom: 0.9rem;
-  padding: var(--pro-space-card);
-  border-radius: 1rem;
-  border: 1px solid var(--pro-line);
-  background:
-    radial-gradient(circle at 0% 0%, color-mix(in srgb, var(--pro-blue-soft) 70%, white), transparent 48%),
-    var(--bloom-surface);
+  margin-bottom: 0.35rem;
+  padding: 0 0 1rem;
+  border: 0;
+  border-radius: 0;
+  border-bottom: var(--grammar-rule);
+  background: transparent;
+  box-shadow: none;
 }
 
-/* Teacher Home  -  subject-tint hero (hub-command recipe; vars from body.subject-accent-*) */
 .pro-body.teacher-home-command .home-command-hero {
-  border: 1px solid color-mix(in srgb, var(--subject-color) 28%, white);
-  border-left: 1px solid var(--pro-line);
-  background:
-    radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--subject-soft) 75%, white), transparent 46%),
-    var(--bloom-surface);
+  border: 0;
+  border-bottom: var(--grammar-rule);
+  background: transparent;
 }
 
 /* Teacher Home  -  empty Open items: student Today-empty / today-featured presence */
@@ -4160,8 +4170,7 @@ html.pref-reduce-motion .pro-body #notify-dropdown.notify-panel {
    ----------------------------------------------------------------------------- */
 .pro-body .message-inbox {
   width: 100%;
-  /* Workspace-weight list: substantial on laptop, capped on ultra-wide */
-  max-width: clamp(42rem, 30rem + 28vw, 62rem);
+  max-width: var(--measure-list);
 }
 
 .message-toolbar {
@@ -7333,7 +7342,28 @@ html.pref-reduce-motion .qol-overlay {
 }
 
 .pro-topbar-brand {
-  display: none;
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  line-height: 0;
+  text-decoration: none;
+  border-radius: 0.45rem;
+}
+
+.pro-topbar-brand:hover {
+  opacity: 0.9;
+}
+
+.pro-topbar-brand:focus-visible {
+  outline: 2px solid var(--bloom-primary);
+  outline-offset: 2px;
+}
+
+.pro-topbar-logo {
+  display: block;
+  width: 2.15rem;
+  height: 2.15rem;
+  object-fit: contain;
 }
 
 .pro-top-nav {
@@ -7446,8 +7476,6 @@ html.pref-reduce-motion .qol-overlay {
 .pro-body .today-featured,
 .pro-body .today-card,
 .pro-body .empty-state-card,
-.pro-body .home-command-hero,
-.pro-body.teacher-home-command .home-command-hero,
 .pro-body.teacher-home-command .home-today .teacher-home-empty {
   border-left-width: 1px !important;
   border-left-color: var(--pro-line) !important;
@@ -7679,9 +7707,28 @@ html.pref-reduce-motion .qol-overlay {
   margin-top: 0;
 }
 
-/* Student Home composition: one sheet, two columns under a shared rule */
+/* Editorial homes (student + teacher): one shared page measure */
+.pro-body.home-editorial .editorial-page,
 .student-home .editorial-page {
   max-width: var(--measure-page);
+  margin-bottom: clamp(2rem, 4vw, 3rem);
+}
+
+/* Nested sections inherit the page margin — don't double-indent */
+.editorial-page .editorial-today-list,
+.editorial-page .teacher-stat-section,
+.editorial-page .home-section {
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.editorial-page .editorial-today-list {
+  margin-top: 1.75rem;
+  margin-bottom: 0;
+}
+
+.editorial-page .teacher-stat-section {
+  margin-top: 2rem;
   margin-bottom: clamp(2rem, 4vw, 3rem);
 }
 
@@ -8321,14 +8368,23 @@ html.pref-reduce-motion .qol-overlay {
 .pro-body .today-card,
 .pro-body .today-featured,
 .pro-body .empty-state-card,
-.pro-body .home-command-hero,
 .pro-body .lobby-card,
-.pro-body.teacher-home-command .home-command-hero,
 .pro-body.teacher-home-command .teacher-home-empty {
   border-left: 1px solid var(--pro-line) !important;
   border-right: 1px solid var(--pro-line) !important;
   box-shadow: none !important;
   background-image: none !important;
+}
+
+/* Flush command heroes stay borderless like student editorial titles */
+.pro-body .home-command-hero,
+.pro-body.teacher-home-command .home-command-hero {
+  border: 0 !important;
+  border-bottom: var(--grammar-rule) !important;
+  background: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
 }
 
 .pro-body .empty-state-card {

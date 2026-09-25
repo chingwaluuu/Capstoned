@@ -1,6 +1,6 @@
 {% extends "layouts/pro.html" %}
 {% block title %}{{ material.title }} — Bloom{% endblock %}
-{% block body_class %}teacher-workspace teacher-review-page{% endblock %}
+{% block body_class %}teacher-workspace teacher-review-page student-refined{% endblock %}
 {% block page_kicker %}Materials · {{ material.status|replace('_', ' ')|title }}{% endblock %}
 {% block page_title %}{{ material.title }}{% endblock %}
 {% block page_subtitle %}{{ material.source_label }} from {{ material.owner_name }} · {{ material.filename }}{% endblock %}
