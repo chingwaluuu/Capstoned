@@ -54,7 +54,7 @@
   /* Container grammar
      section = open, no container
      group   = --grammar-rule top rule OR --grammar-group-bg, never both
-     card    = --grammar-card-* (self-contained actionable objects only)
+     card    = --grammar-card-* / --card-* (self-contained actionable objects)
      row     = divider rows (--grammar-row-rule), no box
      status  = the only element allowed a small pill */
   --grammar-rule: 1px solid var(--pro-line-strong, #cfc8b5);
@@ -62,6 +62,14 @@
   --grammar-group-bg: #f7f5ef;
   --grammar-card-bg: #ffffff;
   --grammar-card-border: 1px solid var(--bloom-border, #dfdacb);
+
+  /* Shared card surface — dominant Pro values (hub/lobby/empty-state).
+     Outliers (row-style work-items, larger teacher cards) keep local overrides. */
+  --card-bg: var(--bloom-surface);
+  --card-border: 1px solid var(--bloom-border);
+  --card-radius: var(--pro-radius-lg);
+  --card-shadow: none;
+  --card-padding: 1.15rem;
 
   /* Subject accents  -  English violet, Math gold, Science navy */
   --subject-english: #7a5475;
@@ -144,7 +152,7 @@
   --pro-space-page-x: 1.75rem;
   --pro-space-page-y: 1.5rem;
   --pro-space-section: 1.1rem;
-  --pro-space-card: 1.15rem;
+  --pro-space-card: var(--card-padding);
   --pro-space-card-gap: 0.85rem;
   --pro-title-hero: clamp(1.75rem, 3vw, 2.35rem);
   --pro-title-section: clamp(1.25rem, 1.8vw, 1.55rem);
@@ -1046,10 +1054,20 @@ html.pref-reduce-motion .pro-body #notify-dropdown.notify-panel {
 .pro-panel,
 .pro-content .hub-panel,
 .pro-content .pro-hub-hero {
-  background: var(--pro-card);
-  border: 1px solid var(--pro-line);
-  border-radius: var(--pro-radius-lg);
-  box-shadow: none;
+  background: var(--card-bg);
+  border: var(--card-border);
+  border-radius: var(--card-radius);
+  box-shadow: var(--card-shadow);
+}
+
+/* Shared card utility — same surface as hub/lobby/empty on Pro pages */
+.bloom-card {
+  box-sizing: border-box;
+  background: var(--card-bg);
+  border: var(--card-border);
+  border-radius: var(--card-radius);
+  box-shadow: var(--card-shadow);
+  padding: var(--pro-space-card);
 }
 
 .pro-body a.hub-card:hover,
@@ -3537,10 +3555,10 @@ html.pref-reduce-motion .pro-body #notify-dropdown.notify-panel {
   min-height: 0;
   padding: 1rem 1.1rem;
   overflow: visible;
-  border: 1px solid var(--wic-border);
-  border-radius: var(--pro-radius);
-  background: #fff;
-  box-shadow: none;
+  border: var(--card-border);
+  border-radius: var(--pro-radius); /* slightly tighter than section cards */
+  background: var(--card-bg);
+  box-shadow: var(--card-shadow);
   color: var(--pro-ink);
   text-decoration: none;
 }
@@ -6735,10 +6753,10 @@ html.pref-reduce-motion .qol-overlay {
 
 .admin-stat-card {
   padding: 0.95rem 1rem;
-  border: 1px solid var(--pro-line);
-  border-radius: 0.9rem;
-  background: var(--pro-card);
-  box-shadow: var(--pro-shadow);
+  border: var(--card-border);
+  border-radius: 0.9rem; /* keep existing larger radius */
+  background: var(--card-bg);
+  box-shadow: var(--pro-shadow); /* keep existing soft elevation */
 }
 
 .admin-stat-label {
@@ -7697,10 +7715,11 @@ html.pref-reduce-motion .qol-overlay {
 }
 
 .editorial-empty {
-  padding: 1.5rem 1.25rem;
-  border: 1px solid var(--pro-line);
-  border-radius: var(--pro-radius-lg);
-  background: #fff;
+  padding: 1.5rem 1.25rem; /* preserve existing denser empty-state padding */
+  border: var(--card-border);
+  border-radius: var(--card-radius);
+  background: var(--card-bg);
+  box-shadow: var(--card-shadow);
 }
 
 .editorial-empty .empty-title {
@@ -7744,6 +7763,21 @@ html.pref-reduce-motion .qol-overlay {
   min-width: 0;
   padding-top: 1rem;
   border-top: var(--grammar-rule);
+}
+
+/* Cardified Home sections: drop the open-sheet top rule so we don't double chrome */
+.student-home .editorial-main:has(> .bloom-card),
+.student-home .editorial-subjects-wrap:has(> .bloom-card) {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.student-home .editorial-continue.bloom-card {
+  gap: 0.4rem;
+}
+
+.student-home .editorial-continue.bloom-card .editorial-section-label {
+  margin-bottom: 0.45rem;
 }
 
 /* One quiet tonal anchor for the primary learning focus */
@@ -8125,10 +8159,10 @@ html.pref-reduce-motion .qol-overlay {
 
 /* Teacher stats quieter */
 .teacher-stat-card {
-  border: 1px solid var(--pro-line);
-  border-radius: var(--pro-radius);
-  background: #fff;
-  box-shadow: none;
+  border: var(--card-border);
+  border-radius: var(--pro-radius); /* keep existing slightly tighter radius */
+  background: var(--card-bg);
+  box-shadow: var(--card-shadow);
   padding: 1rem;
   text-decoration: none;
   color: inherit;
