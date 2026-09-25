@@ -1,0 +1,28 @@
+{# Shared subject entry for student Home compact list. #}
+{% macro subject_row(subject, layout="list") %}
+  {% set has_score = subject.has_progress and subject.progress_percent > 0 %}
+  <a
+    class="subject-tile subject-accent-{{ subject.slug }} {% if has_score %}has-score{% else %}is-empty{% endif %}"
+    href="{{ url_for('subject_hub', slug=subject.slug) }}"
+  >
+    <h3 class="subject-tile-name">{{ subject.name or subject.slug|title }}</h3>
+    {% if has_score %}
+      <p class="subject-tile-progress">{{ subject.progress_percent }}%</p>
+    {% else %}
+      <p class="subject-tile-progress is-empty">Not started</p>
+    {% endif %}
+    <span class="subject-tile-chevron" aria-hidden="true">→</span>
+    {% if has_score %}
+      <div
+        class="subject-tile-meter"
+        role="progressbar"
+        aria-valuemin="0"
+        aria-valuemax="100"
+        aria-valuenow="{{ subject.progress_percent }}"
+        aria-label="{{ subject.name }} average practice score"
+      >
+        <span style="width: {{ subject.progress_percent }}%;"></span>
+      </div>
+    {% endif %}
+  </a>
+{% endmacro %}

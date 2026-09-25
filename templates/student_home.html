@@ -1,4 +1,5 @@
 {% extends "layouts/pro.html" %}
+{% from "partials/subject_row.html" import subject_row %}
 {% set active_tab = "home" %}
 {% block title %}Home — Bloom{% endblock %}
 {% block body_class %}home-editorial student-home student-refined{% endblock %}
@@ -68,38 +69,20 @@
               {% endif %}
             </p>
             <div class="editorial-continue-actions">
-              <a class="btn-primary" href="#subjects-title">Browse subjects <span aria-hidden="true">↓</span></a>
+              <a class="btn-primary" href="{{ url_for('subjects_index') }}">Browse subjects <span aria-hidden="true">→</span></a>
             </div>
           {% endif %}
         </section>
       </div>
 
-      <section class="editorial-subjects-wrap" aria-labelledby="subjects-title">
+      <section class="editorial-subjects-wrap bloom-card" aria-labelledby="subjects-title">
         <div class="editorial-subjects-head">
           <h2 class="editorial-subjects-label" id="subjects-title">My Subjects</h2>
           <p class="editorial-subjects-note">{{ user.section or "Grade 7" }}</p>
         </div>
         <div class="editorial-subjects">
           {% for subject in subjects %}
-            {% set has_score = subject.has_progress and subject.progress_percent > 0 %}
-            <a class="subject-tile {% if has_score %}has-score{% else %}is-empty{% endif %}" href="{{ url_for('subject_hub', slug=subject.slug) }}">
-              <h3 class="subject-tile-name">{{ subject.name or subject.slug|title }}</h3>
-              {% if has_score %}
-                <p class="subject-tile-progress">{{ subject.progress_percent }}%</p>
-                <div
-                  class="subject-tile-meter"
-                  role="progressbar"
-                  aria-valuemin="0"
-                  aria-valuemax="100"
-                  aria-valuenow="{{ subject.progress_percent }}"
-                  aria-label="{{ subject.name }} average practice score"
-                >
-                  <span style="width: {{ subject.progress_percent }}%;"></span>
-                </div>
-              {% else %}
-                <p class="subject-tile-progress is-empty">Not started</p>
-              {% endif %}
-            </a>
+            {{ subject_row(subject, layout="list") }}
           {% endfor %}
         </div>
       </section>

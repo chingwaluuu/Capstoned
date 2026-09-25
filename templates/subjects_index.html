@@ -1,0 +1,87 @@
+{% extends "layouts/pro.html" %}
+{% set active_tab = "subjects" %}
+{% block title %}Subjects — Bloom{% endblock %}
+{% block body_class %}student-refined subjects-index-page{% endblock %}
+{% block page_header %}{% endblock %}
+{% block content %}
+  {% set accent_by_slug = {
+    "english": "var(--subject-english)",
+    "mathematics": "var(--subject-math)",
+    "science": "var(--subject-science)",
+    "filipino": "var(--subject-filipino)",
+    "values": "var(--subject-values)"
+  } %}
+  <div class="subjects-page">
+    <header class="subjects-page-header">
+      <h1 class="subjects-page-title">Subjects</h1>
+      <p class="subjects-page-subtitle">Open a subject to study, practice, and check assessments at your own pace.</p>
+      {% if subjects %}
+        <div class="subjects-page-legend" aria-label="Subjects and section">
+          {% for subject in subjects %}
+            <span class="subjects-page-legend-item">
+              <span
+                class="subjects-page-legend-dot"
+                style="background: {{ accent_by_slug.get(subject.slug, 'var(--subject-general)') }};"
+                aria-hidden="true"
+              ></span>
+              {{ subject.name or subject.slug|title }}
+            </span>
+          {% endfor %}
+          <span class="subjects-page-legend-rule" aria-hidden="true"></span>
+          <span class="subjects-page-legend-meta">{{ user.section or "Grade 7 · Pilot Section" }}</span>
+        </div>
+      {% endif %}
+    </header>
+
+    {% if subjects %}
+      <div class="subjects-page-grid">
+        {% for subject in subjects %}
+          {% set has_score = subject.has_progress and subject.progress_percent > 0 %}
+          {% set accent = accent_by_slug.get(subject.slug, "var(--subject-general)") %}
+          <a
+            class="subjects-card"
+            href="{{ url_for('subject_hub', slug=subject.slug) }}"
+            style="--accent: {{ accent }};"
+          >
+            <div class="subjects-card-top">
+              <span class="subjects-card-dot" aria-hidden="true"></span>
+              <h2 class="subjects-card-name">{{ subject.name or subject.slug|title }}</h2>
+              <span class="subjects-card-spacer" aria-hidden="true"></span>
+              <span class="subjects-card-chevron" aria-hidden="true">→</span>
+            </div>
+            <p class="subjects-card-teacher">Taught by {{ subject.teacher or "Subject teacher" }}</p>
+            {% if subject.context_line %}
+              <p class="subjects-card-context">{{ subject.context_line }}</p>
+            {% endif %}
+            <div class="subjects-card-grow" aria-hidden="true"></div>
+            <div class="subjects-card-progress">
+              {% if has_score %}
+                <p class="subjects-card-score">{{ subject.progress_percent }}%</p>
+              {% else %}
+                <p class="subjects-card-score is-empty">Not started</p>
+              {% endif %}
+              <div
+                class="subjects-card-bar"
+                role="progressbar"
+                aria-valuemin="0"
+                aria-valuemax="100"
+                aria-valuenow="{{ subject.progress_percent if has_score else 0 }}"
+                aria-label="{{ subject.name }} average practice score"
+              >
+                <span style="width: {{ subject.progress_percent if has_score else 0 }}%;"></span>
+              </div>
+              {% if not has_score %}
+                <p class="subjects-card-start">Start here →</p>
+              {% endif %}
+            </div>
+          </a>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="practice-empty subjects-page-empty">
+        <h3 class="empty-title">No subjects yet</h3>
+        <p class="empty-copy">When your section is set up, your subjects will show up here.</p>
+      </div>
+    {% endif %}
+  </div>
+{% endblock %}

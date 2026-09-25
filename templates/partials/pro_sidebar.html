@@ -20,6 +20,17 @@
         <span class="pro-nav-label" aria-hidden="true">Home</span>
       </a>
       <a
+        class="pro-nav-link {% if tab == 'subjects' %}is-active{% endif %}"
+        href="{{ url_for('subjects_index') }}"
+        aria-label="Subjects"
+        {% if tab == 'subjects' %}aria-current="page"{% endif %}
+      >
+        <span class="pro-nav-ico" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        </span>
+        <span class="pro-nav-label" aria-hidden="true">Subjects</span>
+      </a>
+      <a
         class="pro-nav-link {% if tab == 'practice' %}is-active{% endif %}"
         href="{{ url_for('practice') }}"
         aria-label="Practice"

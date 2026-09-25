@@ -1776,40 +1776,7 @@ def home():
         return redirect(url_for("admin_home"))
 
     first_name = user["name"].split(" ")[0]
-    subjects = []
-    for slug, meta in SUBJECTS.items():
-        percent, insight, has_progress = bloom_progress(user["id"], slug)
-        teacher = User.query.filter_by(role="teacher", subject=meta["name"]).first()
-        next_action = "Next: Explore approved lessons"
-        published = Assessment.query.filter_by(subject_slug=slug, status="published").all()
-        open_hots = False
-        for assessment in published:
-            taken = Attempt.query.filter_by(
-                user_id=user["id"], assessment_id=assessment.id, kind="assessment"
-            ).count()
-            limit = assessment.attempt_limit if assessment.attempt_limit is not None else 1
-            allowed = limit + (1 if assessment.extra_attempt else 0)
-            if taken < allowed:
-                open_hots = True
-                break
-        if open_hots:
-            next_action = "Next: Open a HOTS Assessment"
-        elif published:
-            next_action = "Next: Review your last result"
-        elif Material.query.filter_by(subject_slug=slug, status="approved").first():
-            next_action = "Next: Read a summary or start practice"
-        subjects.append(
-            {
-                "slug": slug,
-                "name": meta["name"],
-                "teacher": teacher.name if teacher else "Subject teacher",
-                "progress_label": progress_display_label(percent, has_progress, insight if has_progress else ""),
-                "progress_insight": insight,
-                "progress_percent": percent,
-                "has_progress": has_progress,
-                "next_action": next_action,
-            }
-        )
+    subjects = build_student_subjects(user["id"])
     today = build_today(user["id"])
     announce_ctx = announcements_context(user)
     today_titles = {item.get("title") for item in today if item.get("title")}
@@ -1843,6 +1810,82 @@ def home():
     }
     context.update(announce_ctx)
     return render_template("student_home.html", **context)
+
+
+def build_student_subjects(user_id: int) -> list[dict]:
+    """Subject rows for student Home + Subjects index (name, progress, hub link data)."""
+    subjects = []
+    for slug, meta in SUBJECTS.items():
+        percent, insight, has_progress = bloom_progress(user_id, slug)
+        teacher = User.query.filter_by(role="teacher", subject=meta["name"]).first()
+        next_action = "Next: Explore approved lessons"
+        published = Assessment.query.filter_by(subject_slug=slug, status="published").all()
+        open_hots = False
+        for assessment in published:
+            taken = Attempt.query.filter_by(
+                user_id=user_id, assessment_id=assessment.id, kind="assessment"
+            ).count()
+            limit = assessment.attempt_limit if assessment.attempt_limit is not None else 1
+            allowed = limit + (1 if assessment.extra_attempt else 0)
+            if taken < allowed:
+                open_hots = True
+                break
+        if open_hots:
+            next_action = "Next: Open a HOTS Assessment"
+        elif published:
+            next_action = "Next: Review your last result"
+        elif Material.query.filter_by(subject_slug=slug, status="approved").first():
+            next_action = "Next: Read a summary or start practice"
+
+        # Context subtitle: approved material title, else latest attempt, else omit.
+        context_line = None
+        latest_material = (
+            Material.query.filter_by(subject_slug=slug, status="approved")
+            .order_by(Material.created_at.desc())
+            .first()
+        )
+        if latest_material and latest_material.title:
+            context_line = f"Currently on: {latest_material.title}"
+        else:
+            latest_attempt = (
+                Attempt.query.filter_by(user_id=user_id, subject_slug=slug)
+                .order_by(Attempt.submitted_at.desc())
+                .first()
+            )
+            if latest_attempt and latest_attempt.title:
+                context_line = f"Last activity: {latest_attempt.title}"
+
+        subjects.append(
+            {
+                "slug": slug,
+                "name": meta["name"],
+                "teacher": teacher.name if teacher else "Subject teacher",
+                "progress_label": progress_display_label(percent, has_progress, insight if has_progress else ""),
+                "progress_insight": insight,
+                "progress_percent": percent,
+                "has_progress": has_progress,
+                "next_action": next_action,
+                "context_line": context_line,
+            }
+        )
+    return subjects
+
+
+@app.route("/subjects")
+def subjects_index():
+    user = require_user()
+    if not user:
+        return redirect(url_for("login"))
+    if user["role"] != "student":
+        return redirect(url_for("home"))
+    subjects = build_student_subjects(user["id"])
+    context = {
+        "user": user,
+        "subjects": subjects,
+        "topbar_sub": "Subjects",
+    }
+    context.update(announcements_context(user))
+    return render_template("subjects_index.html", **context)
 
 
 @app.route("/subjects/<slug>", methods=["GET", "POST"])

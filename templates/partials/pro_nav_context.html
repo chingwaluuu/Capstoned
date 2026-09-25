@@ -5,6 +5,8 @@
   {% set nav.tab = active_tab %}
 {% elif active_nav is defined and active_nav %}
   {% set nav.tab = active_nav %}
+{% elif endpoint == 'subjects_index' or endpoint == 'subject_hub' %}
+  {% set nav.tab = 'subjects' %}
 {% elif 'practice' in endpoint %}
   {% set nav.tab = 'practice' %}
 {% elif endpoint == 'results' or endpoint.startswith('result') %}
