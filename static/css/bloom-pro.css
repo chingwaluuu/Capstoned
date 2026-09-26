@@ -10041,8 +10041,8 @@ html.pref-reduce-motion .qol-overlay {
 .pro-body.student.home-editorial .work-item-card.pro-card-interactive:focus-visible {
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-4);
+  gap: var(--space-5);
+  padding: var(--space-4) var(--space-5);
   border: 1px solid var(--border);
   border-radius: var(--radius-card);
   background: var(--surface);
@@ -10180,6 +10180,11 @@ html.pref-reduce-motion .qol-overlay {
 }
 
 .pro-body.student .announce-page .filter-chips,
+.pro-body.student .message-inbox .filter-chips.message-filter-row {
+  flex: 1 1 100%;
+}
+
+.pro-body.student .announce-page .filter-chips,
 .pro-body.student .message-inbox .filter-chips.message-filter-row,
 .pro-body.student .practice-library .filter-chips.subject-filter-row,
 .pro-body.student .results-library .filter-chips.subject-filter-row {
@@ -10187,9 +10192,8 @@ html.pref-reduce-motion .qol-overlay {
   flex-wrap: wrap;
   align-items: center;
   order: 0;
-  flex: 1 1 100%;
-  gap: var(--space-2);
-  margin: 0;
+  gap: var(--space-3);
+  margin: 0 0 var(--space-4);
   border-bottom: 0;
   overflow: visible;
 }
@@ -10200,7 +10204,7 @@ html.pref-reduce-motion .qol-overlay {
 .pro-body.student .results-library .chip-link {
   min-height: 2.25rem;
   margin: 0;
-  padding: 0 var(--space-3);
+  padding: 0.35rem var(--space-4);
   border: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
   border-radius: var(--radius-pill);
@@ -10327,19 +10331,19 @@ html.pref-reduce-motion .qol-overlay {
 
 .pro-body.student .practice-library .work-item-card,
 .pro-body.student .results-library .work-item-card {
-  gap: var(--space-4);
+  gap: var(--space-5);
 }
 
 .pro-body.student .practice-library .work-item-action,
 .pro-body.student .results-library .work-item-action {
-  padding-left: var(--space-2);
+  padding-left: var(--space-4);
   justify-self: end;
 }
 
 .pro-body.student .practice-library .wic-btn,
 .pro-body.student .results-library .wic-btn {
   min-height: 2.5rem;
-  padding: 0 var(--space-4);
+  padding: 0.45rem var(--space-4);
   border-radius: var(--radius-input);
   gap: var(--space-2);
 }
@@ -10373,7 +10377,7 @@ html.pref-reduce-motion .qol-overlay {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--space-3);
 }
 
 .pro-body.student .results-library .work-item-meta > * + *::before {
@@ -10771,5 +10775,98 @@ html.pref-reduce-motion .qol-overlay {
   .pro-body.student .empty-actions .today-action {
     justify-self: start;
   }
+}
+
+.pro-body.student.student-refined .practice-head,
+.pro-body.student.student-refined .results-head,
+.pro-body.student.student-refined .message-head {
+  margin: 0 0 var(--space-4);
+}
+
+.pro-body.student.student-refined .announce-page .filter-chips,
+.pro-body.student.student-refined .message-inbox .filter-chips,
+.pro-body.student.student-refined .practice-library .filter-chips,
+.pro-body.student.student-refined .results-library .filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  margin: 0 0 var(--space-5);
+  border: 0;
+  border-bottom: 0;
+  overflow: visible;
+}
+
+.pro-body.student.student-refined .announce-page .chip-link,
+.pro-body.student.student-refined .message-inbox .chip-link,
+.pro-body.student.student-refined .practice-library .chip-link,
+.pro-body.student.student-refined .results-library .chip-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.25rem;
+  margin: 0;
+  padding: 0.4rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+.pro-body.student.student-refined .announce-page .chip-link.active,
+.pro-body.student.student-refined .message-inbox .chip-link.active,
+.pro-body.student.student-refined .message-inbox .chip-link.is-active,
+.pro-body.student.student-refined .practice-library .chip-link.active,
+.pro-body.student.student-refined .results-library .chip-link.active {
+  border-color: var(--brand-primary);
+  background: var(--brand-primary);
+  color: var(--brand-on-primary);
+}
+
+.pro-body.student.student-refined .practice-library .work-item-card,
+.pro-body.student.student-refined .results-library .work-item-card,
+.pro-body.student.student-refined.home-editorial .practice-library .work-item-card.pro-card-interactive,
+.pro-body.student.student-refined.home-editorial .results-library .work-item-card.pro-card-interactive {
+  gap: var(--space-5);
+  padding: var(--space-4) var(--space-5);
+}
+
+.pro-body.student.student-refined .practice-library .work-item-action,
+.pro-body.student.student-refined .results-library .work-item-action {
+  padding-left: var(--space-4);
+}
+
+.pro-body.student.student-refined .practice-library a.wic-btn,
+.pro-body.student.student-refined .results-library a.wic-btn,
+.pro-body.student.student-refined .practice-library a.wic-btn-secondary,
+.pro-body.student.student-refined .results-library a.wic-btn-secondary,
+.pro-body.student.student-refined .practice-library a.wic-btn-primary,
+.pro-body.student.student-refined .results-library a.wic-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.5rem;
+  padding: 0.5rem 1.15rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-input);
+  gap: var(--space-2);
+}
+
+.pro-body.student.student-refined .practice-library a.wic-btn-secondary,
+.pro-body.student.student-refined .results-library a.wic-btn-secondary {
+  background: var(--canvas);
+  color: var(--brand-primary);
+}
+
+.pro-body.student.student-refined .practice-library a.wic-btn-primary,
+.pro-body.student.student-refined .results-library a.wic-btn-primary {
+  border-color: var(--brand-primary);
+  background: var(--brand-primary);
+  color: var(--brand-on-primary);
+}
+
+.pro-body.student.student-refined .results-library .work-item-meta,
+.pro-body.student.student-refined .practice-library .work-item-meta {
+  gap: var(--space-3);
 }
 
