@@ -372,7 +372,6 @@ def admin_nav():
         {"label": "Home", "endpoint": "admin_home", "key": "home"},
         {"label": "Users", "endpoint": "admin_users", "key": "users"},
         {"label": "Section", "endpoint": "admin_section", "key": "section"},
-        {"label": "Monitor", "endpoint": "admin_reports", "key": "reports"},
         {"label": "Settings", "endpoint": "admin_settings", "key": "settings"},
     ]
 
@@ -3926,18 +3925,7 @@ def admin_section(user):
 @app.route("/admin/reports")
 @require_role("admin")
 def admin_reports(user):
-    monitor = build_admin_class_monitor()
-    context = {
-        "user": user,
-        "topbar_sub": "Monitor",
-        "role_nav": admin_nav(),
-        "active_nav": "reports",
-        "title": "Reports & analytics",
-        "subtitle": "Class functioning at a glance — critical-thinking (HOTS) stats, subject averages, and who still needs support.",
-        "monitor": monitor,
-    }
-    context.update(announcements_context(user))
-    return render_template("admin_monitor.html", **context)
+    return redirect(url_for("admin_home"))
 
 
 @app.route("/admin/settings", methods=["GET", "POST"])

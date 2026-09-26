@@ -25,7 +25,6 @@
 {% elif user and user.role == 'admin' %}
   {% if 'users' in endpoint %}{% set nav.tab = 'users' %}
   {% elif 'section' in endpoint %}{% set nav.tab = 'section' %}
-  {% elif 'report' in endpoint or 'admin_reports' == endpoint %}{% set nav.tab = 'reports' %}
   {% elif 'settings' in endpoint %}{% set nav.tab = 'settings' %}
   {% else %}{% set nav.tab = 'home' %}{% endif %}
 {% else %}
