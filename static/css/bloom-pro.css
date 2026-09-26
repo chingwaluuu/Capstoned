@@ -7976,7 +7976,7 @@ html.pref-reduce-motion .qol-overlay {
 
 .editorial-band {
   display: grid;
-  grid-template-columns: minmax(0, 1.4fr) minmax(16rem, 0.8fr);
+  grid-template-columns: 1fr 1fr;
   gap: clamp(2rem, 4vw, 3.5rem);
   align-items: stretch;
 }
@@ -8135,9 +8135,9 @@ html.pref-reduce-motion .qol-overlay {
 .editorial-secondary-band,
 .editorial-lower-band {
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  grid-template-columns: 1fr 1fr;
   gap: clamp(1.75rem, 3.5vw, 3rem);
-  align-items: start;
+  align-items: stretch;
   margin-top: clamp(1.75rem, 3vw, 2.5rem);
   padding-top: 1.15rem;
   border-top: var(--grammar-rule);
@@ -8145,7 +8145,7 @@ html.pref-reduce-motion .qol-overlay {
 
 .editorial-secondary-band.is-single,
 .editorial-lower-band:has(> :only-child) {
-  grid-template-columns: minmax(0, 36rem);
+  grid-template-columns: 1fr;
 }
 
 .editorial-section-head {
