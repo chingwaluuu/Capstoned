@@ -7600,6 +7600,13 @@ html.pref-reduce-motion .qol-overlay {
   outline-offset: 2px;
 }
 
+/* Sidebar already shows the school mark. Hide the duplicate while the rail is on screen. */
+@media (min-width: 861px) {
+  .pro-topbar-brand {
+    display: none;
+  }
+}
+
 .pro-topbar-logo {
   display: block;
   width: 2.15rem;
