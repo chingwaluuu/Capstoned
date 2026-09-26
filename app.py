@@ -902,6 +902,16 @@ def build_home_stats(user_id: int, subjects: list[dict], overall: int, has_pract
     ]
 
 
+def _share_slices(rows: list[dict]) -> list[dict]:
+    """Attach integer percents so donut slices add up to the class, not made-up values."""
+    total = sum(int(row.get("count") or 0) for row in rows)
+    denom = total or 1
+    for row in rows:
+        count = int(row.get("count") or 0)
+        row["percent"] = int(round(100 * count / denom)) if total else 0
+    return rows
+
+
 def build_admin_class_monitor() -> dict:
     """Section-wide student progress, HOTS strength, and class health for admin."""
     students = User.query.filter_by(role="student").order_by(User.name).all()
@@ -991,6 +1001,75 @@ def build_admin_class_monitor() -> dict:
     class_avg = int(round(sum(scored_percents) / len(scored_percents))) if scored_percents else None
     needs_support = sum(1 for row in student_rows if row["status"] in {"needs_support", "not_started"})
     on_track = sum(1 for row in student_rows if row["status"] in {"on_track", "strong"})
+    status_counts = {
+        "strong": sum(1 for row in student_rows if row["status"] == "strong"),
+        "on_track": sum(1 for row in student_rows if row["status"] == "on_track"),
+        "needs_support": sum(1 for row in student_rows if row["status"] == "needs_support"),
+        "started": sum(1 for row in student_rows if row["status"] == "warming"),
+        "not_started": sum(1 for row in student_rows if row["status"] == "not_started"),
+    }
+
+    participation_slices = _share_slices(
+        [
+            {
+                "key": "active",
+                "label": "Active",
+                "count": active_count,
+                "color": "#157a59",
+                "meaning": "Submitted at least one practice check or assessment",
+            },
+            {
+                "key": "not_started",
+                "label": "Not started",
+                "count": inactive_count,
+                "color": "#c7d4e6",
+                "meaning": "No practice or assessment activity yet",
+            },
+        ]
+    )
+    status_slice_rows = [
+        {
+            "key": "strong",
+            "label": "Strong",
+            "count": status_counts["strong"],
+            "color": "#157a59",
+            "meaning": "Average auto-score 80% or higher",
+        },
+        {
+            "key": "on_track",
+            "label": "On track",
+            "count": status_counts["on_track"],
+            "color": "#2a57d5",
+            "meaning": "Average auto-score 50–79%",
+        },
+        {
+            "key": "needs_support",
+            "label": "Needs support",
+            "count": status_counts["needs_support"],
+            "color": "#b86a07",
+            "meaning": "Average auto-score below 50%",
+        },
+    ]
+    if status_counts["started"]:
+        status_slice_rows.append(
+            {
+                "key": "started",
+                "label": "Started",
+                "count": status_counts["started"],
+                "color": "#5b3fd6",
+                "meaning": "Has activity, but no auto-score yet",
+            }
+        )
+    status_slice_rows.append(
+        {
+            "key": "not_started",
+            "label": "Not started",
+            "count": status_counts["not_started"],
+            "color": "#c7d4e6",
+            "meaning": "No practice or assessment activity yet",
+        }
+    )
+    status_slices = _share_slices(status_slice_rows)
 
     subject_bars = []
     for slug, meta in SUBJECTS.items():
@@ -1036,17 +1115,18 @@ def build_admin_class_monitor() -> dict:
             "averages": [bar["avg"] for bar in subject_bars],
         },
         "participation": {
-            "labels": ["Active", "Not started"],
-            "values": [active_count, inactive_count],
+            "labels": [item["label"] for item in participation_slices],
+            "values": [item["count"] for item in participation_slices],
+            "percents": [item["percent"] for item in participation_slices],
+            "meanings": [item["meaning"] for item in participation_slices],
+            "colors": [item["color"] for item in participation_slices],
         },
         "status": {
-            "labels": ["Strong", "On track", "Needs support", "Not started"],
-            "values": [
-                sum(1 for row in student_rows if row["status"] == "strong"),
-                sum(1 for row in student_rows if row["status"] == "on_track"),
-                sum(1 for row in student_rows if row["status"] == "needs_support"),
-                sum(1 for row in student_rows if row["status"] == "not_started"),
-            ],
+            "labels": [item["label"] for item in status_slices],
+            "values": [item["count"] for item in status_slices],
+            "percents": [item["percent"] for item in status_slices],
+            "meanings": [item["meaning"] for item in status_slices],
+            "colors": [item["color"] for item in status_slices],
         },
     }
 
@@ -1075,6 +1155,8 @@ def build_admin_class_monitor() -> dict:
         "student_rows": student_rows,
         "insight": insight,
         "charts_json": json.dumps(charts),
+        "participation_slices": participation_slices,
+        "status_slices": status_slices,
     }
 
 

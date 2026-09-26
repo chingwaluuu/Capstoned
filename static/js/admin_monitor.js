@@ -92,6 +92,29 @@
     });
   }
 
+  const doughnutOptions = (chartData) => ({
+    ...baseOptions,
+    cutout: "62%",
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label(ctx) {
+            const meanings = chartData.meanings || [];
+            const percents = chartData.percents || [];
+            const pct = percents[ctx.dataIndex];
+            const meaning = meanings[ctx.dataIndex] || "";
+            const count = ctx.raw;
+            const studentWord = count === 1 ? "student" : "students";
+            const bits = [`${ctx.label}: ${pct}% (${count} ${studentWord})`];
+            if (meaning) bits.push(meaning);
+            return bits;
+          },
+        },
+      },
+    },
+  });
+
   const participation = document.getElementById("chart-participation");
   if (participation && data.participation) {
     new Chart(participation, {
@@ -101,18 +124,12 @@
         datasets: [
           {
             data: data.participation.values,
-            backgroundColor: [green, "#c7d4e6"],
+            backgroundColor: data.participation.colors || [green, "#c7d4e6"],
             borderWidth: 0,
           },
         ],
       },
-      options: {
-        ...baseOptions,
-        cutout: "62%",
-        plugins: {
-          legend: { position: "bottom", labels: { color: muted, boxWidth: 12 } },
-        },
-      },
+      options: doughnutOptions(data.participation),
     });
   }
 
@@ -125,18 +142,12 @@
         datasets: [
           {
             data: data.status.values,
-            backgroundColor: [green, blue, amber, "#c7d4e6"],
+            backgroundColor: data.status.colors || [green, blue, amber, "#c7d4e6"],
             borderWidth: 0,
           },
         ],
       },
-      options: {
-        ...baseOptions,
-        cutout: "62%",
-        plugins: {
-          legend: { position: "bottom", labels: { color: muted, boxWidth: 12 } },
-        },
-      },
+      options: doughnutOptions(data.status),
     });
   }
 })();

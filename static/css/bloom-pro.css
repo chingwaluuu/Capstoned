@@ -7042,6 +7042,46 @@ html.pref-reduce-motion .qol-overlay {
   font-weight: 650;
 }
 
+.admin-donut-legend {
+  list-style: none;
+  margin: 0.85rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.55rem;
+}
+
+.admin-donut-legend li {
+  display: grid;
+  grid-template-columns: 0.7rem minmax(0, 1fr);
+  gap: 0.55rem;
+  align-items: start;
+}
+
+.admin-donut-swatch {
+  width: 0.7rem;
+  height: 0.7rem;
+  margin-top: 0.28rem;
+  border-radius: 2px;
+}
+
+.admin-donut-copy {
+  display: grid;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.admin-donut-copy strong {
+  color: var(--pro-heading, #14233d);
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.admin-donut-copy span {
+  color: var(--pro-muted);
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
 .admin-subject-bars {
   list-style: none;
   margin: 0.85rem 0 0;

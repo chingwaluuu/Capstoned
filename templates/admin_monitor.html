@@ -94,18 +94,40 @@
 
     <article class="admin-chart-card">
       <h2 class="hub-panel-title">Participation</h2>
-      <p class="section-note">Students with any practice or assessment activity.</p>
+      <p class="section-note">Share of students with any practice or assessment activity.</p>
       <div class="admin-chart-frame admin-chart-frame-sm">
         <canvas id="chart-participation" height="200" aria-label="Participation chart"></canvas>
       </div>
+      <ul class="admin-donut-legend">
+        {% for slice in monitor.participation_slices %}
+          <li>
+            <span class="admin-donut-swatch" style="background: {{ slice.color }};"></span>
+            <span class="admin-donut-copy">
+              <strong>{{ slice.percent }}% {{ slice.label }}</strong>
+              <span>{{ slice.meaning }} · {{ slice.count }} student{% if slice.count != 1 %}s{% endif %}</span>
+            </span>
+          </li>
+        {% endfor %}
+      </ul>
     </article>
 
     <article class="admin-chart-card">
       <h2 class="hub-panel-title">Progress status</h2>
-      <p class="section-note">How the class is functioning as a whole.</p>
+      <p class="section-note">Share of the class by average auto-score band.</p>
       <div class="admin-chart-frame admin-chart-frame-sm">
         <canvas id="chart-status" height="200" aria-label="Progress status chart"></canvas>
       </div>
+      <ul class="admin-donut-legend">
+        {% for slice in monitor.status_slices %}
+          <li>
+            <span class="admin-donut-swatch" style="background: {{ slice.color }};"></span>
+            <span class="admin-donut-copy">
+              <strong>{{ slice.percent }}% {{ slice.label }}</strong>
+              <span>{{ slice.meaning }} · {{ slice.count }} student{% if slice.count != 1 %}s{% endif %}</span>
+            </span>
+          </li>
+        {% endfor %}
+      </ul>
     </article>
   </section>
 
@@ -172,5 +194,5 @@
 {% endblock %}
 {% block scripts %}
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
-  <script src="{{ url_for('static', filename='js/admin_monitor.js') }}" defer></script>
+  <script src="{{ url_for('static', filename='js/admin_monitor.js') }}?v=am2" defer></script>
 {% endblock %}
