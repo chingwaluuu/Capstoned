@@ -7956,6 +7956,11 @@ html.pref-reduce-motion .qol-overlay {
   margin-bottom: clamp(2rem, 4vw, 3rem);
 }
 
+/* Student Home fills the main area so wide screens don't leave an empty right band */
+.pro-body.student-home .editorial-page {
+  max-width: none;
+}
+
 /* Nested sections inherit the page margin — don't double-indent */
 .editorial-page .editorial-today-list,
 .editorial-page .teacher-stat-section,
