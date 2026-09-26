@@ -90,7 +90,7 @@
 
     <div class="editorial-secondary-band {% if not secondary %}is-single{% endif %}">
       {% if secondary %}
-        <section class="editorial-also" aria-labelledby="also-today-title">
+        <section class="editorial-also bloom-card" aria-labelledby="also-today-title">
           <h2 class="editorial-section-label" id="also-today-title">Also today</h2>
           <div class="editorial-list" role="list">
             {% for item in secondary %}
@@ -115,7 +115,7 @@
         </section>
       {% endif %}
 
-      <section class="editorial-updates" aria-labelledby="teacher-updates-title">
+      <section class="editorial-updates bloom-card" aria-labelledby="teacher-updates-title">
         <div class="editorial-section-head">
           <h2 class="editorial-section-label" id="teacher-updates-title">Teacher updates</h2>
           <a class="editorial-text-link editorial-section-link" href="{{ url_for('announcements') }}">View all announcements →</a>

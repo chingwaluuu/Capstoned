@@ -8153,6 +8153,17 @@ html.pref-reduce-motion .qol-overlay {
   grid-template-columns: 1fr;
 }
 
+.student-home .editorial-secondary-band {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.student-home .editorial-also.bloom-card,
+.student-home .editorial-updates.bloom-card {
+  height: 100%;
+  border: var(--card-border);
+}
+
 .editorial-section-head {
   display: flex;
   flex-wrap: wrap;
