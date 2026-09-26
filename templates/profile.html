@@ -32,8 +32,12 @@
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
           <input type="hidden" name="action" value="photo" />
           <div class="field profile-photo-field">
-            <label for="photo">Choose a photo</label>
-            <input id="photo" name="photo" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" required />
+            <span class="profile-photo-field-label" id="photo-label">Choose a photo</span>
+            <div class="profile-photo-picker">
+              <input id="photo" class="profile-photo-input" name="photo" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" required aria-labelledby="photo-label" />
+              <label for="photo" class="profile-photo-choose">Choose file</label>
+              <p class="file-chosen" aria-live="polite"></p>
+            </div>
           </div>
           <div class="profile-photo-actions">
             <button type="submit" class="btn-primary profile-photo-save">Save photo</button>

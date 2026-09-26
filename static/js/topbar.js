@@ -325,9 +325,13 @@
   });
 
   document.querySelectorAll('input[type="file"]').forEach((input) => {
-    const hint = document.createElement("p");
-    hint.className = "file-chosen";
-    input.insertAdjacentElement("afterend", hint);
+    const host = input.closest(".profile-photo-picker") || input.parentElement;
+    let hint = host ? host.querySelector(".file-chosen") : null;
+    if (!hint) {
+      hint = document.createElement("p");
+      hint.className = "file-chosen";
+      input.insertAdjacentElement("afterend", hint);
+    }
     const update = () => {
       hint.textContent = input.files && input.files[0] ? input.files[0].name : "";
     };
