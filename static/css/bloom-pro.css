@@ -8153,15 +8153,45 @@ html.pref-reduce-motion .qol-overlay {
   grid-template-columns: 1fr;
 }
 
-.student-home .editorial-secondary-band {
+.student-home .editorial-secondary-band,
+.student-home .editorial-lower-band {
   border-top: 0;
   padding-top: 0;
 }
 
 .student-home .editorial-also.bloom-card,
-.student-home .editorial-updates.bloom-card {
+.student-home .editorial-updates.bloom-card,
+.student-home .editorial-coming.bloom-card,
+.student-home .editorial-feedback.bloom-card {
   height: 100%;
   border: var(--card-border);
+}
+
+/* Other student pages use the same full-width main area as Home */
+.pro-body.student-refined .practice-library,
+.pro-body.student-refined .results-page,
+.pro-body.student-refined .message-inbox,
+.pro-body.student-refined .announce-page,
+.pro-body.student-refined .subjects-page,
+.pro-body.student-refined .profile-shell,
+.pro-body.student-refined.subject-hub-page .pro-content {
+  max-width: none;
+}
+
+.pro-body.student-refined .results-focus {
+  background: var(--card-bg);
+  border: var(--card-border);
+  box-shadow: var(--card-shadow);
+}
+
+.pro-body.student-refined .practice-library .work-item-grid,
+.pro-body.student-refined .results-history-group .work-item-list,
+.pro-body.student-refined .results-page > .work-item-list {
+  background: var(--card-bg);
+  border: var(--card-border);
+  border-radius: var(--card-radius);
+  box-shadow: var(--card-shadow);
+  padding: 0.35rem 1.15rem 0.5rem;
 }
 
 .editorial-section-head {

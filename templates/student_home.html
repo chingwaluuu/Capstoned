@@ -151,7 +151,7 @@
     {% if has_coming_up or has_recent_feedback %}
       <div class="editorial-lower-band">
         {% if has_coming_up %}
-          <section class="editorial-coming" aria-labelledby="coming-up-title">
+          <section class="editorial-coming bloom-card" aria-labelledby="coming-up-title">
             <h2 class="editorial-section-label" id="coming-up-title">Coming up</h2>
             <div class="editorial-list" role="list">
               {% for item in coming_up %}
@@ -172,7 +172,7 @@
         {% endif %}
 
         {% if has_recent_feedback %}
-          <section class="editorial-feedback" aria-labelledby="recent-feedback-title">
+          <section class="editorial-feedback bloom-card" aria-labelledby="recent-feedback-title">
             <div class="editorial-section-head">
               <h2 class="editorial-section-label" id="recent-feedback-title">Recent feedback</h2>
               <a class="editorial-text-link editorial-section-link" href="{{ url_for('results') }}">View all results →</a>
