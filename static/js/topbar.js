@@ -86,6 +86,7 @@
     if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return false;
     if (anchor.hasAttribute("download")) return false;
     if (anchor.dataset.noLoading != null) return false;
+    if (anchor.classList.contains("announce-item") || anchor.id === "announce-back") return false;
     if (anchor.getAttribute("aria-disabled") === "true") return false;
     const target = (anchor.getAttribute("target") || "").toLowerCase();
     if (target && target !== "_self") return false;

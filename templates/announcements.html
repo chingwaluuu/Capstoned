@@ -80,6 +80,7 @@
                         role="listitem"
                         data-id="{{ note.id }}"
                         data-search="{{ note.search }}"
+                        data-no-loading
                         {% if note.selected %}aria-current="page"{% endif %}
                       >
                         <div class="announce-item-copy">
@@ -139,7 +140,7 @@
 
           <section class="announce-detail-pane" aria-live="polite" {% if not groups %}hidden{% endif %}>
             <h2 class="announce-pane-label">Message</h2>
-            <a class="hub-back announce-back" id="announce-back" href="{{ list_href }}" {% if not selected %}hidden{% endif %}>← Back to announcements</a>
+            <a class="hub-back announce-back" id="announce-back" href="{{ list_href }}" data-no-loading {% if not selected %}hidden{% endif %}>← Back to announcements</a>
             <article
               class="announce-detail {% if arrive %}is-arrive{% endif %}"
               id="announce-detail"
@@ -193,5 +194,5 @@
   </div>
 {% endblock %}
 {% block scripts %}
-  <script src="{{ url_for('static', filename='js/announcements.js') }}" defer></script>
+  <script src="{{ url_for('static', filename='js/announcements.js') }}?v=a3" defer></script>
 {% endblock %}

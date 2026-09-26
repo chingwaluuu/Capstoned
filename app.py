@@ -3127,17 +3127,6 @@ def announcements(announcement_id=None):
         return redirect(url_for("announcements"))
     unread_count = unread_announcement_count(user["id"])
     list_href = announcements_url(filter_name=filter_name, q=q, view="list")
-    if wants_json_response() and selected:
-        payload = jsonify(
-            {
-                "ok": True,
-                "unread_announcements": unread_count,
-                "selected": selected_announcement_payload(selected),
-                "list_href": list_href,
-            }
-        )
-        payload.headers["Cache-Control"] = "no-store"
-        return payload
     restore_id = None
     if not announcement_id and request.args.get("view") != "list":
         restore_id = session.get("announce_selected_id")
@@ -3154,6 +3143,19 @@ def announcements(announcement_id=None):
                 for note in notes:
                     note["selected"] = note["id"] == restore_id
                 selected = next((note for note in notes if note["selected"]), None)
+    if wants_json_response():
+        if not selected:
+            return jsonify({"ok": False, "error": "That announcement is not available."}), 404
+        payload = jsonify(
+            {
+                "ok": True,
+                "unread_announcements": unread_count,
+                "selected": selected_announcement_payload(selected),
+                "list_href": list_href,
+            }
+        )
+        payload.headers["Cache-Control"] = "no-store"
+        return payload
     subjects = sorted({note.subject for note in records if note.subject})
     context = {
         "user": user,

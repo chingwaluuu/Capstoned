@@ -10239,6 +10239,12 @@ html.pref-reduce-motion .qol-overlay {
   box-shadow: none;
 }
 
+@media (min-width: 840px) {
+  .pro-body.student a.hub-back.announce-back {
+    display: none;
+  }
+}
+
 .pro-body.student .empty-actions,
 .pro-body.student .hub-card-actions,
 .pro-body.student .announce-error-actions,

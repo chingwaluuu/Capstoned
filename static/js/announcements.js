@@ -34,8 +34,11 @@
   const visibleItems = () => items().filter((item) => !item.hidden);
 
   let inflight = null;
+  let loadGen = 0;
   let skeletonTimer = 0;
   let retryState = null;
+
+  const isCurrentLoad = (gen) => gen === loadGen;
 
   const itemById = (id) => document.querySelector(`.announce-item[data-id="${id}"]`);
   const selectedItem = () => document.querySelector(".announce-item.is-selected");
@@ -235,39 +238,50 @@
   const loadAnnouncement = async (href, { history = "push", id = null } = {}) => {
     const url = new URL(href, window.location.origin);
     url.searchParams.delete("arrive");
-    const announceId = id || url.pathname.split("/").pop();
+    const announceId = id || url.pathname.split("/").filter(Boolean).pop();
+    const requestHref = url.pathname + url.search;
     const item = itemById(announceId);
     if (item) setSelected(item);
     openLayout(true);
+    window.BloomUi?.hideLoading?.();
     setHidden(empty, true);
     setHidden(back, false);
     setHidden(loadError, true);
 
     if (detail && !detail.hidden && detail.dataset.announceId === String(announceId)) {
-      if (history === "push") window.history.pushState({ announceId }, "", url.pathname + url.search);
+      showSkeleton(false);
+      if (history === "push") window.history.pushState({ announceId }, "", requestHref);
       return;
     }
 
+    const gen = ++loadGen;
     if (inflight) inflight.abort();
     inflight = new AbortController();
     const { signal } = inflight;
     window.clearTimeout(skeletonTimer);
     skeletonTimer = window.setTimeout(
       () => {
-        if (!signal.aborted) showSkeleton(true);
+        if (signal.aborted || !isCurrentLoad(gen)) return;
+        showSkeleton(true);
       },
       detail && !detail.hidden ? 160 : 0
     );
 
     try {
-      const response = await fetch(url.pathname + url.search, {
+      const response = await fetch(requestHref, {
         headers: { "X-Requested-With": "fetch", Accept: "application/json" },
         cache: "no-store",
         signal,
       });
-      const data = await response.json();
-      if (!response.ok || !data.ok || !data.selected) {
-        showLoadError(url.pathname + url.search, announceId);
+      if (!isCurrentLoad(gen)) return;
+      const contentType = response.headers.get("content-type") || "";
+      let data = null;
+      if (contentType.includes("application/json")) {
+        data = await response.json();
+      }
+      if (!isCurrentLoad(gen)) return;
+      if (!data || !response.ok || !data.ok || !data.selected) {
+        showLoadError(requestHref, announceId);
         return;
       }
       showSkeleton(false);
@@ -276,21 +290,33 @@
       setHidden(detail, false);
       renderDetail(data.selected);
       const marked = await markItemReadOnServer(data.selected.id);
+      if (!isCurrentLoad(gen)) return;
       applyReadFromServer(data.selected.id, marked?.unread_announcements ?? data.unread_announcements);
       if (data.list_href) {
         page.setAttribute("data-list-href", data.list_href);
         if (back) back.setAttribute("href", data.list_href);
       }
-      if (history === "push") window.history.pushState({ announceId: data.selected.id }, "", url.pathname + url.search);
-      else if (history === "replace") window.history.replaceState({ announceId: data.selected.id }, "", url.pathname + url.search);
+      if (history === "push") window.history.pushState({ announceId: data.selected.id }, "", requestHref);
+      else if (history === "replace") window.history.replaceState({ announceId: data.selected.id }, "", requestHref);
       item?.scrollIntoView({ block: "nearest", behavior: "auto" });
     } catch (error) {
-      if (error.name === "AbortError") return;
-      showLoadError(url.pathname + url.search, announceId);
+      if (error.name === "AbortError") {
+        if (isCurrentLoad(gen)) {
+          window.clearTimeout(skeletonTimer);
+          showSkeleton(false);
+        }
+        return;
+      }
+      if (!isCurrentLoad(gen)) return;
+      showLoadError(requestHref, announceId);
     }
   };
 
   const closeDetail = ({ history = "push" } = {}) => {
+    loadGen += 1;
+    if (inflight) inflight.abort();
+    inflight = null;
+    window.clearTimeout(skeletonTimer);
     const current = selectedItem();
     if (current) {
       current.classList.remove("is-selected");
@@ -358,6 +384,7 @@
         return;
       }
       event.preventDefault();
+      window.BloomUi?.hideLoading?.();
       loadAnnouncement(item.href, { id: item.dataset.id });
       return;
     }
