@@ -25,19 +25,7 @@
     />
   </a>
 
-  {% if role_nav %}
-    <nav class="pro-top-nav" aria-label="Sections">
-      {% for item in role_nav %}
-        <a
-          class="pro-top-link {% if tab == item.key or active_nav == item.key %}is-active{% endif %}"
-          href="{{ url_for(item.endpoint) }}"
-          {% if tab == item.key or active_nav == item.key %}aria-current="page"{% endif %}
-        >{{ item.label }}</a>
-      {% endfor %}
-    </nav>
-  {% else %}
-    <div class="pro-top-spacer" aria-hidden="true"></div>
-  {% endif %}
+  <div class="pro-top-spacer" aria-hidden="true"></div>
 
   <div class="pro-top-actions">
     {% if user %}
