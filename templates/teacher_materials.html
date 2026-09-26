@@ -12,7 +12,7 @@
         <h2 id="upload-title" class="section-title section-title-sm">Upload material</h2>
       </div>
     </div>
-    <form class="login-form teacher-upload-form" method="POST" action="{{ url_for('teacher_materials') }}" enctype="multipart/form-data" data-loading="Uploading and summarizing…">
+      <form class="login-form teacher-upload-form bloom-card" method="POST" action="{{ url_for('teacher_materials') }}" enctype="multipart/form-data" data-loading="Uploading and summarizing…">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
       <input type="hidden" name="action" value="upload" />
       <div class="field">

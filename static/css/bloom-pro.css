@@ -7957,7 +7957,8 @@ html.pref-reduce-motion .qol-overlay {
 }
 
 /* Student Home fills the main area so wide screens don't leave an empty right band */
-.pro-body.student-home .editorial-page {
+.pro-body.student-home .editorial-page,
+.pro-body.teacher-home-editorial .editorial-page {
   max-width: none;
 }
 
@@ -8176,6 +8177,57 @@ html.pref-reduce-motion .qol-overlay {
 .pro-body.student-refined .profile-shell,
 .pro-body.student-refined.subject-hub-page .pro-content {
   max-width: none;
+}
+
+/* Teacher and admin use the same full-width main area as student Home */
+.pro-body.teacher-workspace .pro-content,
+.pro-body.admin-monitor-body .pro-content,
+.pro-body.staff-workspace .pro-content,
+.pro-body.teacher-workspace .home-first-region,
+.pro-body.admin-monitor-body .home-first-region,
+.pro-body.staff-workspace .home-first-region {
+  max-width: none;
+}
+
+.pro-body.teacher-home-editorial .editorial-today-list.bloom-card .editorial-rows,
+.pro-body.teacher-home-editorial .editorial-today-list.bloom-card .editorial-empty {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.pro-body.teacher-workspace .section-eyebrow,
+.pro-body.staff-workspace .section-eyebrow,
+.pro-body.admin-monitor-body .section-eyebrow,
+.pro-body.admin-monitor-body .admin-stat-label,
+.pro-body.teacher-home-editorial .teacher-stat-label,
+.pro-body.teacher-workspace .pro-hero-kicker,
+.pro-body.admin-monitor-body .pro-hero-kicker,
+.pro-body.staff-workspace .pro-hero-kicker {
+  text-transform: none;
+  letter-spacing: 0.01em;
+  font-size: var(--type-section-label);
+  font-weight: 600;
+  color: var(--pro-muted);
+}
+
+.teacher-stat-card,
+.teacher-student-card,
+.teacher-monitor-card,
+.admin-stat-card {
+  border-radius: var(--card-radius);
+}
+
+.teacher-stat-card:hover,
+.teacher-stat-card:focus-visible {
+  transform: none;
+}
+
+.teacher-student-grid {
+  grid-template-columns: repeat(auto-fit, minmax(18.5rem, 1fr));
 }
 
 .pro-body.student-refined .results-focus {
@@ -8750,6 +8802,11 @@ html.pref-reduce-motion .qol-overlay {
   background-image: none !important;
   box-shadow: none !important;
   border-radius: 0 !important;
+}
+
+.pro-body.teacher-workspace .home-command-hero,
+.pro-body.admin-monitor-body .home-command-hero {
+  border-bottom: 0 !important;
 }
 
 .pro-body .empty-state-card {
