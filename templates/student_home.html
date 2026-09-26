@@ -1,243 +1,143 @@
 {% extends "layouts/pro.html" %}
+{% from "partials/home_subject_card.html" import home_subject_card %}
 {% set active_tab = "home" %}
 {% block title %}Home — Bloom{% endblock %}
 {% block body_class %}student home-editorial student-home student-refined{% endblock %}
 {% block page_header %}
-  {% set primary = today_items[0] if today_items else none %}
-  {% set secondary = today_items[1:] if today_items|length > 1 else [] %}
-  {% set queue = namespace(hrefs=[]) %}
-  {% if primary and primary.actions %}
-    {% for step in primary.actions %}
-      {% set queue.hrefs = queue.hrefs + [step.href] %}
-    {% endfor %}
-  {% elif primary and primary.href %}
-    {% set queue.hrefs = queue.hrefs + [primary.href] %}
-  {% endif %}
-  {% set also = namespace(items=[]) %}
-  {% for item in secondary %}
-    {% set item_href = item.actions[0].href if item.actions else item.href %}
-    {% if item_href not in queue.hrefs %}
-      {% set also.items = also.items + [item] %}
-    {% endif %}
-  {% endfor %}
   {% set has_teacher_updates = teacher_updates and teacher_updates|length > 0 %}
-  {% set has_coming_up = coming_up and coming_up|length > 0 %}
-  {% set has_recent_feedback = recent_feedback and recent_feedback|length > 0 %}
   <div class="home-board">
     <header class="home-intro" aria-labelledby="home-greeting">
       <h1 class="home-greeting" id="home-greeting">{{ greeting }}</h1>
-      <p class="home-lede">{{ guide_note }}</p>
-      <p class="home-quiet">
-        {% if weekly_goal.has_progress %}
-          <a href="{{ url_for('practice') }}">Practice average {{ weekly_goal.percent }}%</a>
-        {% else %}
-          <a href="{{ url_for('practice') }}">No practice score yet</a>
-        {% endif %}
-        {% if unread_announcements %}
-          <a href="{{ url_for('announcements') }}">{{ unread_announcements }} unread</a>
-        {% endif %}
-        {% if unread_messages %}
-          <a href="{{ url_for('messages_inbox') }}">{{ unread_messages }} message{% if unread_messages != 1 %}s{% endif %}</a>
-        {% endif %}
-      </p>
     </header>
+
+    {% if home_stats %}
+      <section class="home-glance" aria-label="Practice snapshot">
+        {% for stat in home_stats %}
+          <div class="home-glance-item{% if stat.quiet %} is-quiet{% endif %}">
+            <p class="home-glance-label">{{ stat.label }}</p>
+            <div class="home-glance-face">
+              {% if stat.ring is not none %}
+                <span class="home-ring tone-{{ stat.tone }}" style="--ring: {{ stat.ring }};" aria-hidden="true"></span>
+              {% endif %}
+              <span class="home-glance-value">{{ stat.value }}</span>
+            </div>
+          </div>
+        {% endfor %}
+      </section>
+    {% endif %}
 
     <section class="home-subjects" aria-labelledby="subjects-title">
       <h2 class="home-label" id="subjects-title">Subjects</h2>
       <div class="home-subject-grid">
         {% for subject in subjects %}
-          <article class="home-subject hue-{{ subject.slug }}">
-            <a class="home-subject-open" href="{{ url_for('subject_hub', slug=subject.slug) }}">
-              <span class="home-subject-thumb" aria-hidden="true">
-                <span class="home-subject-mark">{{ (subject.name or subject.slug)[:1] }}</span>
-              </span>
-              <span class="home-subject-body">
-                <h3 class="home-subject-name">{{ subject.name or subject.slug|title }}</h3>
-                <p class="home-subject-teacher">{{ subject.teacher }}</p>
-                <span class="home-subject-meta">
-                  {% if subject.has_progress and subject.progress_percent > 0 %}
-                    <span class="home-badge">{{ subject.progress_percent }}% avg</span>
-                  {% else %}
-                    <span class="home-badge">Not started</span>
-                  {% endif %}
-                </span>
-                {% if subject.has_progress and subject.progress_percent > 0 %}
-                  <span
-                    class="home-meter"
-                    role="progressbar"
-                    aria-valuemin="0"
-                    aria-valuemax="100"
-                    aria-valuenow="{{ subject.progress_percent }}"
-                    aria-label="{{ subject.name }} average score"
-                  >
-                    <span style="width: {{ subject.progress_percent }}%;"></span>
-                  </span>
-                  {% if subject.context_line %}
-                    <span class="home-subject-note">{{ subject.context_line }}</span>
-                  {% elif subject.progress_insight %}
-                    <span class="home-subject-note">{{ subject.progress_insight }}</span>
-                  {% endif %}
-                {% else %}
-                  <span class="home-meter is-empty" aria-hidden="true"></span>
-                  {% if subject.next_action %}
-                    <span class="home-subject-note">{{ subject.next_action }}</span>
-                  {% endif %}
-                {% endif %}
-              </span>
-            </a>
-          </article>
+          {{ home_subject_card(subject) }}
         {% endfor %}
       </div>
     </section>
 
-    <section class="home-continue" aria-labelledby="home-next-label">
-      <h2 class="home-label" id="home-next-label">Do this next</h2>
-      {% if primary %}
-        <div class="home-continue-body">
-          <div class="home-continue-copy">
-            <h3 class="home-continue-title">{{ primary.title }}</h3>
-            <p class="home-continue-meta">
-              {% if primary.subject %}{{ primary.subject }}{% endif %}
-              {% if primary.subject and primary.meta %} · {% endif %}
-              {{ primary.meta }}
-            </p>
-          </div>
-          <div class="home-continue-actions">
-            {% if primary.actions %}
-              {% for step in primary.actions %}
-                <a
-                  class="{% if loop.first %}home-btn{% else %}home-text-link{% endif %}"
-                  href="{{ step.href }}"
-                >{{ step.label }}{% if loop.first %} <span aria-hidden="true">→</span>{% endif %}</a>
-              {% endfor %}
-            {% else %}
-              <a class="home-btn" href="{{ primary.href }}">{{ primary.action }} <span aria-hidden="true">→</span></a>
-              {% if primary.secondary_href and primary.secondary_action %}
-                <a class="home-text-link" href="{{ primary.secondary_href }}">{{ primary.secondary_action }}</a>
-              {% endif %}
-            {% endif %}
-          </div>
-        </div>
-      {% else %}
-        <div class="home-continue-body">
-          <div class="home-continue-copy">
-            <h3 class="home-continue-title">
-              {% if weekly_goal.has_progress %}You’re all caught up{% else %}Nothing waiting yet{% endif %}
-            </h3>
-            <p class="home-continue-meta">
-              {% if weekly_goal.has_progress %}
-                When something needs attention, it will show up here.
-              {% else %}
-                {{ weekly_goal.hint }}
-              {% endif %}
-            </p>
-          </div>
-          <div class="home-continue-actions">
-            <a class="home-btn" href="{{ url_for('subjects_index') }}">Browse subjects <span aria-hidden="true">→</span></a>
-          </div>
-        </div>
-      {% endif %}
+    <div class="home-stage{% if has_teacher_updates %} has-side{% endif %}">
+    <section class="home-day" aria-labelledby="today-board-title">
+      <header class="home-day-head">
+        <h2 class="home-label" id="today-board-title">Today</h2>
+      </header>
+
+      <div class="home-task-list">
+        {% if today_items %}
+          {% for item in today_items %}
+            <a class="home-task hue-{{ item.subject_slug or 'general' }}" href="{{ item.href }}">
+              <span class="home-task-mark" aria-hidden="true">
+                <i class="{{ item.mark_icon }}"></i>
+              </span>
+              <span class="home-task-copy">
+                <span class="home-task-kicker">{{ item.kind_label or item.kicker or "Today" }}</span>
+                <span class="home-task-title">{{ item.title }}</span>
+              </span>
+              <span class="home-task-stats">
+                <span class="home-task-metric">
+                  <span class="home-task-metric-label">Lessons</span>
+                  <span class="home-task-metric-value">
+                    {% if item.lesson_count %}
+                      {{ item.lesson_count }} lesson{% if item.lesson_count != 1 %}s{% endif %}
+                    {% else %}
+                      —
+                    {% endif %}
+                  </span>
+                </span>
+                <span class="home-task-metric">
+                  <span class="home-task-metric-label">Avg. score</span>
+                  <span class="home-task-metric-value">
+                    {% if item.score_percent is not none %}
+                      <span class="home-ring is-metric" style="--ring: {{ item.score_percent }};" aria-hidden="true"></span>
+                      {{ item.score_percent }}%
+                    {% else %}
+                      —
+                    {% endif %}
+                  </span>
+                </span>
+                <span class="home-task-metric">
+                  <span class="home-task-metric-label">Due</span>
+                  <span class="home-task-metric-value{% if item.due_urgent %} is-soon{% endif %}">
+                    {{ item.due_label or "—" }}
+                  </span>
+                </span>
+              </span>
+            </a>
+          {% endfor %}
+        {% else %}
+          <a class="home-task hue-general is-empty" href="{{ url_for('subjects_index') }}">
+            <span class="home-task-mark" aria-hidden="true">
+              <i class="fi fi-rs-book-alt"></i>
+            </span>
+            <span class="home-task-copy">
+              <span class="home-task-kicker">Clear</span>
+              <span class="home-task-title">
+                {% if weekly_goal.has_progress %}You’re all caught up{% else %}Nothing waiting yet{% endif %}
+              </span>
+            </span>
+            <span class="home-task-stats">
+              <span class="home-task-metric">
+                <span class="home-task-metric-label">Lessons</span>
+                <span class="home-task-metric-value">—</span>
+              </span>
+              <span class="home-task-metric">
+                <span class="home-task-metric-label">Avg. score</span>
+                <span class="home-task-metric-value">—</span>
+              </span>
+              <span class="home-task-metric">
+                <span class="home-task-metric-label">Due</span>
+                <span class="home-task-metric-value">—</span>
+              </span>
+            </span>
+          </a>
+        {% endif %}
+      </div>
     </section>
 
-    {% if also.items or has_teacher_updates or has_coming_up or has_recent_feedback %}
-      <div class="home-lower">
-        {% if also.items %}
-          <section class="home-panel" aria-labelledby="also-today-title">
-            <h2 class="home-label" id="also-today-title">Also today</h2>
-            <div class="home-rows" role="list">
-              {% for item in also.items %}
-                <article class="home-row" role="listitem">
-                  <div class="home-row-main">
-                    <p class="home-kicker">
-                      {% if item.subject %}<span class="home-badge">{{ item.subject }}</span>{% endif %}
-                      {% if item.kicker %}<span>{{ item.kicker }}</span>{% endif %}
-                    </p>
-                    <h3 class="home-row-title">{{ item.title }}</h3>
-                    {% if item.meta %}<p class="home-row-meta">{{ item.meta }}</p>{% endif %}
-                  </div>
-                  <div class="home-row-action">
-                    {% if item.actions %}
-                      <a class="home-text-link" href="{{ item.actions[0].href }}">{{ item.actions[0].label }} →</a>
-                    {% else %}
-                      <a class="home-text-link" href="{{ item.href }}">{{ item.action }} →</a>
-                    {% endif %}
-                  </div>
-                </article>
-              {% endfor %}
-            </div>
-          </section>
-        {% endif %}
-
-        {% if has_coming_up %}
-          <section class="home-panel" aria-labelledby="coming-up-title">
-            <h2 class="home-label" id="coming-up-title">Coming up</h2>
-            <div class="home-rows" role="list">
-              {% for item in coming_up %}
-                <article class="home-row" role="listitem">
-                  <div class="home-row-main">
-                    <p class="home-kicker">{% if item.subject %}{{ item.subject }} · {% endif %}{{ item.due_label }}</p>
-                    <h3 class="home-row-title">{{ item.title }}</h3>
-                  </div>
-                  <div class="home-row-action">
-                    <a class="home-text-link" href="{{ item.href }}">{{ item.action }} →</a>
-                  </div>
-                </article>
-              {% endfor %}
-            </div>
-          </section>
-        {% endif %}
-
-        <section class="home-panel" aria-labelledby="teacher-updates-title">
+    {% if has_teacher_updates %}
+        <section class="home-panel home-updates" aria-labelledby="teacher-updates-title">
           <div class="home-panel-head">
             <h2 class="home-label" id="teacher-updates-title">Teacher updates</h2>
             <a class="home-text-link" href="{{ url_for('announcements') }}">View all</a>
           </div>
-          {% if has_teacher_updates %}
-            <div class="home-rows" role="list">
-              {% for note in teacher_updates %}
-                <a class="home-row is-link {% if note.unread %}is-unread{% endif %}" href="{{ note.href }}" role="listitem">
-                  <span class="home-row-main">
-                    <span class="home-kicker">
-                      {% if note.subject %}<span class="home-badge">{{ note.subject }}</span>{% endif %}
-                      <span>{{ note.teacher }}</span>
-                      {% if note.unread %}<span class="home-unread">New</span>{% endif %}
-                    </span>
-                    <span class="home-row-title">{{ note.title }}</span>
-                    {% if note.preview %}<span class="home-row-meta">{{ note.preview }}</span>{% endif %}
-                    {% if note.when %}<span class="home-row-when">{{ note.when }}</span>{% endif %}
+          <div class="home-rows" role="list">
+            {% for note in teacher_updates %}
+              <a class="home-row is-link {% if note.unread %}is-unread{% endif %}" href="{{ note.href }}" role="listitem">
+                <span class="home-row-main">
+                  <span class="home-kicker">
+                    {% if note.subject %}<span class="home-badge">{{ note.subject }}</span>{% endif %}
+                    <span>{{ note.teacher }}</span>
+                    {% if note.unread %}<span class="home-unread">New</span>{% endif %}
                   </span>
-                </a>
-              {% endfor %}
-            </div>
-          {% else %}
-            <p class="home-empty">No new teacher updates.</p>
-          {% endif %}
+                  <span class="home-row-title">{{ note.title }}</span>
+                  {% if note.preview %}<span class="home-row-meta">{{ note.preview }}</span>{% endif %}
+                  {% if note.when %}<span class="home-row-when">{{ note.when }}</span>{% endif %}
+                </span>
+              </a>
+            {% endfor %}
+          </div>
         </section>
-
-        {% if has_recent_feedback %}
-          <section class="home-panel" aria-labelledby="recent-feedback-title">
-            <div class="home-panel-head">
-              <h2 class="home-label" id="recent-feedback-title">Recent feedback</h2>
-              <a class="home-text-link" href="{{ url_for('results') }}">View all</a>
-            </div>
-            <div class="home-rows" role="list">
-              {% for item in recent_feedback %}
-                <article class="home-row" role="listitem">
-                  <div class="home-row-main">
-                    <p class="home-kicker">{{ item.kind }}{% if item.subject %} · {{ item.subject }}{% endif %}</p>
-                    <h3 class="home-row-title">{{ item.title }}</h3>
-                    {% if item.summary %}<p class="home-row-meta">{{ item.summary }}</p>{% endif %}
-                  </div>
-                  <div class="home-row-action">
-                    <a class="home-text-link" href="{{ item.href }}">{{ item.action }} →</a>
-                  </div>
-                </article>
-              {% endfor %}
-            </div>
-          </section>
-        {% endif %}
-      </div>
     {% endif %}
+    </div>
   </div>
 {% endblock %}
 {% block content %}{% endblock %}

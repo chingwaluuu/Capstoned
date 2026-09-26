@@ -1,0 +1,33 @@
+{# Shared compact subject card used on student Home and Subjects. #}
+{% macro home_subject_card(subject) %}
+  <article class="home-subject hue-{{ subject.slug }}">
+    <a class="home-subject-open" href="{{ url_for('subject_hub', slug=subject.slug) }}">
+      <span class="home-subject-top">
+        <span class="home-subject-mark" aria-hidden="true">{{ (subject.name or subject.slug)[:1] }}</span>
+        <h3 class="home-subject-name">{{ subject.name or subject.slug|title }}</h3>
+      </span>
+      <span class="home-subject-stats">
+        {% if subject.has_progress and subject.progress_percent > 0 %}
+          <span class="home-subject-score">{{ subject.progress_percent }}%</span>
+        {% else %}
+          <span class="home-subject-score is-quiet">Not started</span>
+        {% endif %}
+        <span class="home-subject-aside">{{ subject.teacher }}</span>
+      </span>
+      {% if subject.has_progress and subject.progress_percent > 0 %}
+        <span
+          class="home-meter"
+          role="progressbar"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          aria-valuenow="{{ subject.progress_percent }}"
+          aria-label="{{ subject.name }} average score"
+        >
+          <span style="width: {{ subject.progress_percent }}%;"></span>
+        </span>
+      {% else %}
+        <span class="home-meter is-empty" aria-hidden="true"></span>
+      {% endif %}
+    </a>
+  </article>
+{% endmacro %}

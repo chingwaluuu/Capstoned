@@ -2,26 +2,26 @@
 {% set active_tab = "announcements" %}
 {% set topbar_sub = "Announcements" %}
 {% block title %}{% if selected %}{{ selected.title }} — {% endif %}Announcements — Bloom{% endblock %}
-{% block body_class %}student announce-body student-refined{% endblock %}
-{% block page_title %}Announcements{% endblock %}
-{% block page_subtitle %}Important updates from your teachers, organized in one clear place.{% endblock %}
-{% block page_actions %}
-  {% if has_announcements %}
-    <form
-      id="announce-mark-all"
-      class="announce-mark-all-form"
-      method="POST"
-      action="{{ mark_all_url }}"
-      {% if not unread_count %}hidden{% endif %}
-    >
-      <input type="hidden" name="filter" value="{{ filter }}" />
-      <input type="hidden" name="q" value="{{ q }}" />
-      <input type="hidden" name="selected_id" id="announce-selected-id" value="{{ selected.id if selected else '' }}" />
-      <button type="submit" class="announce-mark-all hero-quiet-action">Mark all as read</button>
-    </form>
-  {% endif %}
-{% endblock %}
-{% block content %}
+{% block body_class %}student home-editorial announce-body student-refined{% endblock %}
+{% block page_header %}
+  <div class="home-board">
+    <header class="home-intro home-intro-row" aria-labelledby="announce-page-title">
+      <h1 class="home-greeting" id="announce-page-title">Announcements</h1>
+      {% if has_announcements %}
+        <form
+          id="announce-mark-all"
+          class="announce-mark-all-form"
+          method="POST"
+          action="{{ mark_all_url }}"
+          {% if not unread_count %}hidden{% endif %}
+        >
+          <input type="hidden" name="filter" value="{{ filter }}" />
+          <input type="hidden" name="q" value="{{ q }}" />
+          <input type="hidden" name="selected_id" id="announce-selected-id" value="{{ selected.id if selected else '' }}" />
+          <button type="submit" class="home-text-link announce-mark-all">Mark all as read</button>
+        </form>
+      {% endif %}
+    </header>
     <section
       class="home-section announce-page"
       aria-labelledby="announce-title"
@@ -184,12 +184,13 @@
           </section>
         </div>
       {% else %}
-        <div class="announce-empty announce-empty-inbox">
-          <h3 class="empty-title">No announcements yet</h3>
-          <p class="empty-copy">When your teachers post an update, it will appear here.</p>
+        <div class="announce-empty announce-empty-inbox home-panel">
+          <h3 class="home-continue-title">No announcements yet</h3>
+          <p class="home-continue-meta">When your teachers post an update, it will appear here.</p>
         </div>
       {% endif %}
     </section>
+  </div>
 {% endblock %}
 {% block scripts %}
   <script src="{{ url_for('static', filename='js/announcements.js') }}" defer></script>

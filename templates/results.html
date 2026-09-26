@@ -3,9 +3,7 @@
 {% set active_tab = "results" %}
 {% set topbar_sub = "Results" %}
 {% block title %}Results — Bloom{% endblock %}
-{% block body_class %}student student-refined{% endblock %}
-{% block page_title %}Results{% endblock %}
-{% block page_subtitle %}See how you did, learn from feedback, and choose what to practice next.{% endblock %}
+{% block body_class %}student home-editorial student-refined{% endblock %}
 {% macro result_row(item) %}
   {{ work_item_card(
     subject_slug=item.subject_slug,
@@ -24,53 +22,60 @@
     kind_slug=item.kind_slug
   ) }}
 {% endmacro %}
-{% block content %}
-  <div class="results-page">
-    {% if results_story %}
-      <section class="results-focus" aria-labelledby="results-story-title">
-        <p class="results-focus-label">{{ results_story.eyebrow }}</p>
-        <h2 id="results-story-title" class="results-focus-title">{{ results_story.title }}</h2>
-        <p class="results-focus-note">{{ results_story.message }}</p>
-        <a class="btn-primary results-focus-action" href="{{ results_story.cta_href }}">{{ results_story.cta_label }} <span aria-hidden="true">→</span></a>
-      </section>
-    {% endif %}
-
-    <section class="results-library" aria-labelledby="results-history-title">
-      <header class="practice-head results-head">
-        <h2 class="practice-head-title" id="results-history-title">Your recent work</h2>
-        <p class="practice-count">{{ result_items|length }} result{% if result_items|length != 1 %}s{% endif %}</p>
-      </header>
-
-      <div class="filter-chips subject-filter-row" role="group" aria-label="Result filters">
-        <a class="chip-link {% if filter == 'all' %}active{% endif %}" href="{{ url_for('results', filter='all') }}"{% if filter == 'all' %} aria-current="page"{% endif %}>All</a>
-        <a class="chip-link {% if filter == 'assessments' %}active{% endif %}" href="{{ url_for('results', filter='assessments') }}"{% if filter == 'assessments' %} aria-current="page"{% endif %}>Assessments</a>
-        <a class="chip-link {% if filter == 'practice' %}active{% endif %}" href="{{ url_for('results', filter='practice') }}"{% if filter == 'practice' %} aria-current="page"{% endif %}>Practice</a>
-      </div>
-
-      {% if result_groups %}
-        {% for group in result_groups %}
-          <section class="results-history-group" aria-labelledby="results-group-{{ group.key }}">
-            <h3 class="results-history-label" id="results-group-{{ group.key }}">{{ group.label }}</h3>
-            <div class="work-item-list pro-stagger-in">
-              {% for item in group.entries %}
-                {{ result_row(item) }}
-              {% endfor %}
-            </div>
-          </section>
-        {% endfor %}
-      {% elif result_items %}
-        <div class="work-item-list pro-stagger-in">
-          {% for item in result_items %}
-            {{ result_row(item) }}
-          {% endfor %}
-        </div>
-      {% else %}
-        <div class="results-empty">
-          <h3 class="empty-title">No results yet</h3>
-          <p class="empty-copy">Finish a practice check or assessment, then come back here to review feedback and decide what to try next.</p>
-          <a class="editorial-text-link" href="{{ url_for('practice') }}">Go to Practice <span aria-hidden="true">→</span></a>
-        </div>
+{% block page_header %}
+  <div class="home-board">
+    <header class="home-intro" aria-labelledby="results-title">
+      <h1 class="home-greeting" id="results-title">Results</h1>
+    </header>
+    <div class="results-page">
+      {% if results_story %}
+        <section class="results-focus home-continue" aria-labelledby="results-story-title">
+          <p class="home-label">{{ results_story.eyebrow }}</p>
+          <h2 id="results-story-title" class="home-continue-title">{{ results_story.title }}</h2>
+          <p class="home-continue-meta">{{ results_story.message }}</p>
+          <div class="home-continue-actions">
+            <a class="home-btn" href="{{ results_story.cta_href }}">{{ results_story.cta_label }} <span aria-hidden="true">→</span></a>
+          </div>
+        </section>
       {% endif %}
-    </section>
+
+      <section class="results-library" aria-labelledby="results-history-title">
+        <header class="practice-head results-head">
+          <h2 class="home-label" id="results-history-title">Your recent work</h2>
+          <p class="practice-count">{{ result_items|length }} result{% if result_items|length != 1 %}s{% endif %}</p>
+        </header>
+
+        <div class="filter-chips subject-filter-row" role="group" aria-label="Result filters">
+          <a class="chip-link {% if filter == 'all' %}active{% endif %}" href="{{ url_for('results', filter='all') }}"{% if filter == 'all' %} aria-current="page"{% endif %}>All</a>
+          <a class="chip-link {% if filter == 'assessments' %}active{% endif %}" href="{{ url_for('results', filter='assessments') }}"{% if filter == 'assessments' %} aria-current="page"{% endif %}>Assessments</a>
+          <a class="chip-link {% if filter == 'practice' %}active{% endif %}" href="{{ url_for('results', filter='practice') }}"{% if filter == 'practice' %} aria-current="page"{% endif %}>Practice</a>
+        </div>
+
+        {% if result_groups %}
+          {% for group in result_groups %}
+            <section class="results-history-group" aria-labelledby="results-group-{{ group.key }}">
+              <h3 class="home-label" id="results-group-{{ group.key }}">{{ group.label }}</h3>
+              <div class="work-item-list">
+                {% for item in group.entries %}
+                  {{ result_row(item) }}
+                {% endfor %}
+              </div>
+            </section>
+          {% endfor %}
+        {% elif result_items %}
+          <div class="work-item-list">
+            {% for item in result_items %}
+              {{ result_row(item) }}
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="results-empty home-panel">
+            <h3 class="home-continue-title">No results yet</h3>
+            <p class="home-continue-meta">Finish a practice check or assessment, then come back here to review feedback and decide what to try next.</p>
+            <a class="home-text-link" href="{{ url_for('practice') }}">Go to Practice <span aria-hidden="true">→</span></a>
+          </div>
+        {% endif %}
+      </section>
+    </div>
   </div>
 {% endblock %}

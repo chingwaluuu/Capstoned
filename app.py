@@ -845,6 +845,43 @@ def progress_display_label(percent: int, has_progress: bool, insight: str = "") 
     return f"{base} · {insight}" if insight else base
 
 
+def build_home_stats(user_id: int, subjects: list[dict], overall: int, has_practice_score: bool) -> list[dict]:
+    """Compact Home snapshot. Real averages and attempt counts only — no completion or duration."""
+    attempts = Attempt.query.filter_by(user_id=user_id).all()
+    assessment_n = sum(1 for item in attempts if item.kind == "assessment")
+    started = sum(1 for item in subjects if item.get("has_progress"))
+    total = len(subjects)
+    started_pct = int(round(100 * started / total)) if total else 0
+    return [
+        {
+            "label": "Avg. score",
+            "value": f"{overall}%" if has_practice_score else "—",
+            "ring": overall if has_practice_score else 0,
+            "tone": "brand",
+            "quiet": not has_practice_score,
+        },
+        {
+            "label": "Started",
+            "value": f"{started}/{total}" if total else "0",
+            "ring": started_pct,
+            "tone": "science",
+            "quiet": started == 0,
+        },
+        {
+            "label": "Attempts",
+            "value": str(len(attempts)),
+            "ring": None,
+            "quiet": not attempts,
+        },
+        {
+            "label": "Assessments",
+            "value": str(assessment_n),
+            "ring": None,
+            "quiet": assessment_n == 0,
+        },
+    ]
+
+
 def build_admin_class_monitor() -> dict:
     """Section-wide student progress, HOTS strength, and class health for admin."""
     students = User.query.filter_by(role="student").order_by(User.name).all()
@@ -1028,6 +1065,22 @@ def lesson_review_href(subject_slug: str, material: Material | None = None) -> s
     return url_for("subject_hub", slug=subject_slug, tab="study")
 
 
+def format_due_compact(deadline: datetime | None, now: datetime) -> tuple[str | None, bool]:
+    """Relative remaining time from a stored deadline. Nothing invented if none."""
+    if not deadline or deadline < now:
+        return None, False
+    seconds = (deadline - now).total_seconds()
+    urgent = seconds < 24 * 3600
+    if seconds < 3600:
+        minutes = max(1, int(seconds // 60))
+        return f"{minutes} min", True
+    if seconds < 86400:
+        hours = max(1, int(seconds // 3600))
+        return ("1 hr" if hours == 1 else f"{hours} hrs"), True
+    days = max(1, int(seconds // 86400))
+    return ("1 day" if days == 1 else f"{days} days"), urgent
+
+
 def build_today(user_id: int) -> list[dict]:
     """Home Today queue: Learn → Practice → Assess → Improve (calm CTAs).
 
@@ -1040,6 +1093,27 @@ def build_today(user_id: int) -> list[dict]:
     upload_items: list[dict] = []
     now = datetime.utcnow()
     tomorrow = (now + timedelta(days=1)).date()
+    lesson_counts = {
+        slug: Material.query.filter_by(subject_slug=slug, status="approved").count()
+        for slug in SUBJECTS
+    }
+    kind_copy = {
+        "assessment": ("Assessment", "fi fi-rs-book-alt"),
+        "practice": ("Practice", "fi fi-rr-pencil"),
+        "result": ("Result", "fi fi-rs-chart-simple-horizontal"),
+        "upload": ("Upload", "fi fi-rs-book-alt"),
+    }
+
+    def row_meta(kind: str, subject_slug: str, deadline=None) -> dict:
+        label, icon = kind_copy[kind]
+        due_label, due_urgent = format_due_compact(deadline, now)
+        return {
+            "kind_label": label,
+            "mark_icon": icon,
+            "lesson_count": lesson_counts.get(subject_slug, 0),
+            "due_label": due_label,
+            "due_urgent": due_urgent,
+        }
 
     for assessment in Assessment.query.filter_by(status="published").all():
         if assessment.deadline and assessment.deadline < now:
@@ -1104,6 +1178,7 @@ def build_today(user_id: int) -> list[dict]:
                 "action": actions[0]["label"],
                 "href": actions[0]["href"],
                 "actions": actions,
+                **row_meta("assessment", assessment.subject_slug, assessment.deadline),
             }
         )
 
@@ -1139,6 +1214,7 @@ def build_today(user_id: int) -> list[dict]:
                 "action": practice_actions[0]["label"],
                 "href": practice_actions[0]["href"],
                 "actions": practice_actions,
+                **row_meta("practice", approved.subject_slug),
             }
         )
 
@@ -1159,6 +1235,7 @@ def build_today(user_id: int) -> list[dict]:
                 "meta": "Review answers and explanations when you feel ready",
                 "action": "Review result",
                 "href": url_for("attempt_review", attempt_id=latest.id),
+                **row_meta("result", latest.subject_slug or "general"),
             }
         )
 
@@ -1175,6 +1252,7 @@ def build_today(user_id: int) -> list[dict]:
                 "meta": "Your teacher will review before practice unlocks",
                 "action": "See status",
                 "href": url_for("subject_hub", slug=pending.subject_slug, tab="study"),
+                **row_meta("upload", pending.subject_slug),
             }
         )
 
@@ -1204,6 +1282,7 @@ def build_coming_up(user_id: int) -> list[dict]:
             {
                 "title": assessment.title,
                 "subject": SUBJECTS.get(assessment.subject_slug, {}).get("name", ""),
+                "subject_slug": assessment.subject_slug,
                 "due_label": assessment.deadline.strftime("Due %b %d"),
                 "href": url_for("assessment_lobby", slug=assessment.slug),
                 "action": "Open assessment",
@@ -1783,6 +1862,13 @@ def home():
     teacher_updates = (announce_ctx.get("announcements_preview") or [])[:2]
     coming_up = build_coming_up(user["id"])
     recent_feedback = build_recent_feedback(user["id"], exclude_titles=today_titles)
+    progress_by_slug = {item["slug"]: item for item in subjects}
+    for item in today:
+        tracked = progress_by_slug.get(item.get("subject_slug") or "")
+        if tracked and tracked.get("has_progress") and tracked.get("progress_percent", 0) > 0:
+            item["score_percent"] = tracked["progress_percent"]
+        else:
+            item["score_percent"] = None
     overall = 0
     tracked = [item for item in subjects if item["has_progress"]]
     if tracked:
@@ -1802,6 +1888,7 @@ def home():
                 else "Average of auto-scored practice and assessment items across subjects."
             ),
         },
+        "home_stats": build_home_stats(user["id"], subjects, overall, has_practice_score),
         "today_items": today,
         "subjects": subjects,
         "teacher_updates": teacher_updates,

@@ -2,56 +2,59 @@
 {% from "partials/work_item_card.html" import work_item_card %}
 {% set active_tab = "practice" %}
 {% block title %}Practice — Bloom{% endblock %}
-{% block body_class %}student student-refined{% endblock %}
-{% block page_title %}Practice{% endblock %}
-{% block page_subtitle %}Choose a subject and build your thinking skills at your own pace.{% endblock %}
-{% block content %}
-  <section class="practice-library" aria-labelledby="practice-ready-title">
-    <header class="practice-head">
-      <h2 class="practice-head-title" id="practice-ready-title">Practice library</h2>
-      <p class="practice-count">{{ practice_available_count }} available</p>
+{% block body_class %}student home-editorial student-refined{% endblock %}
+{% block page_header %}
+  <div class="home-board">
+    <header class="home-intro" aria-labelledby="practice-title">
+      <h1 class="home-greeting" id="practice-title">Practice</h1>
     </header>
-    {% if practice_available_count %}
-      <p class="practice-library-note">Approved checks are self-paced and take about 10 minutes.</p>
-    {% endif %}
+    <section class="practice-library" aria-labelledby="practice-ready-title">
+      <header class="practice-head">
+        <h2 class="home-label" id="practice-ready-title">Practice library</h2>
+        <p class="practice-count">{{ practice_available_count }} available</p>
+      </header>
+      {% if practice_available_count %}
+        <p class="practice-library-note">Approved checks are self-paced and take about 10 minutes.</p>
+      {% endif %}
 
-    {% if practice_items %}
-      <div class="filter-chips subject-filter-row" role="group" aria-label="Filter by subject" data-practice-filters>
-        <button type="button" class="chip-link active" data-subject-filter="all">All subjects</button>
-        {% for subject in practice_subjects %}
-          <button
-            type="button"
-            class="chip-link subject-filter-chip subject-{{ subject.slug }}"
-            data-subject-filter="{{ subject.slug }}"
-          >{{ subject.name }}</button>
-        {% endfor %}
-      </div>
+      {% if practice_items %}
+        <div class="filter-chips subject-filter-row" role="group" aria-label="Filter by subject" data-practice-filters>
+          <button type="button" class="chip-link active" data-subject-filter="all">All subjects</button>
+          {% for subject in practice_subjects %}
+            <button
+              type="button"
+              class="chip-link subject-filter-chip subject-{{ subject.slug }}"
+              data-subject-filter="{{ subject.slug }}"
+            >{{ subject.name }}</button>
+          {% endfor %}
+        </div>
 
-      <div class="work-item-grid pro-stagger-in" data-practice-grid>
-        {% for item in practice_items %}
-          {{ work_item_card(
-            subject_slug=item.subject_slug,
-            subject_name=item.subject,
-            title=item.title,
-            context_badge=("Locked" if item.locked else none),
-            context_badge_class=("status-locked" if item.locked else "status-ready"),
-            meta_text=(item.meta if item.locked else none),
-            action_href=item.href,
-            action_label=("Locked" if item.locked else "Start practice"),
-            action_variant=("disabled" if item.locked else "secondary"),
-            locked=item.locked,
-            data_subject=item.subject_slug
-          ) }}
-        {% endfor %}
-      </div>
-    {% else %}
-      <div class="practice-empty">
-        <h3 class="empty-title">Nothing to practice yet</h3>
-        <p class="empty-copy">Your teacher hasn’t approved practice materials yet. When a lesson is ready, it will show up here for you to start.</p>
-        <a class="editorial-text-link" href="{{ url_for('home') }}#subjects-title">Go to your subjects →</a>
-      </div>
-    {% endif %}
-  </section>
+        <div class="work-item-grid" data-practice-grid>
+          {% for item in practice_items %}
+            {{ work_item_card(
+              subject_slug=item.subject_slug,
+              subject_name=item.subject,
+              title=item.title,
+              context_badge=("Locked" if item.locked else none),
+              context_badge_class=("status-locked" if item.locked else "status-ready"),
+              meta_text=(item.meta if item.locked else none),
+              action_href=item.href,
+              action_label=("Locked" if item.locked else "Start practice"),
+              action_variant=("disabled" if item.locked else "secondary"),
+              locked=item.locked,
+              data_subject=item.subject_slug
+            ) }}
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="practice-empty home-panel">
+          <h3 class="home-continue-title">Nothing to practice yet</h3>
+          <p class="home-continue-meta">Your teacher hasn’t approved practice materials yet. When a lesson is ready, it will show up here for you to start.</p>
+          <a class="home-text-link" href="{{ url_for('home') }}#subjects-title">Go to your subjects →</a>
+        </div>
+      {% endif %}
+    </section>
+  </div>
 {% endblock %}
 {% block scripts %}
   <script src="{{ url_for('static', filename='js/practice_hub.js') }}" defer></script>

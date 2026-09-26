@@ -2,7 +2,7 @@
 {% set active_tab = "practice" %}
 {% set topbar_sub = "Practice setup" %}
 {% block title %}Practice Setup — Bloom{% endblock %}
-{% block body_class %}student-refined practice-setup-page{% endblock %}
+{% block body_class %}{% if user.role == 'student' %}student {% endif %}student-refined practice-setup-page{% endblock %}
 {% block page_title %}Practice setup{% endblock %}
 {% block page_subtitle %}Choose how you want to practice, then begin your check.{% endblock %}
 {% block page_actions %}
