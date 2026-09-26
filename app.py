@@ -202,10 +202,20 @@ def subject_slug_from_name(name: str | None) -> str:
     if not name:
         return "general"
     needle = name.strip().lower()
+    if needle in SUBJECTS:
+        return needle
     for slug, meta in SUBJECTS.items():
         if meta["name"].lower() == needle or meta["announce"].lower() == needle:
             return slug
     return "general"
+
+
+def canonical_subject_name(name: str | None) -> str | None:
+    """Map teacher subject labels (any case, Math, slug) to English | Mathematics | Science."""
+    slug = subject_slug_from_name(name)
+    if slug in SUBJECTS:
+        return SUBJECTS[slug]["name"]
+    return None
 
 
 def difficulty_label(value: str | None) -> str:
@@ -258,6 +268,19 @@ def ensure_schema():
                         f"ADD COLUMN {preparer.quote(column)} {ddl}"
                     )
                 )
+    normalize_teacher_subjects()
+
+
+def normalize_teacher_subjects():
+    """Rewrite stored teacher subjects to canonical names so Home matches English, not Science."""
+    dirty = False
+    for teacher in User.query.filter_by(role="teacher").all():
+        canonical = canonical_subject_name(teacher.subject)
+        if canonical and teacher.subject != canonical:
+            teacher.subject = canonical
+            dirty = True
+    if dirty:
+        db.session.commit()
 
 
 def unique_slug(base: str, model, field="slug") -> str:
@@ -307,11 +330,8 @@ def require_role(*roles):
 
 
 def teacher_subject_slug(user) -> str:
-    name = user.get("subject") or "Science"
-    for slug, meta in SUBJECTS.items():
-        if meta["name"] == name:
-            return slug
-    return "science"
+    slug = subject_slug_from_name((user or {}).get("subject"))
+    return slug if slug in SUBJECTS else "science"
 
 
 def teacher_nav():
@@ -799,7 +819,7 @@ def session_user_payload(user: User) -> dict:
         "email": user.email,
         "name": user.name,
         "role": user.role,
-        "subject": user.subject,
+        "subject": canonical_subject_name(user.subject) if user.role == "teacher" else user.subject,
         "section": user.section,
         "avatar_filename": user.avatar_filename,
         "avatar_url": photo_url_for(user),
@@ -3726,10 +3746,12 @@ def admin_users(user):
             role = role.lower()
             if role not in {"student", "teacher", "admin"} or User.query.filter_by(email=email).first():
                 continue
-            if role == "teacher" and subject in {"English", "Mathematics", "Science", "Math"}:
-                subject = "Mathematics" if subject == "Math" else subject
+            if role == "teacher":
+                subject = canonical_subject_name(subject)
+                if not subject:
+                    continue
             else:
-                subject = subject if role == "teacher" else None
+                subject = None
             db.session.add(
                 User(
                     email=email,
@@ -3777,7 +3799,7 @@ def admin_users(user):
                 "loading": "Importing users…",
                 "confirm": "Import these accounts? Temporary passwords will be set from the CSV.",
                 "sample_target": "csv",
-                "sample_value": "student2@letran-calamba.edu.ph, Ana Cruz, student, Temp1234",
+                "sample_value": "student2@letran-calamba.edu.ph, Ana Cruz, student, Temp1234\nenglish2@letran-calamba.edu.ph, Jane Cruz, teacher, Temp1234, English",
                 "fields": [
                     {
                         "id": "csv",
