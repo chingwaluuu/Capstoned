@@ -15,7 +15,7 @@
         {% if tab == 'home' %}aria-current="page"{% endif %}
       >
         <span class="pro-nav-ico" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1v-9.5Z"/></svg>
+          <i class="fi fi-rr-home"></i>
         </span>
         <span class="pro-nav-label" aria-hidden="true">Home</span>
       </a>
@@ -26,7 +26,7 @@
         {% if tab == 'subjects' %}aria-current="page"{% endif %}
       >
         <span class="pro-nav-ico" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+          <i class="fi fi-rs-book-alt"></i>
         </span>
         <span class="pro-nav-label" aria-hidden="true">Subjects</span>
       </a>
@@ -37,7 +37,7 @@
         {% if tab == 'practice' %}aria-current="page"{% endif %}
       >
         <span class="pro-nav-ico" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+          <i class="fi fi-rr-pencil"></i>
         </span>
         <span class="pro-nav-label" aria-hidden="true">Practice</span>
       </a>
@@ -48,7 +48,7 @@
         {% if tab == 'results' %}aria-current="page"{% endif %}
       >
         <span class="pro-nav-ico" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M4 19V5"/><path d="M4 19h16"/><path d="M8 16V10"/><path d="M12 16V7"/><path d="M16 16v-4"/></svg>
+          <i class="fi fi-rs-chart-simple-horizontal"></i>
         </span>
         <span class="pro-nav-label" aria-hidden="true">Results</span>
       </a>
@@ -59,7 +59,7 @@
         {% if tab == 'announcements' %}aria-current="page"{% endif %}
       >
         <span class="pro-nav-ico" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M6 10v6"/><path d="M6 10a6 6 0 0 1 12 0v6"/><path d="M4 16h16"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>
+          <i class="fi fi-rs-bell"></i>
         </span>
         <span class="pro-nav-label" aria-hidden="true">Announcements</span>
         {% if unread_announcements %}<span class="rail-dot" aria-hidden="true"></span>{% endif %}
@@ -71,7 +71,7 @@
         {% if tab == 'messages' %}aria-current="page"{% endif %}
       >
         <span class="pro-nav-ico" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M4 6h16v10H8l-4 3V6z"/></svg>
+          <i class="fi fi-rr-messages"></i>
         </span>
         <span class="pro-nav-label" aria-hidden="true">Messages</span>
         {% if unread_messages %}<span class="rail-dot is-alert" aria-hidden="true"></span>{% endif %}
@@ -83,10 +83,11 @@
         {% if tab == 'profile' %}aria-current="page"{% endif %}
       >
         <span class="pro-nav-ico" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="8" r="3.5"/><path d="M5 19.5c1.6-3 4-4.5 7-4.5s5.4 1.5 7 4.5"/></svg>
+          <i class="fi fi-rs-user"></i>
         </span>
         <span class="pro-nav-label" aria-hidden="true">Profile</span>
       </a>
+      <p class="sr-only">Student navigation icons by <a href="https://www.flaticon.com/uicons">Flaticon Uicons</a>.</p>
     {% elif role_nav %}
       {% for item in role_nav %}
         <a

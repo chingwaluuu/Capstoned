@@ -25,10 +25,16 @@
     />
   </a>
 
+  {% if user and user.role == 'student' %}
+    <div class="pro-top-identity">
+      <p class="pro-top-user-name">{{ user.name }}</p>
+    </div>
+  {% endif %}
+
   <div class="pro-top-spacer" aria-hidden="true"></div>
 
   <div class="pro-top-actions">
-    {% if user %}
+    {% if user and user.role != 'student' %}
       <p class="pro-top-user-name">{{ user.name }}</p>
     {% endif %}
     {% if user and user.role == 'student' %}

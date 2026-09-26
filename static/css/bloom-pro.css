@@ -8892,3 +8892,649 @@ html.pref-reduce-motion .qol-overlay {
     gap: 0.65rem;
   }
 }
+
+/* =============================================================================
+   Student experience tokens
+   Scope: .pro-body.student (student-only pages) and .pro-body.student-home,
+   which stays so Home still resolves these if the wider class is absent.
+   Teacher and admin bodies do not carry either class.
+   Spacing is a 4px scale. Card padding is --card-pad (20px). One card shadow.
+   ============================================================================= */
+.pro-body.student,
+.pro-body.student-home {
+  --surface: #ffffff;
+  --canvas: #f7f5f0;
+  --ink: #1a1a1a;
+  --ink-muted: #6b6b6b;
+  --border: #e8e4dc;
+  --brand-primary: #6c5ce7;
+  --brand-primary-press: #5847c4; /* static fallback */
+  --brand-primary-press: color-mix(in srgb, var(--brand-primary) 82%, var(--ink));
+  --brand-on-primary: #ffffff;
+  --brand-accent: #f4a62a;
+  --track: #e5e1da;
+
+  /* Six hues, one per subject slug. Kept off the live --subject-* names
+     until the subject list is switched over, so Home tiles stay as they are. */
+  --hue-english: #6c5ce7;
+  --hue-mathematics: #f4a62a;
+  --hue-science: #2a9d8f;
+  --hue-filipino: #e15a6b;
+  --hue-values: #3d7eea;
+  --hue-general: #8d6b4a;
+
+  --radius-card: 16px;
+  --radius-pill: 999px;
+  --radius-input: 10px;
+  --shadow-card: 0 1px 2px rgba(26, 26, 26, 0.04), 0 10px 28px rgba(26, 26, 26, 0.06);
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --card-pad: var(--space-5);
+
+  --font-display: var(--pro-font-serif);
+  --font-sans: var(--pro-font-ui);
+  --text-display-size: clamp(1.9rem, 3vw, 2.4rem);
+  --text-display-leading: 1.15;
+  --text-h2-size: 1.25rem;
+  --text-h2-leading: 1.3;
+  --text-body-size: 1rem;
+  --text-body-leading: 1.55;
+  --text-caption-size: 0.8125rem;
+  --text-caption-leading: 1.4;
+
+  --ease-out: cubic-bezier(0.2, 0, 0, 1);
+  --dur-fast: 120ms;
+  --dur-base: 180ms;
+  --dur-slow: 240ms;
+}
+
+.pro-body.student-home {
+  background: var(--canvas);
+  color: var(--ink);
+}
+
+.pro-body.student-home .text-display {
+  font-family: var(--font-display);
+  font-size: var(--text-display-size);
+  font-weight: 600;
+  line-height: var(--text-display-leading);
+  color: var(--ink);
+}
+
+.pro-body.student-home .text-h2 {
+  font-family: var(--font-display);
+  font-size: var(--text-h2-size);
+  font-weight: 600;
+  line-height: var(--text-h2-leading);
+  color: var(--ink);
+}
+
+.pro-body.student-home .text-body {
+  font-family: var(--font-sans);
+  font-size: var(--text-body-size);
+  font-weight: 400;
+  line-height: var(--text-body-leading);
+  color: var(--ink);
+}
+
+.pro-body.student-home .text-caption {
+  font-family: var(--font-sans);
+  font-size: var(--text-caption-size);
+  font-weight: 600;
+  line-height: var(--text-caption-leading);
+  color: var(--ink-muted);
+}
+
+/* First consumer: Home "Do this next". Other Home cards stay on the old tokens. */
+.pro-body.student-home .editorial-continue.bloom-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: var(--card-pad);
+  gap: var(--space-2);
+}
+
+.pro-body.student-home .editorial-continue .editorial-section-label {
+  margin-bottom: var(--space-2);
+  font-family: var(--font-sans);
+  font-size: var(--text-caption-size);
+  font-weight: 600;
+  letter-spacing: 0;
+  color: var(--ink-muted);
+}
+
+.pro-body.student-home .editorial-continue-title {
+  font-family: var(--font-display);
+  font-size: var(--text-h2-size);
+  color: var(--ink);
+}
+
+.pro-body.student-home .editorial-continue-copy {
+  font-family: var(--font-sans);
+  font-size: var(--text-body-size);
+  color: var(--ink-muted);
+}
+
+.pro-body.student-home .editorial-continue .editorial-subject-label {
+  color: var(--ink);
+}
+
+.pro-body.student-home .editorial-continue-actions {
+  gap: var(--space-3) var(--space-5);
+  margin-top: var(--space-4);
+}
+
+.pro-body.student-home .editorial-continue .btn-primary {
+  min-height: 44px;
+  padding: var(--space-3) var(--space-5);
+  border: 1px solid var(--brand-primary);
+  border-radius: var(--radius-pill);
+  background: var(--brand-primary);
+  color: var(--brand-on-primary);
+  font-family: var(--font-sans);
+  font-size: var(--text-body-size);
+  box-shadow: none;
+  transition:
+    background-color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out);
+}
+
+.pro-body.student-home .editorial-continue .btn-primary:hover {
+  background: var(--brand-primary-press);
+  border-color: var(--brand-primary-press);
+  color: var(--brand-on-primary);
+}
+
+.pro-body.student-home .editorial-continue .btn-primary:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+  transition: none;
+}
+
+/* One nav item on the student shell: the active rail link.
+   The shared rail rules stay in place for teacher and admin. */
+/* Active rail item stays on the navy chrome: white icon, quiet wash, no side bar. */
+.pro-body.student .pro-rail .pro-nav-link.is-active {
+  background: transparent;
+  color: #fff;
+  font-weight: 600;
+  box-shadow: none;
+  min-width: 2.65rem;
+  min-height: 2.65rem;
+  padding: 0;
+}
+
+.pro-body.student .pro-rail .pro-nav-link.is-active .pro-nav-ico {
+  background: transparent;
+}
+
+.pro-body.student .pro-rail .pro-nav-link.is-active:hover {
+  background: transparent;
+  color: #fff;
+}
+
+.pro-body.student .pro-rail .pro-nav-link.is-active:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+  transition: none;
+}
+
+.pro-body.student .pro-rail .pro-nav-link.is-active .pro-nav-label {
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-input);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: var(--text-caption-size);
+  font-weight: 700;
+  line-height: var(--text-caption-leading);
+  box-shadow: var(--shadow-card);
+  transition:
+    opacity var(--dur-fast) var(--ease-out),
+    visibility var(--dur-fast) var(--ease-out);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pro-body.student,
+  .pro-body.student *,
+  .pro-body.student *::before,
+  .pro-body.student *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Student Home board. Scoped so teacher editorial layout is unchanged. */
+.pro-body.student-home .home-board {
+  margin: var(--space-5) var(--pro-space-page-x) var(--space-8);
+  display: grid;
+  gap: var(--space-5);
+}
+
+.pro-body.student-home .home-intro {
+  display: grid;
+  gap: var(--space-1);
+  max-width: none;
+}
+
+.pro-body.student-home .home-greeting {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-display-size);
+  font-weight: 600;
+  line-height: var(--text-display-leading);
+  letter-spacing: 0;
+  color: var(--ink);
+}
+
+.pro-body.student-home .home-lede {
+  max-width: 38rem;
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-body-size);
+  font-weight: 400;
+  line-height: var(--text-body-leading);
+  color: var(--ink-muted);
+}
+
+.pro-body.student-home .home-quiet {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-3);
+  margin: var(--space-1) 0 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-leading);
+  color: var(--ink-muted);
+}
+
+.pro-body.student-home .home-quiet a {
+  color: var(--ink-muted);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.pro-body.student-home .home-quiet a:hover {
+  color: var(--ink);
+}
+
+.pro-body.student-home .home-label {
+  margin: 0 0 var(--space-2);
+  font-family: var(--font-sans);
+  font-size: var(--text-caption-size);
+  font-weight: 600;
+  line-height: var(--text-caption-leading);
+  letter-spacing: 0;
+  color: var(--ink-muted);
+}
+
+.pro-body.student-home .home-subject-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-4);
+  align-items: stretch;
+}
+
+.pro-body.student-home .home-subject {
+  --home-hue: var(--hue-general);
+  min-width: 0;
+  overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  transition:
+    border-color var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out);
+}
+
+.pro-body.student-home .home-subject.hue-english { --home-hue: var(--hue-english); }
+.pro-body.student-home .home-subject.hue-mathematics { --home-hue: var(--hue-mathematics); }
+.pro-body.student-home .home-subject.hue-science { --home-hue: var(--hue-science); }
+.pro-body.student-home .home-subject.hue-filipino { --home-hue: var(--hue-filipino); }
+.pro-body.student-home .home-subject.hue-values { --home-hue: var(--hue-values); }
+
+.pro-body.student-home .home-subject:hover {
+  border-color: color-mix(in srgb, var(--home-hue) 32%, var(--border));
+  transform: translateY(-2px);
+}
+
+.pro-body.student-home .home-subject-open {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.pro-body.student-home .home-subject-thumb {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 2 / 1;
+  background: color-mix(in srgb, var(--home-hue) 16%, var(--surface));
+}
+
+.pro-body.student-home .home-subject-mark {
+  display: inline-grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-input);
+  background: var(--surface);
+  color: var(--home-hue);
+  font-family: var(--font-sans);
+  font-size: var(--text-h2-size);
+  font-weight: 700;
+  line-height: var(--text-h2-leading);
+  box-shadow: var(--shadow-card);
+}
+
+.pro-body.student-home .home-subject-body {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-4);
+}
+
+.pro-body.student-home .home-subject-name {
+  margin: 0;
+  display: -webkit-box;
+  overflow: hidden;
+  font-family: var(--font-sans);
+  font-size: var(--text-body-size);
+  font-weight: 700;
+  line-height: var(--text-body-leading);
+  color: var(--ink);
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.pro-body.student-home .home-subject-teacher,
+.pro-body.student-home .home-subject-note {
+  margin: 0;
+  overflow: hidden;
+  font-family: var(--font-sans);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-leading);
+  color: var(--ink-muted);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.pro-body.student-home .home-subject-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  margin-top: var(--space-2);
+}
+
+.pro-body.student-home .home-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--space-5);
+  padding: 0 var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--canvas);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: var(--text-caption-size);
+  font-weight: 600;
+  line-height: var(--text-caption-leading);
+}
+
+.pro-body.student-home .home-meter {
+  display: block;
+  height: var(--space-1);
+  margin-top: var(--space-3);
+  border-radius: var(--radius-pill);
+  background: var(--track);
+  overflow: hidden;
+}
+
+.pro-body.student-home .home-meter > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--home-hue);
+}
+
+.pro-body.student-home .home-subject-note {
+  margin-top: var(--space-2);
+}
+
+.pro-body.student-home .home-continue,
+.pro-body.student-home .home-panel {
+  min-width: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: var(--space-4);
+}
+
+.pro-body.student-home .home-continue-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-3);
+  align-items: center;
+}
+
+.pro-body.student-home .home-continue-title,
+.pro-body.student-home .home-row-title {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-body-size);
+  font-weight: 600;
+  line-height: var(--text-body-leading);
+  color: var(--ink);
+}
+
+.pro-body.student-home .home-continue-meta,
+.pro-body.student-home .home-row-meta,
+.pro-body.student-home .home-row-when,
+.pro-body.student-home .home-empty,
+.pro-body.student-home .home-kicker {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-leading);
+  color: var(--ink-muted);
+}
+
+.pro-body.student-home .home-kicker {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.pro-body.student-home .home-continue-actions,
+.pro-body.student-home .home-row-action {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+}
+
+.pro-body.student-home .home-btn,
+.pro-body.student-home .home-text-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-family: var(--font-sans);
+  font-size: var(--text-caption-size);
+  font-weight: 600;
+  line-height: var(--text-caption-leading);
+  text-decoration: none;
+}
+
+.pro-body.student-home .home-btn {
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--brand-primary);
+  border-radius: var(--radius-pill);
+  background: var(--brand-primary);
+  color: var(--brand-on-primary);
+  transition:
+    background-color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out);
+}
+
+.pro-body.student-home .home-btn:hover {
+  background: var(--brand-primary-press);
+  border-color: var(--brand-primary-press);
+  color: var(--brand-on-primary);
+}
+
+.pro-body.student-home .home-text-link {
+  color: var(--brand-primary);
+}
+
+.pro-body.student-home .home-text-link:hover {
+  color: var(--brand-primary-press);
+}
+
+.pro-body.student-home .home-subject-open:focus-visible,
+.pro-body.student-home .home-btn:focus-visible,
+.pro-body.student-home .home-text-link:focus-visible,
+.pro-body.student-home .home-quiet a:focus-visible,
+.pro-body.student-home .home-row.is-link:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+  transition: none;
+}
+
+.pro-body.student-home .home-lower {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+  align-items: start;
+}
+
+.pro-body.student-home .home-lower > :only-child {
+  grid-column: 1 / -1;
+}
+
+.pro-body.student-home .home-panel-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.pro-body.student-home .home-panel-head .home-label {
+  margin-bottom: 0;
+}
+
+.pro-body.student-home .home-rows {
+  display: grid;
+}
+
+.pro-body.student-home .home-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-3);
+  align-items: start;
+  padding: var(--space-3) 0;
+  border-top: 1px solid var(--border);
+  color: inherit;
+  text-decoration: none;
+}
+
+.pro-body.student-home .home-row:first-child {
+  border-top: 0;
+  padding-top: var(--space-2);
+}
+
+.pro-body.student-home .home-row-main {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.pro-body.student-home .home-row.is-link .home-row-title,
+.pro-body.student-home .home-row.is-link .home-row-meta,
+.pro-body.student-home .home-row.is-link .home-row-when {
+  display: block;
+}
+
+.pro-body.student-home .home-unread {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--brand-primary);
+  font-weight: 700;
+}
+
+.pro-body.student-home .home-unread::before {
+  content: "";
+  width: var(--space-2);
+  height: var(--space-2);
+  border-radius: var(--radius-pill);
+  background: var(--brand-primary);
+}
+
+.pro-body.student-home .home-empty {
+  margin-top: var(--space-3);
+}
+
+@media (max-width: 900px) {
+  .pro-body.student-home .home-subject-grid,
+  .pro-body.student-home .home-lower,
+  .pro-body.student-home .home-continue-body {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Student topbar identity sits on the left. Teacher name stays in .pro-top-actions. */
+.is-student-topbar .pro-top-identity {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2, 8px) var(--space-3, 12px);
+  min-width: 0;
+  flex: 0 1 auto;
+}
+
+.is-student-topbar .pro-top-identity .pro-top-user-name {
+  margin: 0;
+  max-width: 14rem;
+  font-family: var(--font-sans, var(--pro-font-ui));
+  font-size: var(--text-body-size, 1rem);
+  font-weight: 600;
+  line-height: var(--text-body-leading, 1.4);
+  color: var(--ink, var(--pro-heading));
+}
+
+@media (max-width: 720px) {
+  .is-student-topbar .pro-top-identity .pro-top-user-name {
+    display: block;
+    max-width: 8.5rem;
+  }
+}
+
+.pro-rail .pro-nav-ico .fi {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  font-size: 20px;
+  line-height: 1;
+  color: inherit;
+}
+
+.pro-rail .pro-nav-ico .fi::before {
+  line-height: 1;
+}
