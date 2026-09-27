@@ -2,7 +2,7 @@
 {% set active_tab = "messages" if user.role == "student" else "" %}
 {% set topbar_sub = "Messages" %}
 {% block title %}{{ other.name }} — Messages — Bloom{% endblock %}
-{% block body_class %}{% if user.role == 'student' %}student {% elif user.role == 'teacher' %}teacher-workspace {% endif %}pro-focus student-refined{% endblock %}
+{% block body_class %}{% if user.role == 'student' %}student {% elif user.role == 'teacher' %}teacher-workspace {% endif %}student-refined{% endblock %}
 {% block page_header %}{% endblock %}
 {% block main_class %}chat-main{% endblock %}
 {% block content_class %}pro-content-plain chat-content{% endblock %}
@@ -14,17 +14,17 @@
       data-read-url="{{ url_for('messages_mark_read', user_id=other.id) }}"
     >
       <header class="chat-head">
-        <a class="hub-back chat-back" href="{{ url_for('messages_inbox') }}"><span aria-hidden="true">←</span> Back to conversations</a>
+        <a class="hub-back chat-back" href="{{ url_for('messages_inbox') }}">
+          <i class="fi fi-rr-arrow-left chat-back-icon" aria-hidden="true"></i>
+          Back to conversations
+        </a>
         <div class="chat-person">
           {% with class_name="avatar avatar-lg chat-avatar", initials=other.initials, photo_url=other.photo_url %}
             {% include "partials/user_avatar.html" %}
           {% endwith %}
           <div class="chat-person-copy">
             <h1 class="chat-name">{{ other.name }}</h1>
-            <p class="chat-meta-line">
-              {% if other.meta %}<span class="chat-subject">{{ other.meta }}</span>{% endif %}
-              <span class="chat-private">Private academic chat</span>
-            </p>
+            <p class="chat-meta-line">{{ other.section or "Grade 7 · Pilot Section" }}</p>
           </div>
         </div>
       </header>
@@ -50,15 +50,17 @@
         <div class="chat-composer-field">
           <label class="sr-only" for="chat-body">Type a message</label>
           <textarea id="chat-body" name="body" rows="2" maxlength="2000" placeholder="Write a clear question…" required>{{ draft }}</textarea>
-          <div class="chat-composer-meta">
-            <p class="chat-composer-hint">Enter to send · Shift + Enter for a new line</p>
+        </div>
+        <div class="chat-composer-meta">
+          <p class="chat-composer-hint">Enter to send · Shift + Enter for a new line</p>
+          <div class="chat-composer-actions">
             <p class="chat-char-count" id="chat-char-count" aria-live="polite">0 / 2000</p>
+            <button type="submit" class="chat-send-btn" aria-label="Send message" id="chat-send">
+              <i class="fi fi-rr-paper-plane-top" aria-hidden="true"></i>
+              <span>Send</span>
+            </button>
           </div>
         </div>
-        <button type="submit" class="chat-send-btn" aria-label="Send message" id="chat-send">
-          <i class="fi fi-rr-paper-plane-top" aria-hidden="true"></i>
-          <span>Send</span>
-        </button>
         <p class="chat-status" id="chat-status" hidden role="status" aria-live="polite"></p>
       </form>
     </section>

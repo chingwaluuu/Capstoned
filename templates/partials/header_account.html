@@ -75,23 +75,24 @@
     <div class="menu-panel settings-panel" id="settings-panel" hidden role="region" aria-label="Preferences">
       <div class="menu-head">
         <p class="menu-title">Preferences</p>
-        <p class="menu-sub">Saved on this device · Password is changed separately</p>
-      </div>
-
-      <div class="settings-group">
-        <p class="settings-label">Appearance</p>
-        <p class="settings-readonly">Letran light theme for this pilot</p>
+        <p class="menu-sub">Saved on this device · password changed separately</p>
       </div>
 
       <div class="settings-group">
         <p class="settings-label">Accessibility</p>
         <label class="settings-toggle">
-          <span>Comfortable text</span>
-          <input type="checkbox" data-pref="large-type" />
+          <span class="settings-toggle-label">Comfortable text</span>
+          <span class="settings-switch-wrap">
+            <input type="checkbox" data-pref="large-type" />
+            <span class="settings-switch" aria-hidden="true"></span>
+          </span>
         </label>
         <label class="settings-toggle">
-          <span>Reduce motion</span>
-          <input type="checkbox" data-pref="reduce-motion" />
+          <span class="settings-toggle-label">Reduce motion</span>
+          <span class="settings-switch-wrap">
+            <input type="checkbox" data-pref="reduce-motion" />
+            <span class="settings-switch" aria-hidden="true"></span>
+          </span>
         </label>
       </div>
 
@@ -99,18 +100,29 @@
         <div class="settings-group">
           <p class="settings-label">Announcement badge</p>
           <label class="settings-toggle">
-            <span>Show unread announcement count</span>
-            <input type="checkbox" data-pref="notify-badge" checked />
+            <span class="settings-toggle-label">Show unread announcement count</span>
+            <span class="settings-switch-wrap">
+              <input type="checkbox" data-pref="notify-badge" checked />
+              <span class="settings-switch" aria-hidden="true"></span>
+            </span>
           </label>
         </div>
       {% endif %}
 
       <div class="settings-group">
         <p class="settings-label">Language</p>
-        <p class="settings-readonly">English only for this pilot</p>
+        <div class="settings-select-wrap">
+          <select class="settings-lang" disabled aria-label="Language">
+            <option selected>English</option>
+          </select>
+        </div>
+        <p class="settings-lang-hint">Only English is available for this pilot.</p>
       </div>
 
-      <a class="notify-all" href="{{ url_for('profile') }}">Open account profile</a>
+      <a class="settings-profile-link" href="{{ url_for('profile') }}">
+        Open account profile
+        <i class="fi fi-rr-arrow-right" aria-hidden="true"></i>
+      </a>
     </div>
   </div>
 </div>

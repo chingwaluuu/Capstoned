@@ -4127,6 +4127,7 @@ def messages_thread(user_id):
             "id": other.id,
             "name": other.name,
             "meta": other.subject or other.role.title(),
+            "section": other.section or "Grade 7 · Pilot Section",
             "subject_slug": subject_slug_from_name(other.subject),
             "initials": initials(other.name),
             "photo_url": photo_url_for(other),

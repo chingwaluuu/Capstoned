@@ -59,6 +59,87 @@
         {% endif %}
       </section>
 
+      {% if user.role == "teacher" %}
+        {% set teacher_section = user.section or "Grade 7 · Pilot Section" %}
+        {% set subject_label = user.subject %}
+        {% set subject_key = (user.subject or "")|lower %}
+        {% if "english" in subject_key %}
+          {% set subject_tone = "english" %}
+        {% elif "math" in subject_key %}
+          {% set subject_tone = "math" %}
+        {% else %}
+          {% set subject_tone = "science" %}
+        {% endif %}
+
+        <!-- TODO: persist display name to User.name (or a display_name column) via POST /profile -->
+        <section class="teacher-profile-card" aria-labelledby="teacher-display-name-title">
+          <h2 class="teacher-profile-card-title" id="teacher-display-name-title">Display name</h2>
+          <p class="teacher-profile-card-note">How students and colleagues see you in messages and posts.</p>
+          <label class="sr-only" for="teacher-display-name">Display name</label>
+          <input
+            id="teacher-display-name"
+            class="teacher-profile-input"
+            type="text"
+            name="display_name"
+            value="{{ user.name }}"
+            autocomplete="nickname"
+            data-teacher-field="displayName"
+          />
+        </section>
+
+        <!-- TODO: connect Request a change to a real admin request flow if one is added -->
+        <section class="teacher-profile-card teacher-profile-teaching" aria-labelledby="teacher-teaching-title">
+          <h2 class="teacher-profile-card-title" id="teacher-teaching-title">Teaching profile</h2>
+          <p class="teacher-profile-card-note">Subjects and sections you're assigned to.</p>
+          <div class="teacher-profile-pills">
+            {% if subject_label %}
+              <span class="home-tag teacher-assign-pill is-{{ subject_tone }}">{{ subject_label }}</span>
+            {% endif %}
+            <span class="home-tag teacher-assign-pill is-section">{{ teacher_section }}</span>
+          </div>
+          <button
+            type="button"
+            class="teacher-profile-request"
+            data-teacher-request-change
+            data-admin-email="admin@letran-calamba.edu.ph"
+            data-subject="{{ subject_label or '' }}"
+            data-section="{{ teacher_section }}"
+          >
+            Request a change
+          </button>
+        </section>
+
+        <!-- TODO: persist availability note to a teacher profile field; none exists yet -->
+        <section class="teacher-profile-card" aria-labelledby="teacher-availability-title">
+          <h2 class="teacher-profile-card-title" id="teacher-availability-title">Availability note</h2>
+          <p class="teacher-profile-card-note">Shown to students when they message you.</p>
+          <label class="sr-only" for="teacher-availability-note">Availability note</label>
+          <input
+            id="teacher-availability-note"
+            class="teacher-profile-input"
+            type="text"
+            name="availability_note"
+            value=""
+            placeholder="e.g. Usually replies within 24 hours"
+            maxlength="120"
+            data-teacher-field="availabilityNote"
+          />
+        </section>
+
+        <dialog class="bloom-dialog" id="teacher-profile-request-dialog">
+          <div class="bloom-dialog-card" role="document">
+            <h2 class="bloom-dialog-title">Request a change</h2>
+            <p class="bloom-dialog-message">
+              Subject and section are assigned by an admin. This placeholder opens an email draft until a real request flow exists.
+            </p>
+            <div class="bloom-dialog-actions">
+              <button type="button" class="today-action today-action-soft" data-teacher-request-close>Close</button>
+              <a class="btn-primary" data-teacher-request-mailto href="mailto:admin@letran-calamba.edu.ph">Email admin</a>
+            </div>
+          </div>
+        </dialog>
+      {% endif %}
+
       {% if user.role == "student" %}
         <section class="profile-snapshot" aria-labelledby="learning-title">
           <h2 class="profile-section-title" id="learning-title">Learning snapshot</h2>
@@ -143,11 +224,65 @@
         </dl>
       </section>
 
+      {% if user.role == "teacher" %}
+        <!-- TODO: persist notification prefs; no preference table/columns exist yet -->
+        <section class="teacher-profile-card teacher-profile-notifications" aria-labelledby="teacher-notify-title" data-teacher-notifications>
+          <h2 class="teacher-profile-card-title" id="teacher-notify-title">Notifications</h2>
+          <p class="teacher-profile-card-note">Choose what you're alerted about.</p>
+          <div class="teacher-pref-list">
+            <div class="teacher-pref-row">
+              <span class="teacher-pref-label" id="pref-label-messages">New student messages</span>
+              <button
+                type="button"
+                class="teacher-pref-switch"
+                role="switch"
+                aria-checked="true"
+                aria-labelledby="pref-label-messages"
+                data-teacher-pref="newStudentMessages"
+              >
+                <span class="teacher-pref-switch-knob" aria-hidden="true"></span>
+              </button>
+            </div>
+            <div class="teacher-pref-row">
+              <span class="teacher-pref-label" id="pref-label-submissions">Submissions ready to review</span>
+              <button
+                type="button"
+                class="teacher-pref-switch"
+                role="switch"
+                aria-checked="true"
+                aria-labelledby="pref-label-submissions"
+                data-teacher-pref="submissionsReady"
+              >
+                <span class="teacher-pref-switch-knob" aria-hidden="true"></span>
+              </button>
+            </div>
+            <div class="teacher-pref-row">
+              <span class="teacher-pref-label" id="pref-label-weekly">Weekly summary email</span>
+              <button
+                type="button"
+                class="teacher-pref-switch"
+                role="switch"
+                aria-checked="false"
+                aria-labelledby="pref-label-weekly"
+                data-teacher-pref="weeklySummary"
+              >
+                <span class="teacher-pref-switch-knob" aria-hidden="true"></span>
+              </button>
+            </div>
+          </div>
+        </section>
+      {% endif %}
+
       <section class="profile-security" id="account" aria-labelledby="profile-security-title">
         <h2 class="profile-section-title" id="profile-security-title">Security</h2>
-        <p class="profile-section-note">Manage your password and account access. Appearance preferences stay under the gear menu.</p>
-        <a class="editorial-text-link" href="{{ url_for('profile_password') }}">Change password →</a>
+        <p class="profile-section-note">Manage your password and account access.</p>
+        <a class="today-action-soft" href="{{ url_for('profile_password') }}">Change password</a>
       </section>
     </aside>
   </div>
+{% endblock %}
+{% block scripts %}
+  {% if user.role == "teacher" %}
+    <script src="{{ url_for('static', filename='js/teacher_profile.js') }}?v=tp1" defer></script>
+  {% endif %}
 {% endblock %}

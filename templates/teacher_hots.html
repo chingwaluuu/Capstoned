@@ -5,126 +5,162 @@
 {% block page_title %}HOTS Generator{% endblock %}
 {% block page_subtitle %}Generate from approved materials, review items, then publish to the section.{% endblock %}
 {% block content %}
-  <section class="home-section" aria-labelledby="hots-generate-title">
-    <div class="section-heading-row">
-      <div>
-        <p class="section-eyebrow">Create</p>
-        <h2 id="hots-generate-title" class="section-title section-title-sm">Generate a HOTS set</h2>
-      </div>
-    </div>
-
-    <section class="lobby-card">
-      <p class="section-note">Questions stay grounded in the uploaded lesson text. Review before publishing.</p>
+  <div class="hots-generator-page">
+    <section class="hots-generate-card" aria-labelledby="hots-generate-title">
+      <p class="hots-kicker">Create</p>
+      <h2 id="hots-generate-title" class="hots-card-title">Generate a HOTS set</h2>
+      <p class="hots-help">Questions stay grounded in the uploaded lesson text. Review before publishing.</p>
       {% if materials %}
-        <form class="login-form" method="POST" action="{{ url_for('teacher_hots') }}" data-loading="Generating HOTS questions…">
+        <form class="hots-generate-form" method="POST" action="{{ url_for('teacher_hots') }}" data-loading="Generating HOTS questions…">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
           <input type="hidden" name="action" value="generate" />
-          <div class="field">
-            <label for="material_id">Approved material</label>
-            <select id="material_id" name="material_id" required>
-              {% for material in materials %}
-                <option value="{{ material.id }}">{{ material.title }}</option>
-              {% endfor %}
-            </select>
+          <div class="hots-generate-grid">
+            <div class="field">
+              <label for="material_id">Approved material</label>
+              <div class="hots-select">
+                <select id="material_id" name="material_id" required>
+                  {% for material in materials %}
+                    <option value="{{ material.id }}">{{ material.title }}</option>
+                  {% endfor %}
+                </select>
+                <span class="hots-select-icon" aria-hidden="true">
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                    <path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </span>
+              </div>
+            </div>
+            <div class="field">
+              <label for="bloom">Bloom focus</label>
+              <div class="hots-select">
+                <select id="bloom" name="bloom">
+                  <option value="mixed" selected>Mixed C4–C6</option>
+                  <option value="c4">Analyze</option>
+                  <option value="c5">Evaluate</option>
+                  <option value="c6">Create</option>
+                </select>
+                <span class="hots-select-icon" aria-hidden="true">
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                    <path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </span>
+              </div>
+            </div>
+            <div class="field">
+              <label for="count">Number of questions</label>
+              <div class="hots-select">
+                <select id="count" name="count">
+                  <option value="3">3</option>
+                  <option value="5" selected>5</option>
+                </select>
+                <span class="hots-select-icon" aria-hidden="true">
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                    <path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </span>
+              </div>
+            </div>
+            <div class="field">
+              <label for="difficulty">Difficulty</label>
+              <div class="hots-select">
+                <select id="difficulty" name="difficulty">
+                  <option value="easy">Easy</option>
+                  <option value="medium" selected>Medium</option>
+                  <option value="hard">Hard</option>
+                </select>
+                <span class="hots-select-icon" aria-hidden="true">
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                    <path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </span>
+              </div>
+            </div>
           </div>
-          <div class="field">
-            <label for="bloom">Bloom focus</label>
-            <select id="bloom" name="bloom">
-              <option value="mixed" selected>Mixed C4–C6</option>
-              <option value="c4">Analyze</option>
-              <option value="c5">Evaluate</option>
-              <option value="c6">Create</option>
-            </select>
-          </div>
-          <div class="field">
-            <label for="count">Number of questions</label>
-            <select id="count" name="count">
-              <option value="3">3</option>
-              <option value="5" selected>5</option>
-            </select>
-          </div>
-          <div class="field">
-            <label for="difficulty">Difficulty</label>
-            <select id="difficulty" name="difficulty">
-              <option value="easy">Easy</option>
-              <option value="medium" selected>Medium</option>
-              <option value="hard">Hard</option>
-            </select>
-          </div>
-          <p class="section-note">Difficulty changes how complex the scenarios are. Bloom’s level still stays Analyze, Evaluate, or Create.</p>
-          <button type="submit" class="btn-primary">Generate HOTS set</button>
+          <p class="hots-help hots-help-after">Difficulty changes how complex the scenarios are. Bloom’s level still stays Analyze, Evaluate, or Create.</p>
+          <button type="submit" class="btn-primary hots-generate-submit">Generate HOTS set</button>
         </form>
       {% else %}
-        <p class="section-note">Upload and approve a material first.</p>
+        <p class="hots-help">Upload and approve a material first.</p>
         <a class="today-action" href="{{ url_for('teacher_materials') }}">Go to Materials</a>
       {% endif %}
     </section>
-  </section>
 
-  <section class="home-section" aria-labelledby="hots-sets-title">
-    <div class="section-heading-row">
-      <div>
-        <p class="section-eyebrow">Your sets</p>
-        <h2 id="hots-sets-title" class="section-title section-title-sm">HOTS assessments</h2>
-      </div>
-      <span class="count-badge {% if not assessments %}count-badge-muted{% endif %}">{{ assessments|length }}</span>
-    </div>
-
-    {% for assessment in assessments %}
-      <section class="lobby-card stack-md">
-        <p class="teacher-status-pill is-{{ assessment.status }}">{{ assessment.status.title() }}</p>
-        <h2 class="hub-panel-title">{{ assessment.title }}</h2>
-        <p class="section-note">
-          {{ assessment.questions|length }} questions
-          {% if assessment.difficulty %} · Difficulty: {{ difficulty_label(assessment.difficulty) }}{% endif %}
-          {% if assessment.deadline %} · Due {{ assessment.deadline.strftime("%b %d · %I:%M %p") }}{% endif %}
-        </p>
-
-        <div class="hub-list stack-sm pro-stagger-in">
-          {% for question in assessment.questions %}
-            <article class="hub-card hub-card-stack">
-              <div>
-                <p class="hub-card-kicker">{{ question.bloom }} · {{ question.qtype }} · {{ question.citation }}</p>
-                <h3 class="hub-card-title">{{ question.prompt }}</h3>
-                {% if question.options() %}
-                  <p class="hub-card-meta">
-                    {% for opt in question.options() %}{{ opt.id }}) {{ opt.text }}{% if not loop.last %} · {% endif %}{% endfor %}
-                  </p>
-                {% endif %}
-                {% if question.answer %}<p class="hub-card-meta">Answer: {{ question.answer }}</p>{% endif %}
-              </div>
-              {% if assessment.status == "draft" %}
-                <form method="POST" action="{{ url_for('teacher_hots') }}" data-loading="Regenerating this question…">
-                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                  <input type="hidden" name="action" value="regenerate" />
-                  <input type="hidden" name="question_id" value="{{ question.id }}" />
-                  <button class="today-action today-action-soft" type="submit">Regenerate</button>
-                </form>
-              {% endif %}
-            </article>
-          {% endfor %}
-        </div>
-
-        {% if assessment.status == "draft" %}
-          <form class="login-form stack-md" method="POST" action="{{ url_for('teacher_hots') }}" data-confirm="Publish this HOTS assessment to the section?" data-loading="Publishing to section…">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-            <input type="hidden" name="action" value="publish" />
-            <input type="hidden" name="assessment_id" value="{{ assessment.id }}" />
-            <div class="field">
-              <label for="deadline-{{ assessment.id }}">Deadline</label>
-              <input id="deadline-{{ assessment.id }}" name="deadline" type="datetime-local" />
-            </div>
-            <button type="submit" class="btn-primary">Publish to section</button>
-          </form>
-        {% endif %}
-      </section>
-    {% else %}
-      <article class="hub-card pro-toast-in">
+    <section class="hots-sets-section" aria-labelledby="hots-sets-title">
+      <div class="hots-sets-heading">
         <div>
-          <h3 class="hub-card-title">No HOTS sets yet</h3>
-          <p class="hub-card-meta">Generate from an approved lesson, review each item, then publish.</p>
+          <p class="hots-kicker">Your sets</p>
+          <h2 id="hots-sets-title" class="hots-list-title">HOTS assessments</h2>
         </div>
-      </article>
-    {% endfor %}
-  </section>
+        <span class="hots-sets-count">{{ assessments|length }}</span>
+      </div>
+
+      {% for assessment in assessments %}
+        <section class="hots-set-card">
+          <div class="hots-set-head">
+            <p class="hots-status-pill is-{{ assessment.status }}">{{ assessment.status.title() }}</p>
+            <h2 class="hots-set-title">{{ assessment.title }}</h2>
+            <p class="hots-set-meta">
+              {{ assessment.questions|length }} questions
+              {% if assessment.difficulty %} · Difficulty: {{ difficulty_label(assessment.difficulty) }}{% endif %}
+              {% if assessment.deadline %} · Due {{ assessment.deadline.strftime("%b %d · %I:%M %p") }}{% endif %}
+            </p>
+          </div>
+
+          <div class="hots-q-list">
+            {% for question in assessment.questions %}
+              {% set bloom_key = (question.bloom or "")|lower %}
+              {% if question.qtype == "mcq" %}
+                {% set type_label = "MCQ" %}
+              {% elif question.qtype == "essay" %}
+                {% set type_label = "Essay" %}
+              {% elif question.qtype == "problem" %}
+                {% set type_label = "Problem" %}
+              {% else %}
+                {% set type_label = question.qtype %}
+              {% endif %}
+              <article class="hots-q-item">
+                <div class="hots-q-top">
+                  <span class="hots-bloom-pill is-{{ bloom_key }}">{{ question.bloom }}</span>
+                  <span class="hots-q-format">{{ type_label }}{% if question.citation %} · {{ question.citation }}{% endif %}</span>
+                </div>
+                <h3 class="hots-q-prompt">{{ question.prompt }}</h3>
+                {% if question.options() %}
+                  <p class="hots-q-choices">{% for opt in question.options() %}{{ opt.id }}) {{ opt.text }}{% if not loop.last %}  {% endif %}{% endfor %}</p>
+                  {% if question.answer %}
+                    <p class="hots-q-answer">Answer: {{ question.answer }}</p>
+                  {% endif %}
+                {% endif %}
+                {% if assessment.status == "draft" %}
+                  <form method="POST" action="{{ url_for('teacher_hots') }}" data-loading="Regenerating this question…">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                    <input type="hidden" name="action" value="regenerate" />
+                    <input type="hidden" name="question_id" value="{{ question.id }}" />
+                    <button class="today-action today-action-soft" type="submit">Regenerate</button>
+                  </form>
+                {% endif %}
+              </article>
+            {% endfor %}
+          </div>
+
+          {% if assessment.status == "draft" %}
+            <form class="hots-publish-form" method="POST" action="{{ url_for('teacher_hots') }}" data-confirm="Publish this HOTS assessment to the section?" data-loading="Publishing to section…">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+              <input type="hidden" name="action" value="publish" />
+              <input type="hidden" name="assessment_id" value="{{ assessment.id }}" />
+              <div class="field">
+                <label for="deadline-{{ assessment.id }}">Deadline</label>
+                <input id="deadline-{{ assessment.id }}" name="deadline" type="datetime-local" />
+              </div>
+              <button type="submit" class="btn-primary hots-generate-submit">Publish to section</button>
+            </form>
+          {% endif %}
+        </section>
+      {% else %}
+        <article class="hots-set-card">
+          <h3 class="hots-set-title">No HOTS sets yet</h3>
+          <p class="hots-set-meta">Generate from an approved lesson, review each item, then publish.</p>
+        </article>
+      {% endfor %}
+    </section>
+  </div>
 {% endblock %}

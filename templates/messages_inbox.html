@@ -71,7 +71,7 @@
                   <span class="message-unread-mark">New</span>
                 {% endif %}
               </div>
-              {% if thread.meta %}
+              {% if thread.meta and not is_teacher %}
                 <p class="message-row-subject"><span class="home-tag is-hue">{{ thread.meta }}</span></p>
               {% endif %}
               <p class="message-row-snippet {% if not thread.started %}is-empty-preview{% endif %}">{{ thread.preview }}</p>
