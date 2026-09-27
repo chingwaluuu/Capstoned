@@ -13,7 +13,13 @@
     {% if home_stats %}
       <section class="home-glance" aria-label="Practice snapshot">
         {% for stat in home_stats %}
-          <div class="home-glance-item{% if stat.quiet %} is-quiet{% endif %}">
+          {% set dest = namespace(href=url_for('results')) %}
+          {% if stat.label == "Started" %}
+            {% set dest.href = url_for('practice') %}
+          {% elif stat.label == "Assessments" %}
+            {% set dest.href = url_for('results', filter='assessments') %}
+          {% endif %}
+          <a class="home-glance-item{% if stat.quiet %} is-quiet{% endif %}" href="{{ dest.href }}">
             <p class="home-glance-label">{{ stat.label }}</p>
             <div class="home-glance-face">
               {% if stat.ring is not none %}
@@ -21,122 +27,117 @@
               {% endif %}
               <span class="home-glance-value">{{ stat.value }}</span>
             </div>
-          </div>
+          </a>
         {% endfor %}
       </section>
     {% endif %}
 
-    <section class="home-subjects" aria-labelledby="subjects-title">
-      <h2 class="home-label" id="subjects-title">Subjects</h2>
-      <div class="home-subject-grid">
-        {% for subject in subjects %}
-          {{ home_subject_card(subject) }}
-        {% endfor %}
-      </div>
-    </section>
+    <div class="home-kanban" aria-label="Home board">
+      <section class="home-col" aria-labelledby="today-board-title">
+        <header class="home-col-head">
+          <div class="home-col-ident">
+            <h2 class="home-col-title" id="today-board-title">Up next</h2>
+            <span class="home-col-count">{{ today_items|length }}</span>
+          </div>
+        </header>
+        <div class="home-col-stack">
+          {% if today_items %}
+            {% for item in today_items %}
+              <a class="home-ticket card hue-{{ item.subject_slug or 'general' }}" href="{{ item.href }}">
+                <span class="home-ticket-lead">
+                  <span class="home-ticket-title">{{ item.title }}</span>
+                </span>
+                <span class="home-ticket-tags">
+                  {% if item.kind_label %}
+                    <span class="home-tag is-status">{{ item.kind_label }}</span>
+                  {% endif %}
+                  {% if item.subject %}
+                    <span class="home-tag is-hue">{{ item.subject }}</span>
+                  {% endif %}
+                  {% if item.score_percent is not none %}
+                    <span class="home-tag is-score">{{ item.score_percent }}%</span>
+                  {% endif %}
+                </span>
+                {% if item.due_label %}
+                  <span class="home-ticket-foot">
+                    <span class="home-when{% if item.due_urgent %} is-soon{% endif %}">{{ item.due_label }}</span>
+                  </span>
+                {% endif %}
+              </a>
+            {% endfor %}
+          {% else %}
+            <div class="home-ticket card hue-general is-empty">
+              <span class="home-ticket-lead">
+                <span class="home-ticket-title">
+                  {% if weekly_goal.has_progress %}You’re all caught up{% else %}Nothing waiting yet{% endif %}
+                </span>
+              </span>
+            </div>
+          {% endif %}
+        </div>
+      </section>
 
-    <div class="home-stage{% if has_teacher_updates %} has-side{% endif %}">
-    <section class="home-day" aria-labelledby="today-board-title">
-      <header class="home-day-head">
-        <h2 class="home-label" id="today-board-title">Today</h2>
-      </header>
-
-      <div class="home-task-list">
-        {% if today_items %}
-          {% for item in today_items %}
-            <a class="home-task hue-{{ item.subject_slug or 'general' }}" href="{{ item.href }}">
-              <span class="home-task-mark" aria-hidden="true">
-                <i class="{{ item.mark_icon }}"></i>
-              </span>
-              <span class="home-task-copy">
-                <span class="home-task-kicker">{{ item.kind_label or item.kicker or "Today" }}</span>
-                <span class="home-task-title">{{ item.title }}</span>
-              </span>
-              <span class="home-task-stats">
-                <span class="home-task-metric">
-                  <span class="home-task-metric-label">Lessons</span>
-                  <span class="home-task-metric-value">
-                    {% if item.lesson_count %}
-                      {{ item.lesson_count }} lesson{% if item.lesson_count != 1 %}s{% endif %}
-                    {% else %}
-                      —
-                    {% endif %}
-                  </span>
-                </span>
-                <span class="home-task-metric">
-                  <span class="home-task-metric-label">Avg. score</span>
-                  <span class="home-task-metric-value">
-                    {% if item.score_percent is not none %}
-                      <span class="home-ring is-metric" style="--ring: {{ item.score_percent }};" aria-hidden="true"></span>
-                      {{ item.score_percent }}%
-                    {% else %}
-                      —
-                    {% endif %}
-                  </span>
-                </span>
-                <span class="home-task-metric">
-                  <span class="home-task-metric-label">Due</span>
-                  <span class="home-task-metric-value{% if item.due_urgent %} is-soon{% endif %}">
-                    {{ item.due_label or "—" }}
-                  </span>
-                </span>
-              </span>
-            </a>
+      <section class="home-col" aria-labelledby="subjects-title">
+        <header class="home-col-head">
+          <div class="home-col-ident">
+            <h2 class="home-col-title" id="subjects-title">Subjects</h2>
+            <span class="home-col-count">{{ subjects|length }}</span>
+          </div>
+        </header>
+        <div class="home-col-stack home-subject-grid">
+          {% for subject in subjects %}
+            {{ home_subject_card(subject) }}
           {% endfor %}
-        {% else %}
-          <div class="home-task hue-general is-empty">
-            <span class="home-task-mark" aria-hidden="true">
-              <i class="fi fi-rs-book-alt"></i>
-            </span>
-            <span class="home-task-copy">
-              <span class="home-task-kicker">Clear</span>
-              <span class="home-task-title">
-                {% if weekly_goal.has_progress %}You’re all caught up{% else %}Nothing waiting yet{% endif %}
-              </span>
-            </span>
-            <span class="home-task-stats">
-              <span class="home-task-metric">
-                <span class="home-task-metric-label">Lessons</span>
-                <span class="home-task-metric-value">—</span>
-              </span>
-              <span class="home-task-metric">
-                <span class="home-task-metric-label">Avg. score</span>
-                <span class="home-task-metric-value">—</span>
-              </span>
-              <span class="home-task-metric">
-                <span class="home-task-metric-label">Due</span>
-                <span class="home-task-metric-value">—</span>
-              </span>
-            </span>
-          </div>
-        {% endif %}
-      </div>
-    </section>
+        </div>
+      </section>
 
-    {% if has_teacher_updates %}
-        <section class="home-panel home-updates" aria-labelledby="teacher-updates-title">
-          <div class="home-panel-head">
-            <h2 class="home-label" id="teacher-updates-title">Teacher updates</h2>
-            <a class="home-text-link" href="{{ url_for('announcements') }}">View all</a>
+      <section class="home-col" aria-labelledby="teacher-updates-title">
+        <header class="home-col-head">
+          <div class="home-col-ident">
+            <h2 class="home-col-title" id="teacher-updates-title">From teachers</h2>
+            <span class="home-col-count">{{ teacher_updates|length if has_teacher_updates else 0 }}</span>
           </div>
-          <div class="home-rows" role="list">
+          <a class="home-col-link" href="{{ url_for('announcements') }}">View all</a>
+        </header>
+        <div class="home-col-stack home-activity" role="list">
+          {% if has_teacher_updates %}
             {% for note in teacher_updates %}
-              <a class="home-row is-link {% if note.unread %}is-unread{% endif %}" href="{{ note.href }}" role="listitem">
-                <span class="home-row-main">
-                  <span class="home-kicker">
-                    {% if note.subject %}<span class="home-badge">{{ note.subject }}</span>{% endif %}
-                    <span>{{ note.teacher }}</span>
-                    {% if note.unread %}<span class="home-unread">New</span>{% endif %}
+              {% set note_slug = (note.subject or 'general')|lower %}
+              {% if note_slug == 'math' %}{% set note_slug = 'mathematics' %}{% endif %}
+              {% set teacher_parts = (note.teacher or "T").split(" ") %}
+              {% set teacher_initials = (teacher_parts[0][:1] ~ (teacher_parts[-1][:1] if teacher_parts|length > 1 else ""))|upper %}
+              <a class="home-ticket card has-thumb hue-{{ note_slug }}{% if note.unread %} is-unread{% endif %}" href="{{ note.href }}" role="listitem">
+                <span class="home-ticket-lead">
+                  <span class="home-ticket-thumb" aria-hidden="true">
+                    <i class="fi fi-rs-bell"></i>
                   </span>
-                  <span class="home-row-title">{{ note.title }}</span>
-                  {% if note.preview %}<span class="home-row-meta">{{ note.preview }}</span>{% endif %}
-                  {% if note.when %}<span class="home-row-when">{{ note.when }}</span>{% endif %}
+                  <span class="home-ticket-title">{{ note.title }}</span>
+                </span>
+                <span class="home-ticket-tags">
+                  {% if note.unread %}<span class="home-tag is-accent">New</span>{% endif %}
+                  {% if note.subject %}<span class="home-tag is-hue">{{ note.subject }}</span>{% endif %}
+                </span>
+                <span class="home-ticket-foot">
+                  {% if note.teacher %}
+                    <span class="home-who">
+                      <span class="home-avatar" aria-hidden="true">{{ teacher_initials }}</span>
+                    </span>
+                  {% endif %}
+                  {% if note.when_display or note.when_short or note.when %}
+                    <span class="home-when">{{ note.when_display or note.when_short or note.when }}</span>
+                  {% endif %}
                 </span>
               </a>
             {% endfor %}
-          </div>
-        </section>
-    {% endif %}
+          {% else %}
+            <div class="home-ticket card hue-general is-empty">
+              <span class="home-ticket-lead">
+                <span class="home-ticket-title">No announcements yet</span>
+              </span>
+            </div>
+          {% endif %}
+        </div>
+      </section>
     </div>
   </div>
 {% endblock %}

@@ -11,18 +11,15 @@
     aria-expanded="false"
   >☰</button>
 
-  <a
-    class="pro-topbar-brand"
-    href="{{ url_for('home') }}"
-    aria-label="Colegio de San Juan de Letran Calamba — Home"
-  >
+  <a class="pro-topbar-wordmark" href="{{ url_for('home') }}" aria-label="Bloom home">
     <img
-      class="pro-topbar-logo"
+      class="pro-topbar-wordmark-icon"
       src="{{ url_for('static', filename='images/letran-calamba-logo.png') }}"
       alt=""
-      width="36"
-      height="36"
+      width="22"
+      height="22"
     />
+    <span class="pro-topbar-wordmark-text" aria-hidden="true">Bloom</span>
   </a>
 
   {% if user and user.role == 'student' %}
@@ -48,7 +45,9 @@
           aria-expanded="false"
           aria-controls="notify-dropdown"
         >
-          <svg class="icon-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22a2.2 2.2 0 0 0 2.2-2.2h-4.4A2.2 2.2 0 0 0 12 22Zm7-5.2V11a7 7 0 1 0-14 0v5.8L3 18.6V20h18v-1.4l-2-1.8Z" fill="currentColor"/></svg>
+          <span class="pro-nav-ico" aria-hidden="true">
+            <i class="fi fi-rs-bell"></i>
+          </span>
           {% if unread_announcements %}<span class="bell-dot">{{ unread_announcements }}</span>{% endif %}
         </button>
         <div

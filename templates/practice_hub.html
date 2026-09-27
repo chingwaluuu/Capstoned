@@ -1,5 +1,4 @@
 {% extends "layouts/pro.html" %}
-{% from "partials/work_item_card.html" import work_item_card %}
 {% set active_tab = "practice" %}
 {% block title %}Practice — Bloom{% endblock %}
 {% block body_class %}student home-editorial student-refined{% endblock %}
@@ -8,9 +7,12 @@
     <header class="home-intro" aria-labelledby="practice-title">
       <h1 class="home-greeting" id="practice-title">Practice</h1>
     </header>
-    <section class="practice-library" aria-labelledby="practice-ready-title">
+    <section class="practice-library practice-shelf" aria-labelledby="practice-ready-title">
       <header class="practice-head">
-        <h2 class="home-label" id="practice-ready-title">Practice library</h2>
+        <h2 class="home-label" id="practice-ready-title">
+          <span class="home-card-mark" aria-hidden="true"><i class="fi fi-rr-pencil"></i></span>
+          My practice
+        </h2>
         <p class="practice-count">{{ practice_available_count }} available</p>
       </header>
       {% if practice_available_count %}
@@ -29,25 +31,32 @@
           {% endfor %}
         </div>
 
-        <div class="work-item-grid" data-practice-grid>
+        <div class="practice-course-list" data-practice-grid>
           {% for item in practice_items %}
-            {{ work_item_card(
-              subject_slug=item.subject_slug,
-              subject_name=item.subject,
-              title=item.title,
-              context_badge=("Locked" if item.locked else none),
-              context_badge_class=("status-locked" if item.locked else "status-ready"),
-              meta_text=(item.meta if item.locked else none),
-              action_href=item.href,
-              action_label=("Locked" if item.locked else "Start practice"),
-              action_variant=("disabled" if item.locked else "secondary"),
-              locked=item.locked,
-              data_subject=item.subject_slug
-            ) }}
+            <article
+              class="practice-course card hue-{{ item.subject_slug }}{% if item.locked %} is-locked{% endif %}"
+              data-subject="{{ item.subject_slug }}"
+            >
+              <span class="practice-course-mark" aria-hidden="true">{{ (item.subject or item.subject_slug)[:1] }}</span>
+              <div class="practice-course-copy">
+                <h3 class="practice-course-subject">{{ item.title }}</h3>
+                <p class="practice-course-meta">
+                  {% if item.subject %}<span class="home-tag is-hue">{{ item.subject }}</span>{% endif %}
+                  {% if item.meta %}<span class="practice-course-meta-text">{{ item.meta }}</span>{% endif %}
+                </p>
+              </div>
+              {% if item.locked %}
+                <span class="practice-course-go is-disabled" aria-disabled="true">Locked</span>
+              {% else %}
+                <a class="practice-course-go" href="{{ item.href }}">
+                  Start <i class="fi fi-rr-arrow-small-right" aria-hidden="true"></i>
+                </a>
+              {% endif %}
+            </article>
           {% endfor %}
         </div>
       {% else %}
-        <div class="practice-empty home-panel">
+        <div class="practice-empty">
           <h3 class="home-continue-title">Nothing to practice yet</h3>
           <p class="home-continue-meta">Your teacher hasn’t approved practice materials yet. When a lesson is ready, it will show up here for you to start.</p>
           <a class="home-text-link" href="{{ url_for('home') }}#subjects-title">Go to your subjects →</a>

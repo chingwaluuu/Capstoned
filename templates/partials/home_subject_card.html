@@ -1,33 +1,45 @@
-{# Shared compact subject card used on student Home and Subjects. #}
+{# Shared Asana-style subject ticket used on student Home and Subjects. #}
 {% macro home_subject_card(subject) %}
-  <article class="home-subject hue-{{ subject.slug }}">
-    <a class="home-subject-open" href="{{ url_for('subject_hub', slug=subject.slug) }}">
-      <span class="home-subject-top">
-        <span class="home-subject-mark" aria-hidden="true">{{ (subject.name or subject.slug)[:1] }}</span>
-        <h3 class="home-subject-name">{{ subject.name or subject.slug|title }}</h3>
-      </span>
-      <span class="home-subject-stats">
-        {% if subject.has_progress and subject.progress_percent > 0 %}
-          <span class="home-subject-score">{{ subject.progress_percent }}%</span>
-        {% else %}
-          <span class="home-subject-score is-quiet">Not started</span>
-        {% endif %}
-        <span class="home-subject-aside">{{ subject.teacher }}</span>
-      </span>
-      {% if subject.has_progress and subject.progress_percent > 0 %}
-        <span
-          class="home-meter"
-          role="progressbar"
-          aria-valuemin="0"
-          aria-valuemax="100"
-          aria-valuenow="{{ subject.progress_percent }}"
-          aria-label="{{ subject.name }} average score"
-        >
-          <span style="width: {{ subject.progress_percent }}%;"></span>
+  {% set teacher_parts = (subject.teacher or "T").split(" ") %}
+  {% set teacher_initials = (teacher_parts[0][:1] ~ (teacher_parts[-1][:1] if teacher_parts|length > 1 else ""))|upper %}
+  {% set line_text = (subject.context_line or "")
+    | replace("Currently on: ", "", 1)
+    | replace("Last activity: ", "", 1) %}
+  {% set pct = subject.progress_percent if subject.has_progress else 0 %}
+  <article class="home-ticket card has-thumb hue-{{ subject.slug }}">
+    <a class="home-ticket-open" href="{{ url_for('subject_hub', slug=subject.slug) }}">
+      <span class="home-ticket-lead">
+        <span class="home-ticket-thumb" aria-hidden="true">
+          <i class="fi fi-rs-book-alt"></i>
         </span>
-      {% else %}
-        <span class="home-meter is-empty" aria-hidden="true"></span>
-      {% endif %}
+        <h3 class="home-ticket-title">{{ subject.name or subject.slug|title }}</h3>
+      </span>
+      <span class="home-ticket-stats">
+        <span class="home-ticket-pct">{{ pct }}%</span>
+        <span class="home-ticket-pct-meta">
+          {% if subject.has_progress and line_text %}
+            {{ line_text }}
+          {% elif not subject.has_progress %}
+            Not started
+          {% endif %}
+        </span>
+      </span>
+      <span
+        class="home-ticket-progress"
+        role="progressbar"
+        aria-valuemin="0"
+        aria-valuemax="100"
+        aria-valuenow="{{ pct }}"
+        aria-label="{{ subject.name or subject.slug|title }} average practice score"
+        style="--progress: {{ pct }}%;"
+      >
+        <span class="home-ticket-progress-fill"></span>
+      </span>
+      <span class="home-ticket-foot">
+        <span class="home-who">
+          <span class="home-avatar" aria-hidden="true">{{ teacher_initials }}</span>
+        </span>
+      </span>
     </a>
   </article>
 {% endmacro %}

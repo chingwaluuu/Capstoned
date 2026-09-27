@@ -41,8 +41,14 @@
       node.id = "qol-overlay";
       node.className = "qol-overlay";
       node.hidden = true;
-      node.innerHTML = `<div class="qol-overlay-card" role="status" aria-live="assertive"><span class="qol-spinner" aria-hidden="true"></span><p class="qol-overlay-msg"></p></div>`;
+      const dots = Array.from({ length: 8 }, () => `<span class="qol-spinner-dot"></span>`).join("");
+      node.innerHTML = `<div class="qol-overlay-card" role="status" aria-live="assertive"><span class="qol-spinner" aria-hidden="true">${dots}</span><p class="qol-overlay-msg"></p></div>`;
       document.body.appendChild(node);
+    } else if (!node.querySelector(".qol-spinner-dot")) {
+      const spinner = node.querySelector(".qol-spinner");
+      if (spinner) {
+        spinner.innerHTML = Array.from({ length: 8 }, () => `<span class="qol-spinner-dot"></span>`).join("");
+      }
     }
     const pageNav = Boolean(options.pageNav);
     node.classList.toggle("is-page-nav", pageNav);
@@ -115,6 +121,47 @@
     true
   );
 
+  const BLOB_BUTTON_SEL = [
+    "button.btn-primary",
+    "a.btn-primary",
+    "button.today-action:not(.today-action-soft)",
+    "a.today-action:not(.today-action-soft)",
+    "a.wic-btn-primary",
+    "button.wic-btn-primary",
+  ].join(",");
+
+  const paintBlobButton = (el) => {
+    if (!(el instanceof HTMLElement)) return;
+    if (el.classList.contains("btn-blob")) return;
+    if (el.classList.contains("today-action-soft") || el.classList.contains("wic-btn-disabled")) return;
+    const label = document.createElement("span");
+    label.className = "btn-blob-label";
+    while (el.firstChild) label.appendChild(el.firstChild);
+    for (let i = 0; i < 5; i += 1) {
+      const dot = document.createElement("span");
+      dot.className = "btn-blob-dot";
+      dot.setAttribute("aria-hidden", "true");
+      el.appendChild(dot);
+    }
+    el.appendChild(label);
+    el.classList.add("btn-blob");
+  };
+
+  const applyBlobButtons = (root = document) => {
+    root.querySelectorAll(BLOB_BUTTON_SEL).forEach(paintBlobButton);
+  };
+
+  const setBlobButtonLabel = (el, text) => {
+    if (!(el instanceof HTMLElement)) return;
+    const label = el.querySelector(":scope > .btn-blob-label");
+    if (label) {
+      label.textContent = text;
+      return;
+    }
+    el.textContent = text;
+    paintBlobButton(el);
+  };
+
   const confirmAction = (message, options = {}) =>
     new Promise((resolve) => {
       let dialog = document.getElementById("bloom-confirm-dialog");
@@ -131,6 +178,7 @@
           '<button type="button" class="btn-primary btn-inline" data-dialog-confirm>Continue</button>' +
           "</div></div>";
         document.body.appendChild(dialog);
+        applyBlobButtons(dialog);
       }
 
       const messageNode = dialog.querySelector(".bloom-dialog-message");
@@ -140,7 +188,7 @@
       const previousFocus = document.activeElement;
       messageNode.textContent = message;
       titleNode.textContent = options.title || "Please confirm";
-      confirm.textContent = options.confirmLabel || "Continue";
+      setBlobButtonLabel(confirm, options.confirmLabel || "Continue");
 
       let finished = false;
       const finish = (accepted) => {
@@ -333,10 +381,28 @@
       input.insertAdjacentElement("afterend", hint);
     }
     const update = () => {
-      hint.textContent = input.files && input.files[0] ? input.files[0].name : "";
+      const empty = hint.getAttribute("data-empty") || "";
+      hint.textContent = input.files && input.files[0] ? input.files[0].name : empty;
     };
     input.addEventListener("change", update);
     update();
+  });
+
+  document.querySelectorAll("[data-dropzone]").forEach((zone) => {
+    const on = () => zone.classList.add("is-dragover");
+    const off = () => zone.classList.remove("is-dragover");
+    zone.addEventListener("dragenter", (event) => {
+      event.preventDefault();
+      on();
+    });
+    zone.addEventListener("dragover", (event) => {
+      event.preventDefault();
+      on();
+    });
+    zone.addEventListener("dragleave", (event) => {
+      if (!zone.contains(event.relatedTarget)) off();
+    });
+    zone.addEventListener("drop", off);
   });
 
   document.querySelectorAll("[data-fill-login]").forEach((button) => {
@@ -535,6 +601,8 @@
     }
     return response;
   };
+
+  applyBlobButtons();
 
   window.BloomCsrf = { token: csrfToken, withCsrf, ensureFormCsrf };
   window.BloomUi = {

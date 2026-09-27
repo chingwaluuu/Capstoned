@@ -39,7 +39,7 @@
               <input type="hidden" name="filter" value="{{ filter }}" />
             {% endif %}
             <label class="sr-only" for="announce-q">Search announcements</label>
-            <span class="search-icon" aria-hidden="true">⌕</span>
+            <span class="search-icon" aria-hidden="true"><i class="fi fi-rr-search"></i></span>
             <input
               id="announce-q"
               name="q"
@@ -75,7 +75,7 @@
                   <div class="announce-list" role="list">
                     {% for note in group.notes %}
                       <a
-                        class="announce-item subject-accent-{{ note.subject|lower|replace('math', 'mathematics') }} {% if note.unread %}is-unread{% endif %} {% if note.selected %}is-selected{% endif %} {% if group.key == 'today' and note.unread %}is-priority{% endif %}"
+                        class="announce-item card subject-accent-{{ note.subject|lower|replace('math', 'mathematics') }} {% if note.unread %}is-unread{% endif %} {% if note.selected %}is-selected{% endif %} {% if group.key == 'today' and note.unread %}is-priority{% endif %}"
                         href="{{ note.href }}"
                         role="listitem"
                         data-id="{{ note.id }}"
@@ -85,7 +85,10 @@
                       >
                         <div class="announce-item-copy">
                           <div class="announce-item-top">
-                            <p class="announce-item-meta"><span class="announce-item-source">{{ note.teacher }}</span> · {{ note.subject }}</p>
+                            <p class="announce-item-meta">
+                              <span class="announce-item-source">{{ note.teacher }}</span>
+                              {% if note.subject %}<span class="home-tag is-hue">{{ note.subject }}</span>{% endif %}
+                            </p>
                             <time class="announce-item-when" title="{{ note.posted }}">{{ note.when }}</time>
                           </div>
                           <p class="announce-item-title">
@@ -178,7 +181,7 @@
               </div>
             </div>
             <div class="announce-detail announce-detail-empty" id="announce-detail-empty" {% if selected %}hidden{% endif %}>
-              <span class="today-icon announce-empty-icon" data-type="announcement" aria-hidden="true"></span>
+              <span class="announce-empty-icon" aria-hidden="true"><i class="fi fi-rs-bell"></i></span>
               <h2 class="announce-detail-title">Opening your inbox…</h2>
               <p class="section-note">Pick a message on the left, or wait a moment while Bloom opens the newest update.</p>
             </div>

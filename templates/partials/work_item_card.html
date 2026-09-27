@@ -22,7 +22,7 @@
   data_subject=None
 ) %}
 <article
-  class="work-item-card subject-accent-{{ subject_slug }}{% if locked %} is-locked{% else %} pro-card-interactive{% endif %}{% if kind_slug %} is-kind-{{ kind_slug }}{% endif %}"
+  class="work-item-card subject-accent-{{ subject_slug }} hue-{{ subject_slug }}{% if locked %} is-locked{% else %} pro-card-interactive{% endif %}{% if kind_slug %} is-kind-{{ kind_slug }}{% endif %} card"
   {% if data_subject %}data-subject="{{ data_subject }}"{% endif %}
 >
   <div class="work-item-body">

@@ -41,7 +41,10 @@
 
       <section class="results-library" aria-labelledby="results-history-title">
         <header class="practice-head results-head">
-          <h2 class="home-label" id="results-history-title">Your recent work</h2>
+          <h2 class="home-label" id="results-history-title">
+            <span class="home-card-mark" aria-hidden="true"><i class="fi fi-rs-chart-simple-horizontal"></i></span>
+            Your recent work
+          </h2>
           <p class="practice-count">{{ result_items|length }} result{% if result_items|length != 1 %}s{% endif %}</p>
         </header>
 

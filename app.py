@@ -477,6 +477,24 @@ def announcement_when_label(when) -> str:
     return when.strftime("%b %d, %Y")
 
 
+def announcement_when_compact(when) -> str:
+    if not when:
+        return ""
+    now = datetime.utcnow()
+    day = when.date()
+    today = now.date()
+    if day == today:
+        seconds = max(0, int((now - when).total_seconds()))
+        hours = seconds // 3600
+        if hours < 1:
+            mins = max(1, seconds // 60)
+            return f"{mins}m ago"
+        return f"{hours}h ago"
+    if day == today - timedelta(days=1):
+        return "Yesterday"
+    return f"{when.strftime('%b')} {when.day}"
+
+
 def announcement_bucket(when) -> str:
     if not when:
         return "earlier"
@@ -617,6 +635,7 @@ def announcements_context(user=None):
                 "title": note.title,
                 "preview": snippet,
                 "when": announcement_when_label(note.created_at),
+                "when_short": announcement_when_compact(note.created_at),
                 "unread": note.id not in read_ids,
                 "href": announcements_url(note.id, arrive=True),
             }
@@ -1199,10 +1218,10 @@ def build_today(user_id: int) -> list[dict]:
         for slug in SUBJECTS
     }
     kind_copy = {
-        "assessment": ("Assessment", "fi fi-rs-book-alt"),
+        "assessment": ("Assessment", "fi fi-rr-clipboard"),
         "practice": ("Practice", "fi fi-rr-pencil"),
         "result": ("Result", "fi fi-rs-chart-simple-horizontal"),
-        "upload": ("Upload", "fi fi-rs-book-alt"),
+        "upload": ("Upload", "fi fi-rr-cloud-upload-alt"),
     }
 
     def row_meta(kind: str, subject_slug: str, deadline=None) -> dict:
@@ -1960,7 +1979,14 @@ def home():
     today = build_today(user["id"])
     announce_ctx = announcements_context(user)
     today_titles = {item.get("title") for item in today if item.get("title")}
-    teacher_updates = (announce_ctx.get("announcements_preview") or [])[:2]
+    teacher_updates = []
+    for item in (announce_ctx.get("announcements_preview") or [])[:4]:
+        row = dict(item)
+        compact = (row.get("when_short") or "").strip()
+        if not compact:
+            compact = re.sub(r",\s*\d{4}$", "", row.get("when") or "").strip()
+        row["when_display"] = compact or row.get("when") or ""
+        teacher_updates.append(row)
     coming_up = build_coming_up(user["id"])
     recent_feedback = build_recent_feedback(user["id"], exclude_titles=today_titles)
     progress_by_slug = {item["slug"]: item for item in subjects}
@@ -1977,7 +2003,7 @@ def home():
     has_practice_score = bool(tracked) and overall > 0
     context = {
         "user": user,
-        "greeting": f"Hi, {first_name}",
+        "greeting": f"What's up, {first_name}",
         "topbar_sub": "Home",
         "guide_note": "Open a subject to keep learning — then check Today for what to do next.",
         "weekly_goal": {
@@ -3756,6 +3782,7 @@ def teacher_announce(user):
             "kicker": note.subject,
             "title": note.title,
             "meta": note.created_at.strftime("%b %d") + (f" — {note.body}" if note.body else ""),
+            "date": note.created_at.strftime("%b %d, %Y"),
             "action": None,
             "action_href": None,
             "soft": True,

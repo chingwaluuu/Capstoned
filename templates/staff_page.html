@@ -1,23 +1,23 @@
 {% extends "layouts/pro.html" %}
 {% block title %}{{ title }} — Bloom{% endblock %}
-{% block body_class %}staff-workspace student-refined{% endblock %}
+{% block body_class %}staff-workspace student-refined{% if user and user.role == 'teacher' %} teacher-workspace subject-accent-{{ (user.subject or '')|lower }}{% endif %}{% endblock %}
 {% block page_kicker %}{% if user and user.role == "teacher" %}Teacher{% elif user and user.role == "admin" %}Admin{% else %}Bloom{% endif %}{% endblock %}
 {% block page_title %}{{ title }}{% endblock %}
 {% block page_subtitle %}{{ subtitle }}{% endblock %}
 {% block content %}
+  {% set announce_split = active_nav == "announce" %}
+
   {% if form_blocks %}
+    {% if announce_split %}<div class="announce-compose-split">{% endif %}
     {% for block in form_blocks %}
-      <section class="home-section" {% if block.id %}id="{{ block.id }}"{% endif %} aria-labelledby="staff-form-{{ loop.index }}">
-        <div class="section-heading-row">
-          <div>
-            <p class="section-eyebrow">Form</p>
-            <h2 id="staff-form-{{ loop.index }}" class="section-title section-title-sm">{{ block.title }}</h2>
-          </div>
-        </div>
-        <section class="lobby-card stack-md">
-          <p class="section-note">{{ block.note }}</p>
-          <form class="login-form" method="POST" action="{{ block.action }}" {% if block.enctype %}enctype="{{ block.enctype }}"{% endif %} {% if block.loading %}data-loading="{{ block.loading }}"{% endif %} {% if block.confirm %}data-confirm="{{ block.confirm }}"{% endif %}>
+      <section class="home-section staff-compose-page{% if announce_split %} announce-compose-form-col{% endif %}" {% if block.id %}id="{{ block.id }}"{% endif %} aria-labelledby="staff-form-{{ loop.index }}">
+        <form class="login-form staff-compose-form" method="POST" action="{{ block.action }}" {% if block.enctype %}enctype="{{ block.enctype }}"{% endif %} {% if block.loading %}data-loading="{{ block.loading }}"{% endif %} {% if block.confirm %}data-confirm="{{ block.confirm }}"{% endif %}>
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            <p class="staff-compose-kicker">Form</p>
+            <h2 class="staff-compose-title" id="staff-form-{{ loop.index }}">{{ block.title }}</h2>
+            {% if block.note %}
+              <p class="staff-compose-note">{{ block.note }}</p>
+            {% endif %}
             {% for field in block.fields %}
               <div class="field">
                 <label for="{{ field.id }}">{{ field.label }}</label>
@@ -46,27 +46,42 @@
             {% if block.sample_target %}
               <button type="button" class="text-link" data-fill-target="{{ block.sample_target }}" data-fill-value="{{ block.sample_value }}">Insert sample rows</button>
             {% endif %}
-            <button type="submit" class="btn-primary">{{ block.submit }}</button>
+            <button type="submit" class="btn-primary staff-compose-submit">{{ block.submit }}</button>
           </form>
-        </section>
       </section>
     {% endfor %}
+
+    {% if announce_split %}
+      <section class="home-section staff-compose-page announce-compose-list-col" aria-labelledby="announce-recent-title">
+        <h2 id="announce-recent-title" class="announce-recent-heading">Recent announcements</h2>
+        <div class="announce-recent-list">
+          {% for panel in panels %}
+            <article class="hub-card announce-recent-card">
+              <p class="hub-card-kicker home-tag is-hue">{{ panel.kicker }}</p>
+              <h3 class="announce-recent-title">{{ panel.title }}</h3>
+              <p class="announce-recent-date">{{ panel.date or panel.meta.split(" — ")[0] }}</p>
+            </article>
+          {% endfor %}
+        </div>
+      </section>
+    </div>
+    {% endif %}
   {% endif %}
 
-  {% if panels %}
-    <section class="home-section" aria-labelledby="staff-panels-title">
-      <div class="section-heading-row">
-        <div>
-          <p class="section-eyebrow">Records</p>
-          <h2 id="staff-panels-title" class="section-title section-title-sm">{{ title }}</h2>
+  {% if panels and not announce_split %}
+    <section class="home-section staff-compose-page" aria-labelledby="staff-panels-title">
+        <div class="section-heading-row">
+          <div>
+            <p class="staff-compose-kicker">Records</p>
+            <h2 id="staff-panels-title" class="staff-compose-list-title">{{ title }}</h2>
+          </div>
+          <span class="materials-section-count">{{ panels|length }}</span>
         </div>
-        <span class="count-badge {% if not panels %}count-badge-muted{% endif %}">{{ panels|length }}</span>
-      </div>
       <div class="hub-list stack-md pro-stagger-in">
         {% for panel in panels %}
           <article class="hub-card hub-card-stack pro-card-interactive">
             <div>
-              <p class="hub-card-kicker">{{ panel.kicker }}</p>
+              <p class="hub-card-kicker home-tag is-hue">{{ panel.kicker }}</p>
               <h3 class="hub-card-title">{{ panel.title }}</h3>
               <p class="hub-card-meta">{{ panel.meta }}</p>
             </div>

@@ -1,0 +1,1562 @@
+/* =============================================================================
+   Bloom shared design system
+   Consumes design-tokens.css. Maps existing student + teacher class names
+   onto one button / card / tag / avatar / type language.
+   Does not restyle student Assessments lobby/take.
+   ============================================================================= */
+
+/* ---------------------------------------------------------------------------
+   Token aliases on app surfaces (student + teacher). Teacher HOTS uses
+   .lobby-card, so teacher scope must NOT use the student lobby exclusion.
+   --------------------------------------------------------------------------- */
+.pro-body.student:not(:has(.assessment-take-shell)):not(:has(.lobby-card:not(.profile-section))),
+.pro-body:is(.teacher-workspace, .teacher-home-editorial, .staff-workspace) {
+  --brand-primary: var(--color-primary);
+  --brand-primary-press: var(--color-primary-press);
+  --brand-on-primary: var(--color-on-primary);
+  --hue-english: var(--color-english);
+  --hue-mathematics: var(--color-math);
+  --hue-science: var(--color-science);
+  --hue-general: var(--color-neutral);
+  --canvas: var(--bg-page);
+  --surface: var(--bg-card);
+  --ink: var(--text-primary);
+  --ink-muted: var(--text-secondary);
+  --border: var(--border-subtle);
+  --radius-ticket: var(--radius-card-sm);
+  --pro-space-page-x: var(--space-page);
+  --bloom-primary: var(--color-primary);
+  --bloom-active: var(--color-primary-press);
+  background-color: var(--bg-page);
+  background-image:
+    linear-gradient(
+      color-mix(in srgb, var(--bg-page) 72%, transparent),
+      color-mix(in srgb, var(--bg-page) 72%, transparent)
+    ),
+    repeating-conic-gradient(
+      from 30deg,
+      #0000 0 120deg,
+      var(--bg-iso-c3) 0 180deg
+    ),
+    repeating-conic-gradient(
+      from 30deg,
+      var(--bg-iso-c1) 0 60deg,
+      var(--bg-iso-c2) 0 120deg,
+      var(--bg-iso-c3) 0 180deg
+    );
+  background-size:
+    auto,
+    var(--bg-iso-size) calc(var(--bg-iso-size) * 0.577),
+    var(--bg-iso-size) calc(var(--bg-iso-size) * 0.577);
+  background-position:
+    0 0,
+    calc(0.5 * var(--bg-iso-size)) calc(0.5 * var(--bg-iso-size) * 0.577),
+    0 0;
+  background-repeat: no-repeat, repeat, repeat;
+  background-attachment: fixed;
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+}
+
+@media (max-width: 860px) {
+  .pro-body.student:not(:has(.assessment-take-shell)):not(:has(.lobby-card:not(.profile-section))),
+  .pro-body:is(.teacher-workspace, .teacher-home-editorial, .staff-workspace) {
+    background-attachment: scroll;
+  }
+}
+
+/* ===========================================================================
+   Shared primitives (used by both sides)
+   =========================================================================== */
+
+.pro-body:is(.student, .teacher-workspace, .teacher-home-editorial, .staff-workspace):not(:has(.assessment-take-shell)) .btn-primary,
+.pro-body:is(.teacher-workspace, .teacher-home-editorial, .staff-workspace) .today-action:not(.today-action-soft),
+.pro-body.staff-workspace .today-action:not(.today-action-soft) {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--btn-gap);
+  min-height: 0;
+  padding: var(--btn-pad-y) var(--btn-pad-x);
+  border: none;
+  border-radius: var(--radius-pill);
+  background: var(--color-primary);
+  box-shadow: none;
+  color: var(--color-on-primary);
+  font-family: var(--font-sans);
+  font-size: var(--btn-font);
+  font-weight: var(--btn-weight);
+  line-height: 1.2;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.pro-body:is(.student, .teacher-workspace, .teacher-home-editorial, .staff-workspace):not(:has(.assessment-take-shell)) .btn-primary:hover,
+.pro-body:is(.teacher-workspace, .teacher-home-editorial, .staff-workspace) .today-action:not(.today-action-soft):hover {
+  background: var(--color-primary-press);
+  color: var(--color-on-primary);
+  text-decoration: none;
+  filter: none;
+  transform: none;
+}
+
+.pro-body:is(.teacher-workspace, .teacher-home-editorial, .staff-workspace) .today-action-soft,
+.pro-body:is(.teacher-workspace, .teacher-home-editorial, .staff-workspace) .hub-back,
+.pro-body.teacher-home-editorial .editorial-text-link,
+.pro-body.teacher-workspace .profile-photo-remove,
+.pro-body.staff-workspace [data-fill-target] {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--btn-gap);
+  min-height: 0;
+  padding: 9px var(--btn-pad-x);
+  border: var(--btn-outline) solid var(--color-primary);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  box-shadow: none;
+  color: var(--color-primary);
+  font-family: var(--font-sans);
+  font-size: var(--btn-font);
+  font-weight: var(--btn-weight);
+  line-height: 1;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.pro-body:is(.teacher-workspace, .teacher-home-editorial, .staff-workspace) .today-action-soft:hover,
+.pro-body:is(.teacher-workspace, .teacher-home-editorial, .staff-workspace) .hub-back:hover,
+.pro-body.teacher-home-editorial .editorial-text-link:hover {
+  background: var(--color-english-bg);
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+/* Inline list links stay text, not pills */
+.pro-body:is(.teacher-workspace, .staff-workspace) .teacher-student-latest .text-link,
+.pro-body:is(.teacher-workspace, .staff-workspace) .teacher-submission-list .text-link,
+.pro-body:is(.teacher-workspace, .teacher-home-editorial, .staff-workspace) .editorial-meta-line a {
+  display: inline;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-primary);
+  font-size: var(--type-meta);
+  font-weight: 500;
+  white-space: normal;
+}
+
+.pro-body:is(.teacher-workspace, .teacher-home-editorial, .staff-workspace) .chip-link,
+.pro-body:is(.teacher-workspace, .staff-workspace) .filter-chips .chip-link {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 18px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: #5F5E5A;
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.pro-body:is(.teacher-workspace, .teacher-home-editorial, .staff-workspace) .chip-link.active {
+  border-color: transparent;
+  background: var(--color-primary);
+  color: #fff;
+}
+
+/* Shared card chrome */
+.pro-body:is(.teacher-workspace, .teacher-home-editorial, .staff-workspace) .hub-card,
+.pro-body:is(.teacher-workspace, .teacher-home-editorial, .staff-workspace) .bloom-card,
+.pro-body:is(.teacher-workspace, .staff-workspace) .lobby-card,
+.pro-body:is(.teacher-workspace, .teacher-home-editorial) .teacher-stat-card,
+.pro-body.teacher-workspace .teacher-student-card,
+.pro-body.teacher-workspace .teacher-monitor-card,
+.pro-body.teacher-workspace .teacher-review-pane,
+.pro-body.teacher-workspace .teacher-upload-form,
+.pro-body:is(.teacher-workspace, .teacher-home-editorial, .staff-workspace) .home-pulse-chip,
+.pro-body.teacher-workspace .message-row,
+.pro-body.teacher-workspace .profile-account,
+.pro-body.teacher-workspace .profile-security:not(.profile-password-card),
+.pro-body.teacher-workspace .profile-photo-edit,
+.pro-body.teacher-workspace .profile-snapshot,
+.pro-body.teacher-workspace .profile-subjects,
+.pro-body.teacher-workspace .profile-activity,
+.pro-body.teacher-workspace .chat-shell,
+.pro-body.staff-workspace .lobby-card {
+  background: var(--bg-card);
+  border: none;
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: var(--space-card);
+}
+
+.pro-body:is(.teacher-workspace, .teacher-home-editorial, .staff-workspace) .hub-card.pro-card-interactive:hover,
+.pro-body:is(.teacher-workspace, .teacher-home-editorial) .teacher-stat-card:hover,
+.pro-body.teacher-workspace .teacher-student-card:hover,
+.pro-body.teacher-workspace .teacher-monitor-card:hover,
+.pro-body.teacher-workspace a.message-row:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-card-hover);
+}
+
+/* ===========================================================================
+   Type + page chrome (teacher)
+   =========================================================================== */
+
+.pro-body:is(.teacher-workspace, .teacher-home-editorial, .staff-workspace) .pro-hero-title,
+.pro-body.teacher-home-editorial .editorial-title,
+.pro-body.teacher-workspace .chat-name,
+.pro-body.teacher-workspace .profile-name {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--type-page);
+  font-weight: var(--type-page-weight);
+  line-height: 1.15;
+  letter-spacing: -0.04em;
+  color: var(--text-primary);
+}
+
+.pro-body:is(.teacher-workspace, .staff-workspace) .pro-hero-sub,
+.pro-body.teacher-home-editorial .editorial-lede,
+.pro-body.teacher-workspace .pro-hero-kicker,
+.pro-body.staff-workspace .pro-hero-kicker {
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-weight: 400;
+}
+
+.pro-body:is(.teacher-workspace, .staff-workspace) .section-title,
+.pro-body:is(.teacher-workspace, .staff-workspace) .section-title-sm,
+.pro-body:is(.teacher-workspace, .teacher-home-editorial, .staff-workspace) .editorial-section-label,
+.pro-body:is(.teacher-workspace, .staff-workspace) .section-eyebrow,
+.pro-body.teacher-home-editorial .teacher-stat-label {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--type-section);
+  font-weight: var(--type-section-weight);
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--text-primary);
+}
+
+.pro-body:is(.teacher-workspace, .staff-workspace) .section-eyebrow,
+.pro-body.teacher-home-editorial .teacher-stat-note,
+.pro-body:is(.teacher-workspace, .staff-workspace) .hub-card-meta,
+.pro-body:is(.teacher-workspace, .staff-workspace) .section-note,
+.pro-body.teacher-home-editorial .editorial-row-meta,
+.pro-body.teacher-home-editorial .editorial-lede {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--text-secondary);
+}
+
+.pro-body:is(.teacher-workspace, .staff-workspace) .hub-card-title,
+.pro-body.teacher-home-editorial .editorial-row-title,
+.pro-body.teacher-workspace .hub-panel-title,
+.pro-body.teacher-home-editorial .empty-title {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 17px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.pro-body:is(.teacher-workspace, .staff-workspace) .section-heading-row,
+.pro-body.teacher-home-editorial .editorial-list-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-header-ident);
+  margin: 0 0 var(--space-section);
+}
+
+.pro-body:is(.teacher-workspace, .staff-workspace) .home-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.pro-body:is(.teacher-workspace, .staff-workspace) .home-section + .home-section {
+  margin-top: var(--space-card-lg);
+}
+
+.pro-body:is(.teacher-workspace, .staff-workspace) .pro-hero {
+  margin: 0;
+  padding: var(--space-page) var(--space-page) 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.pro-body:is(.teacher-workspace, .staff-workspace) .pro-content,
+.pro-body.teacher-home-editorial .editorial-page {
+  padding-left: var(--space-page);
+  padding-right: var(--space-page);
+}
+
+.pro-body:is(.teacher-workspace, .staff-workspace) .home-first-region {
+  margin-left: var(--space-page);
+  margin-right: var(--space-page);
+}
+
+.pro-body.teacher-workspace .home-command-hero {
+  border-bottom: 0;
+  padding-bottom: var(--space-section);
+}
+
+/* ===========================================================================
+   Tags / pills — subject vs status vs score
+   =========================================================================== */
+
+.pro-body.teacher-workspace .teacher-status-pill,
+.pro-body.teacher-workspace .teacher-release-pill,
+.pro-body.teacher-workspace .count-badge,
+.pro-body.teacher-home-editorial .editorial-count,
+.pro-body.staff-workspace .count-badge,
+.pro-body.teacher-workspace .hub-card-kicker,
+.pro-body.teacher-home-editorial .editorial-row-kicker {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  min-height: 0;
+  margin: 0;
+  padding: 3px 10px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--color-status-neutral-bg);
+  color: var(--color-status-neutral-text);
+  font-family: var(--font-sans);
+  font-size: var(--type-tag);
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 1.2;
+  text-transform: none;
+}
+
+.pro-body.teacher-workspace .teacher-status-pill.is-published,
+.pro-body.teacher-workspace .teacher-status-pill.is-approved,
+.pro-body.teacher-workspace .teacher-status-pill.is-pending,
+.pro-body.teacher-workspace .teacher-status-pill.is-draft,
+.pro-body.teacher-workspace .teacher-status-pill.is-closed,
+.pro-body.teacher-workspace .teacher-status-pill.is-rejected,
+.pro-body.teacher-workspace .teacher-release-pill.is-on,
+.pro-body.teacher-workspace .teacher-release-pill.is-off {
+  background: var(--color-status-neutral-bg);
+  color: var(--color-status-neutral-text);
+}
+
+.pro-body.teacher-workspace .teacher-score-chip,
+.pro-body.teacher-workspace .teacher-progress-value,
+.pro-body.teacher-workspace .home-pulse-chip:first-child .home-pulse-value {
+  color: var(--color-score-text);
+}
+
+.pro-body.teacher-workspace .teacher-score-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--color-score-bg);
+  color: var(--color-score-text);
+  font-size: var(--type-tag);
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+.pro-body.teacher-workspace .hub-card-kicker,
+.pro-body.teacher-home-editorial .editorial-row-kicker {
+  background: var(--color-status-neutral-bg);
+  color: var(--color-status-neutral-text);
+}
+
+.pro-body.teacher-workspace.subject-accent-english .home-tag,
+.pro-body.teacher-home-editorial.subject-accent-english .home-tag,
+.pro-body.staff-workspace.subject-accent-english .home-tag.is-hue {
+  background: var(--color-english-bg);
+  color: var(--color-english-text);
+}
+
+.pro-body.teacher-workspace.subject-accent-mathematics .home-tag,
+.pro-body.teacher-home-editorial.subject-accent-mathematics .home-tag,
+.pro-body.staff-workspace.subject-accent-mathematics .home-tag.is-hue {
+  background: var(--color-math-bg);
+  color: var(--color-math-text);
+}
+
+.pro-body.teacher-workspace.subject-accent-science .home-tag,
+.pro-body.teacher-home-editorial.subject-accent-science .home-tag,
+.pro-body.staff-workspace.subject-accent-science .home-tag.is-hue {
+  background: var(--color-science-bg);
+  color: var(--color-science-text);
+}
+
+/* ===========================================================================
+   Avatars — 36px circle, subject tint when the page has a subject
+   =========================================================================== */
+
+.pro-body:is(.teacher-workspace, .teacher-home-editorial, .staff-workspace) .pro-avatar,
+.pro-body:is(.teacher-workspace, .teacher-home-editorial) .avatar:not(.icon-btn .avatar),
+.pro-body.teacher-workspace .message-avatar,
+.pro-body.teacher-workspace .chat-avatar,
+.pro-body.teacher-workspace .profile-avatar,
+.pro-body.student .home-avatar {
+  display: inline-grid;
+  place-items: center;
+  width: var(--avatar-size);
+  height: var(--avatar-size);
+  overflow: hidden;
+  border: 0;
+  border-radius: var(--avatar-radius);
+  background: var(--color-neutral-bg);
+  box-shadow: none;
+  color: var(--color-neutral-text);
+  font-family: var(--font-sans);
+  font-size: var(--avatar-font);
+  font-weight: 600;
+  line-height: 1;
+}
+
+.pro-body.teacher-workspace.subject-accent-english .icon-btn.avatar-btn .avatar,
+.pro-body.teacher-home-editorial.subject-accent-english .icon-btn.avatar-btn .avatar,
+.pro-body.teacher-workspace.subject-accent-english .pro-avatar,
+.pro-body.teacher-home-editorial.subject-accent-english .pro-avatar,
+.pro-body.teacher-workspace.subject-accent-english .profile-avatar,
+.pro-body.student .hue-english .home-avatar {
+  background: var(--color-english-bg);
+  color: var(--color-english-text);
+}
+
+.pro-body.teacher-workspace.subject-accent-mathematics .icon-btn.avatar-btn .avatar,
+.pro-body.teacher-home-editorial.subject-accent-mathematics .icon-btn.avatar-btn .avatar,
+.pro-body.teacher-workspace.subject-accent-mathematics .pro-avatar,
+.pro-body.teacher-home-editorial.subject-accent-mathematics .pro-avatar,
+.pro-body.teacher-workspace.subject-accent-mathematics .profile-avatar,
+.pro-body.student .hue-mathematics .home-avatar {
+  background: var(--color-math-bg);
+  color: var(--color-math-text);
+}
+
+.pro-body.teacher-workspace.subject-accent-science .icon-btn.avatar-btn .avatar,
+.pro-body.teacher-home-editorial.subject-accent-science .icon-btn.avatar-btn .avatar,
+.pro-body.teacher-workspace.subject-accent-science .pro-avatar,
+.pro-body.teacher-home-editorial.subject-accent-science .pro-avatar,
+.pro-body.teacher-workspace.subject-accent-science .profile-avatar,
+.pro-body.student .hue-science .home-avatar {
+  background: var(--color-science-bg);
+  color: var(--color-science-text);
+}
+
+.pro-body:is(.teacher-workspace, .teacher-home-editorial) .pro-avatar.has-photo img,
+.pro-body:is(.teacher-workspace, .teacher-home-editorial) .avatar.has-photo img,
+.pro-body.student .home-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Topbar account chip stays a compact circle, same 36px language */
+.pro-body:is(.student, .teacher-workspace, .teacher-home-editorial, .staff-workspace) .icon-btn.avatar-btn .avatar {
+  width: var(--avatar-size);
+  height: var(--avatar-size);
+  border-radius: var(--avatar-radius);
+}
+
+/* ===========================================================================
+   Teacher Home
+   =========================================================================== */
+
+.pro-body.teacher-home-editorial .editorial-today-list.bloom-card {
+  padding: var(--space-card-lg);
+}
+
+.pro-body.teacher-home-editorial .editorial-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 0;
+  border: 0;
+  box-shadow: none;
+}
+
+.pro-body.teacher-home-editorial .editorial-row-action {
+  flex-shrink: 0;
+}
+
+.pro-body.teacher-home-editorial .teacher-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  column-gap: var(--space-col-gap);
+  row-gap: var(--space-card-gap);
+  align-items: start;
+}
+
+.pro-body.teacher-home-editorial .teacher-stat-card,
+.pro-body.teacher-home-editorial .teacher-stat-card.tone-blue,
+.pro-body.teacher-home-editorial .teacher-stat-card.tone-amber,
+.pro-body.teacher-home-editorial .teacher-stat-card.tone-gray,
+.pro-body.teacher-home-editorial .teacher-stat-card.tone-green {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+  padding: var(--space-card);
+  text-decoration: none;
+}
+
+.pro-body.teacher-home-editorial .teacher-stat-icon {
+  display: none;
+}
+
+.pro-body.teacher-home-editorial .teacher-stat-value {
+  font-family: var(--font-sans);
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  color: var(--text-primary);
+}
+
+.pro-body.teacher-home-editorial.subject-accent-english .teacher-stat-section .editorial-count {
+  background: var(--color-english-bg);
+  color: var(--color-english-text);
+}
+
+.pro-body.teacher-home-editorial.subject-accent-mathematics .teacher-stat-section .editorial-count {
+  background: var(--color-math-bg);
+  color: var(--color-math-text);
+}
+
+.pro-body.teacher-home-editorial.subject-accent-science .teacher-stat-section .editorial-count {
+  background: var(--color-science-bg);
+  color: var(--color-science-text);
+}
+
+.pro-body.teacher-home-editorial .editorial-empty {
+  padding: 8px 0 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+/* ===========================================================================
+   Materials / review / HOTS / monitor
+   =========================================================================== */
+
+.pro-body.teacher-workspace .hub-list,
+.pro-body.staff-workspace .hub-list,
+.pro-body.teacher-workspace .teacher-monitor-list,
+.pro-body.teacher-workspace .teacher-student-grid {
+  display: grid;
+  gap: var(--space-card-gap);
+}
+
+.pro-body.teacher-workspace .teacher-student-grid {
+  grid-template-columns: repeat(auto-fill, minmax(18.5rem, 1fr));
+  column-gap: var(--space-col-gap);
+  row-gap: var(--space-card-gap);
+}
+
+.pro-body.teacher-workspace .teacher-review-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  column-gap: var(--space-col-gap);
+  row-gap: var(--space-card-gap);
+  align-items: start;
+}
+
+.pro-body.teacher-workspace .teacher-status-row,
+.pro-body.teacher-workspace .teacher-roster-name {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pro-body.teacher-workspace .hub-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.pro-body.teacher-workspace .hub-card-stack {
+  align-items: flex-start;
+}
+
+.pro-body.teacher-workspace .teacher-student-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.pro-body.teacher-workspace .work-item-meter {
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--color-status-neutral-bg);
+}
+
+.pro-body.teacher-workspace .work-item-meter-fill,
+.pro-body.teacher-workspace .work-item-meter.meter-high .work-item-meter-fill,
+.pro-body.teacher-workspace .work-item-meter.meter-mid .work-item-meter-fill,
+.pro-body.teacher-workspace .work-item-meter.meter-low .work-item-meter-fill,
+.pro-body.teacher-workspace .work-item-meter.meter-neutral .work-item-meter-fill {
+  background: var(--color-score-text);
+}
+
+.pro-body.teacher-workspace .teacher-student-stats div,
+.pro-body.teacher-workspace .teacher-monitor-stats div {
+  padding: 10px 12px;
+  border-radius: var(--radius-badge);
+  background: var(--color-status-neutral-bg);
+  box-shadow: none;
+}
+
+.pro-body.teacher-workspace .teacher-student-stats dt,
+.pro-body.teacher-workspace .teacher-monitor-stats dt {
+  font-size: var(--type-tag);
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--text-secondary);
+}
+
+.pro-body.teacher-workspace .teacher-student-stats dd,
+.pro-body.teacher-workspace .teacher-monitor-stats dd {
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.pro-body.teacher-workspace .teacher-monitor-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.pro-body.teacher-workspace .hub-card-actions,
+.pro-body.teacher-workspace .teacher-review-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.pro-body.teacher-workspace .teacher-extract pre,
+.pro-body.teacher-workspace .summary-section {
+  border: 0;
+  border-radius: var(--radius-card-sm);
+  background: var(--bg-page);
+  box-shadow: none;
+}
+
+.pro-body.teacher-workspace .summary-cite {
+  display: inline-flex;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--color-status-neutral-bg);
+  color: var(--color-status-neutral-text);
+  font-size: var(--type-tag);
+  font-weight: 500;
+}
+
+.pro-body.teacher-workspace .login-form .field label,
+.pro-body.staff-workspace .login-form .field label {
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--text-secondary);
+}
+
+.pro-body.teacher-workspace .login-form,
+.pro-body.staff-workspace .login-form {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.pro-body.teacher-workspace .btn-primary,
+.pro-body.staff-workspace .btn-primary {
+  width: auto;
+  align-self: flex-start;
+}
+
+.pro-body.teacher-workspace .login-form input,
+.pro-body.teacher-workspace .login-form select,
+.pro-body.teacher-workspace .login-form textarea,
+.pro-body.staff-workspace .login-form input,
+.pro-body.staff-workspace .login-form select,
+.pro-body.staff-workspace .login-form textarea {
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-input);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  box-shadow: none;
+}
+
+.pro-body.teacher-workspace .login-form input:focus,
+.pro-body.teacher-workspace .login-form select:focus,
+.pro-body.teacher-workspace .login-form textarea:focus,
+.pro-body.staff-workspace .login-form input:focus,
+.pro-body.staff-workspace .login-form select:focus,
+.pro-body.staff-workspace .login-form textarea:focus {
+  outline: 2px solid var(--color-english-bg);
+  border-color: var(--color-primary);
+}
+
+.pro-body.teacher-workspace button.btn-primary:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Pulse chips on Monitor */
+.pro-body.teacher-workspace .home-command-pulse {
+  gap: var(--space-card-gap);
+}
+
+.pro-body.teacher-workspace .home-pulse-value {
+  font-family: var(--font-sans);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.pro-body.teacher-workspace .home-pulse-label {
+  font-size: var(--type-tag);
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+/* Messages + profile on teacher */
+.pro-body.teacher-workspace .message-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.pro-body.teacher-workspace .message-row-name,
+.pro-body.teacher-workspace .profile-activity-title {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.pro-body.teacher-workspace .chat-send-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--btn-gap);
+  padding: var(--btn-pad-y) var(--btn-pad-x);
+  border: none;
+  border-radius: var(--radius-pill);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  font-size: var(--btn-font);
+  font-weight: var(--btn-weight);
+}
+
+@media (max-width: 900px) {
+  .pro-body.teacher-home-editorial .teacher-stat-grid,
+  .pro-body.teacher-workspace .teacher-review-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 700px) {
+  .pro-body.teacher-workspace .hub-card {
+    flex-wrap: wrap;
+  }
+}
+
+/* Materials — Upload material form (mockup spec) */
+.pro-body.teacher-workspace .materials-upload-page {
+  max-width: 620px;
+  width: 100%;
+}
+
+.pro-body.teacher-workspace .materials-upload-hero {
+  margin: 0 0 8px;
+  padding: 12px 32px 0;
+}
+
+.pro-body.teacher-workspace .pro-content:has(.materials-upload-form) {
+  margin-top: 0;
+  padding-top: 0;
+}
+
+.pro-body.teacher-workspace .materials-upload-kicker,
+.pro-body.teacher-workspace .materials-upload-hero .materials-upload-kicker {
+  margin: 0 0 6px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  color: #8A8A8A;
+}
+
+.pro-body.teacher-workspace .materials-upload-title {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+  color: #1A1A1A;
+}
+
+.pro-body.teacher-workspace .materials-upload-sub {
+  margin: 8px 0 0;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.45;
+  color: #6B6B6B;
+}
+
+.pro-body.teacher-workspace .materials-subject {
+  font-weight: 600;
+}
+
+.pro-body.teacher-workspace.subject-accent-english .materials-subject {
+  color: var(--color-english-text, #3C3489);
+}
+
+.pro-body.teacher-workspace.subject-accent-mathematics .materials-subject {
+  color: var(--color-math-text, #854F0B);
+}
+
+.pro-body.teacher-workspace.subject-accent-science .materials-subject {
+  color: var(--color-science-text, #085041);
+}
+
+.pro-body.teacher-workspace .home-section.materials-upload-page {
+  margin-top: 0;
+}
+
+.pro-body.teacher-workspace .home-section.materials-upload-page + .home-section.materials-upload-page {
+  margin-top: 24px;
+}
+
+.pro-body.teacher-workspace .materials-upload-page .materials-section-count {
+  display: inline;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  color: var(--text-meta, #8A8A8A);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 1;
+}
+
+.pro-body.teacher-workspace .materials-upload-page .hub-card,
+.pro-body.teacher-workspace .materials-upload-page .hub-card.pro-card-interactive,
+.pro-body.teacher-workspace .materials-upload-page .hub-card.pro-toast-in {
+  background: var(--bg-card);
+  border: none !important;
+  border-left: none !important;
+  border-right: none !important;
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card) !important;
+  padding: var(--space-card);
+}
+
+.pro-body.teacher-workspace .materials-upload-page .hub-card.pro-card-interactive:hover {
+  box-shadow: var(--shadow-card-hover) !important;
+}
+
+.pro-body.teacher-workspace .materials-upload-page .home-tag.is-hue {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border: 0 !important;
+  border-radius: var(--radius-pill);
+  background: var(--color-science-bg);
+  color: var(--color-science-text);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 1.2;
+}
+
+.pro-body.teacher-workspace.subject-accent-english .materials-upload-page .home-tag.is-hue {
+  background: var(--color-english-bg);
+  color: var(--color-english-text);
+}
+
+.pro-body.teacher-workspace.subject-accent-mathematics .materials-upload-page .home-tag.is-hue {
+  background: var(--color-math-bg);
+  color: var(--color-math-text);
+}
+
+.pro-body.teacher-workspace.subject-accent-science .materials-upload-page .home-tag.is-hue {
+  background: var(--color-science-bg);
+  color: var(--color-science-text);
+}
+
+.pro-body.teacher-workspace .materials-upload-form,
+.pro-body.teacher-workspace .login-form.materials-upload-form {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  max-width: 620px;
+  margin: 0;
+  padding: 24px 24px 16px;
+  border: none;
+  border-radius: 14px;
+  background: var(--bg-card);
+  box-shadow: var(--shadow-card);
+}
+
+.pro-body.teacher-workspace .materials-upload-form-kicker {
+  margin: 0 0 4px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  color: #8A8A8A;
+}
+
+.pro-body.teacher-workspace .materials-upload-form-title {
+  margin: 0 0 20px;
+  font-family: var(--font-sans);
+  font-size: 16px;
+  font-weight: 500;
+  color: #1A1A1A;
+}
+
+.pro-body.teacher-workspace .materials-upload-form .field {
+  width: 100%;
+  margin: 0 0 12px;
+}
+
+.pro-body.teacher-workspace .materials-upload-form .field label {
+  display: block;
+  margin: 0 0 6px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  color: #5F5E5A;
+}
+
+.pro-body.teacher-workspace .materials-upload-form input[type="text"],
+.pro-body.teacher-workspace .materials-upload-form textarea {
+  box-sizing: border-box;
+  width: 100%;
+  border: 1px solid #E0E0E0;
+  border-radius: 10px;
+  background: #FFFFFF;
+  color: #1A1A1A;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  box-shadow: none;
+  outline: none;
+}
+
+.pro-body.teacher-workspace .materials-upload-form input[type="text"] {
+  box-sizing: border-box;
+  height: 40px;
+  min-height: 40px;
+  padding: 0 14px;
+  font-weight: 400;
+}
+
+.pro-body.teacher-workspace .materials-upload-form textarea {
+  height: 90px;
+  min-height: 90px;
+  max-height: 120px;
+  padding: 12px 14px;
+  font-weight: 400;
+  resize: none;
+}
+
+.pro-body.teacher-workspace .materials-upload-form input[type="text"]:focus,
+.pro-body.teacher-workspace .materials-upload-form textarea:focus {
+  outline: none;
+  border-color: #534AB7;
+  box-shadow: 0 0 0 3px rgba(83, 74, 183, 0.15);
+}
+
+.pro-body.teacher-workspace .materials-dropzone {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 20px;
+  border: 1.5px dashed #D0D0D0;
+  border-radius: 10px;
+  background: #FCFCFA;
+}
+
+.pro-body.teacher-workspace .materials-dropzone.is-dragover {
+  border-color: #534AB7;
+  background: #EEEDFE;
+}
+
+.pro-body.teacher-workspace .materials-drop-input {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  opacity: 0;
+  cursor: pointer;
+  font-size: 0;
+}
+
+.pro-body.teacher-workspace .materials-drop-icon,
+.pro-body.teacher-workspace .materials-drop-copy,
+.pro-body.teacher-workspace .materials-drop-browse {
+  position: relative;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.pro-body.teacher-workspace .materials-drop-icon {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #EEEDFE;
+  color: #534AB7;
+}
+
+.pro-body.teacher-workspace .materials-drop-icon .fi {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.pro-body.teacher-workspace .materials-drop-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.pro-body.teacher-workspace .materials-drop-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: #1A1A1A;
+}
+
+.pro-body.teacher-workspace .materials-drop-status,
+.pro-body.teacher-workspace .materials-dropzone .file-chosen {
+  margin: 3px 0 0;
+  font-size: 12px;
+  font-weight: 400;
+  color: #8A8A8A;
+}
+
+.pro-body.teacher-workspace .materials-drop-browse {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 7px 16px;
+  border: 1px solid #E0E0E0;
+  border-radius: 999px;
+  background: transparent;
+  color: #5F5E5A;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1;
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.pro-body.teacher-workspace .materials-paste-field {
+  margin-top: 4px;
+}
+
+.pro-body.teacher-workspace .materials-paste-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 12px;
+}
+
+.pro-body.teacher-workspace .materials-paste-divider::before,
+.pro-body.teacher-workspace .materials-paste-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #F0EFE9;
+}
+
+.pro-body.teacher-workspace .materials-paste-divider span {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  color: #8A8A8A;
+  white-space: nowrap;
+}
+
+.pro-body.teacher-workspace .materials-upload-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  width: 100%;
+  margin-top: 4px;
+}
+
+.pro-body.teacher-workspace .materials-upload-cancel {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 9px 20px;
+  border: 1px solid #E0E0E0;
+  border-radius: 999px;
+  background: transparent;
+  box-shadow: none;
+  color: #5F5E5A;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1;
+  text-decoration: none;
+}
+
+.pro-body.teacher-workspace .materials-upload-cancel:hover {
+  background: #F1EFE8;
+  color: #5F5E5A;
+}
+
+.pro-body.teacher-workspace .materials-upload-form .materials-upload-submit,
+.pro-body.teacher-workspace .btn-primary.materials-upload-submit {
+  align-self: auto;
+  padding: 9px 22px;
+  border: none;
+  border-radius: 999px;
+  background: #534AB7;
+  color: #FFFFFF;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.pro-body.teacher-workspace .materials-upload-form .materials-upload-submit:hover {
+  background: #4a42a4;
+  color: #FFFFFF;
+}
+
+.pro-body .pro-topbar-wordmark {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  color: var(--color-science);
+  text-decoration: none;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.pro-body .pro-menu-btn,
+.pro-body .pro-topbar-brand,
+.pro-body .pro-top-identity,
+.pro-body .pro-top-actions {
+  position: relative;
+  z-index: 2;
+}
+
+.pro-body .pro-topbar-wordmark-icon {
+  display: block;
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+
+.pro-body .pro-topbar-wordmark-text {
+  font-family: var(--font-sans);
+  font-size: 19px;
+  font-weight: 600;
+  color: var(--text-primary, #1A1A1A);
+  letter-spacing: -0.3px;
+  line-height: 1;
+}
+
+.pro-body .pro-topbar-wordmark:hover {
+  opacity: 0.85;
+}
+
+.pro-body .pro-topbar-wordmark:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+@media (max-width: 860px) {
+  .pro-body .pro-topbar-wordmark-text {
+    display: none;
+  }
+}
+
+.pro-body:is(.teacher-workspace, .staff-workspace) .staff-compose-page {
+  max-width: 620px;
+  width: 100%;
+}
+
+.pro-body:is(.teacher-workspace, .staff-workspace) .home-section.staff-compose-page + .home-section.staff-compose-page {
+  margin-top: 24px;
+}
+
+.pro-body:is(.teacher-workspace, .staff-workspace) .staff-compose-form,
+.pro-body:is(.teacher-workspace, .staff-workspace) .login-form.staff-compose-form {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  max-width: 620px;
+  margin: 0;
+  padding: 24px;
+  border: none;
+  border-radius: 14px;
+  background: #FFFFFF;
+  box-shadow: var(--shadow-card);
+}
+
+.pro-body:is(.teacher-workspace, .staff-workspace) .staff-compose-kicker {
+  margin: 0 0 4px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  color: #8A8A8A;
+}
+
+.pro-body:is(.teacher-workspace, .staff-workspace) .staff-compose-title {
+  margin: 0 0 8px;
+  font-family: var(--font-sans);
+  font-size: 16px;
+  font-weight: 500;
+  color: #1A1A1A;
+}
+
+.pro-body:is(.teacher-workspace, .staff-workspace) .staff-compose-note {
+  margin: 0 0 20px;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.45;
+  color: #6B6B6B;
+}
+
+.pro-body:is(.teacher-workspace, .staff-workspace) .staff-compose-list-title {
+  margin: 4px 0 0;
+  font-family: var(--font-sans);
+  font-size: 16px;
+  font-weight: 600;
+  color: #1A1A1A;
+}
+
+.pro-body:is(.teacher-workspace, .staff-workspace) .staff-compose-form .field {
+  width: 100%;
+  margin: 0 0 12px;
+}
+
+.pro-body:is(.teacher-workspace, .staff-workspace) .staff-compose-form .field label {
+  display: block;
+  margin: 0 0 6px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  color: #5F5E5A;
+}
+
+.pro-body:is(.teacher-workspace, .staff-workspace) .staff-compose-form input,
+.pro-body:is(.teacher-workspace, .staff-workspace) .staff-compose-form select,
+.pro-body:is(.teacher-workspace, .staff-workspace) .staff-compose-form textarea {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  border: 1px solid #E0E0E0;
+  border-radius: 10px;
+  background: #FFFFFF;
+  color: #1A1A1A;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 400;
+  box-shadow: none;
+  outline: none;
+}
+
+.pro-body:is(.teacher-workspace, .staff-workspace) .staff-compose-form input,
+.pro-body:is(.teacher-workspace, .staff-workspace) .staff-compose-form select {
+  height: 40px;
+  min-height: 40px;
+  padding: 0 14px;
+}
+
+.pro-body:is(.teacher-workspace, .staff-workspace) .staff-compose-form textarea {
+  height: 90px;
+  min-height: 90px;
+  max-height: 120px;
+  padding: 12px 14px;
+  resize: none;
+}
+
+.pro-body:is(.teacher-workspace, .staff-workspace) .staff-compose-form input:focus,
+.pro-body:is(.teacher-workspace, .staff-workspace) .staff-compose-form select:focus,
+.pro-body:is(.teacher-workspace, .staff-workspace) .staff-compose-form textarea:focus {
+  outline: none;
+  border-color: #534AB7;
+  box-shadow: 0 0 0 3px rgba(83, 74, 183, 0.15);
+}
+
+.pro-body:is(.teacher-workspace, .staff-workspace) .staff-compose-submit,
+.pro-body:is(.teacher-workspace, .staff-workspace) .btn-primary.staff-compose-submit {
+  align-self: flex-start;
+  width: auto;
+  margin-top: 4px;
+  padding: 9px 22px;
+  border: none;
+  border-radius: 999px;
+  background: #534AB7;
+  color: #FFFFFF;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.pro-body:is(.teacher-workspace, .staff-workspace) .btn-primary.staff-compose-submit:hover {
+  background: #4a42a4;
+  color: #FFFFFF;
+}
+
+.pro-body:is(.teacher-workspace, .staff-workspace) .staff-compose-page .hub-card,
+.pro-body:is(.teacher-workspace, .staff-workspace) .staff-compose-page .hub-card.pro-card-interactive {
+  background: var(--bg-card);
+  border: none !important;
+  border-left: none !important;
+  border-right: none !important;
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card) !important;
+  padding: var(--space-card);
+}
+
+.pro-body:is(.teacher-workspace, .staff-workspace) .staff-compose-page .home-tag.is-hue {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border: 0 !important;
+  border-radius: var(--radius-pill);
+  background: var(--color-science-bg);
+  color: var(--color-science-text);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.pro-body.teacher-workspace.subject-accent-english .staff-compose-page .home-tag.is-hue,
+.pro-body.staff-workspace.subject-accent-english .staff-compose-page .home-tag.is-hue {
+  background: var(--color-english-bg);
+  color: var(--color-english-text);
+}
+
+.pro-body.teacher-workspace.subject-accent-mathematics .staff-compose-page .home-tag.is-hue,
+.pro-body.staff-workspace.subject-accent-mathematics .staff-compose-page .home-tag.is-hue {
+  background: var(--color-math-bg);
+  color: var(--color-math-text);
+}
+
+.pro-body:is(.teacher-workspace, .staff-workspace) .staff-compose-page .materials-section-count {
+  display: inline;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  color: var(--text-meta, #8A8A8A);
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.pro-body:is(.teacher-workspace, .staff-workspace) .announce-compose-split {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: flex-start;
+  gap: 24px;
+  width: 100%;
+  max-width: none;
+}
+
+.pro-body:is(.teacher-workspace, .staff-workspace) .announce-compose-split > .home-section,
+.pro-body:is(.teacher-workspace, .staff-workspace) .announce-compose-split > .home-section + .home-section,
+.pro-body:is(.teacher-workspace, .staff-workspace) .home-section.staff-compose-page.announce-compose-form-col + .home-section.staff-compose-page.announce-compose-list-col {
+  margin-top: 0;
+}
+
+.pro-body:is(.teacher-workspace, .staff-workspace) .announce-compose-form-col {
+  flex: 0 0 400px;
+  width: 400px;
+  max-width: 400px;
+}
+
+.pro-body:is(.teacher-workspace, .staff-workspace) .announce-compose-form-col .staff-compose-form,
+.pro-body:is(.teacher-workspace, .staff-workspace) .announce-compose-form-col .login-form.staff-compose-form {
+  max-width: 100%;
+}
+
+.pro-body:is(.teacher-workspace, .staff-workspace) .announce-compose-list-col {
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: none;
+  width: auto;
+  margin: 0;
+}
+
+.pro-body:is(.teacher-workspace, .staff-workspace) .announce-recent-heading {
+  margin: 0 0 12px;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 600;
+  color: #1A1A1A;
+}
+
+.pro-body:is(.teacher-workspace, .staff-workspace) .announce-recent-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+}
+
+.pro-body:is(.teacher-workspace, .staff-workspace) .announce-compose-list-col .announce-recent-card,
+.pro-body:is(.teacher-workspace, .staff-workspace) .announce-compose-list-col .hub-card.announce-recent-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 0;
+  margin: 0;
+  padding: 16px;
+  border: none !important;
+  border-radius: 12px;
+  background: #FFFFFF;
+  box-shadow: var(--shadow-card) !important;
+}
+
+.pro-body:is(.teacher-workspace, .staff-workspace) .announce-recent-title {
+  margin: 8px 0 0;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.35;
+  color: #1A1A1A;
+}
+
+.pro-body:is(.teacher-workspace, .staff-workspace) .announce-recent-date {
+  margin: 4px 0 0;
+  font-size: 12px;
+  font-weight: 400;
+  color: #8A8A8A;
+}
+
+@media (max-width: 860px) {
+  .pro-body:is(.teacher-workspace, .staff-workspace) .announce-compose-split {
+    flex-direction: column;
+    flex-wrap: nowrap;
+  }
+
+  .pro-body:is(.teacher-workspace, .staff-workspace) .announce-compose-form-col {
+    flex: 1 1 auto;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .pro-body:is(.teacher-workspace, .staff-workspace) .announce-compose-list-col {
+    flex: 1 1 auto;
+    width: 100%;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Sidebar — liquid mercury texture (Uiverse, navy/violet, no roll animation)
+   Texture lives on an inner layer so hover labels can still overflow the rail.
+   --------------------------------------------------------------------------- */
+.bloom-mercury-svg {
+  position: absolute !important;
+  left: 0;
+  top: 0;
+  width: 0 !important;
+  height: 0 !important;
+  overflow: hidden;
+  flex: none;
+  pointer-events: none;
+}
+
+.pro-body .pro-sidebar.pro-rail {
+  background-color: var(--sidebar-mercury-base, #1d3461);
+  isolation: isolate;
+  justify-content: flex-start;
+  padding: 18px 8px 22px;
+  gap: 0;
+}
+
+.pro-body .pro-sidebar.pro-rail .pro-rail-brand {
+  display: none !important;
+}
+
+.pro-body .pro-sidebar.pro-rail > .pro-nav.pro-rail-nav {
+  position: relative;
+  z-index: 1;
+  flex: 0 0 auto;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.pro-body .pro-sidebar-mercury {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.pro-body .pro-sidebar-mercury::before {
+  content: "";
+  position: absolute;
+  top: -5%;
+  left: -5%;
+  width: 110%;
+  height: 110%;
+  background-color: var(--sidebar-mercury-deep, #152848);
+  background-image:
+    radial-gradient(ellipse 90% 36% at 50% 8%, var(--sidebar-mercury-sheen), transparent 68%),
+    radial-gradient(ellipse 80% 28% at 18% 42%, var(--sidebar-mercury-accent), transparent 72%),
+    radial-gradient(ellipse 70% 32% at 88% 78%, var(--sidebar-mercury-sheen), transparent 70%),
+    linear-gradient(180deg, #243a6b 0%, var(--sidebar-mercury-base, #1d3461) 46%, var(--sidebar-mercury-deep, #152848) 100%);
+  filter: url(#bloom-mercury);
+}
+
+.pro-body .pro-sidebar-mercury::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, var(--sidebar-mercury-base, #1d3461) 34%, transparent);
+}

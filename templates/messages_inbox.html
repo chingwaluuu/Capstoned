@@ -2,7 +2,7 @@
 {% set active_tab = "messages" if not is_teacher else "" %}
 {% set topbar_sub = "Messages" %}
 {% block title %}Messages — Bloom{% endblock %}
-{% block body_class %}{% if not is_teacher %}student {% endif %}student-refined{% endblock %}
+{% block body_class %}{% if not is_teacher %}student {% else %}teacher-workspace {% endif %}student-refined{% endblock %}
 {% block page_kicker %}{% endblock %}
 {% block page_title %}Messages{% endblock %}
 {% block page_subtitle %}
@@ -27,7 +27,7 @@
       <div class="message-toolbar">
         <form class="announce-search message-search" role="search" data-message-search onsubmit="return false;">
           <label class="sr-only" for="message-q">{% if is_teacher %}Search students or messages{% else %}Search teachers or messages{% endif %}</label>
-          <span class="search-icon" aria-hidden="true">⌕</span>
+          <span class="search-icon" aria-hidden="true"><i class="fi fi-rr-search"></i></span>
           <input
             id="message-q"
             class="announce-q"
@@ -55,7 +55,7 @@
       <div class="message-list pro-stagger-in" data-message-list>
         {% for thread in threads %}
           <a
-            class="message-row {% if thread.unread %}is-unread{% endif %} {% if not thread.started %}is-starter{% endif %}"
+            class="message-row card {% if thread.unread %}is-unread{% endif %} {% if not thread.started %}is-starter{% endif %}"
             href="{{ thread.href }}"
             data-subject="{{ thread.subject_slug }}"
             data-unread="{{ 1 if thread.unread else 0 }}"
@@ -72,7 +72,7 @@
                 {% endif %}
               </div>
               {% if thread.meta %}
-                <p class="message-row-subject">{{ thread.meta }}</p>
+                <p class="message-row-subject"><span class="home-tag is-hue">{{ thread.meta }}</span></p>
               {% endif %}
               <p class="message-row-snippet {% if not thread.started %}is-empty-preview{% endif %}">{{ thread.preview }}</p>
             </div>

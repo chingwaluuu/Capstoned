@@ -1,0 +1,107 @@
+/* =============================================================================
+   Bloom shared design tokens
+   Single source of truth for student + teacher surfaces.
+   Assessments lobby/take keep their own chrome and must not consume these
+   as a restyle of that component.
+   ============================================================================= */
+
+:root {
+  /* Brand */
+  --color-primary: #534AB7;
+  --color-primary-press: color-mix(in srgb, #534AB7 92%, #000000);
+  --color-on-primary: #ffffff;
+
+  /* Subject: fill / tint / text */
+  --color-english: #7B6FE0;
+  --color-english-bg: #EEEDFE;
+  --color-english-text: #3C3489;
+  --color-math: #E8A34D;
+  --color-math-bg: #FAEEDA;
+  --color-math-text: #854F0B;
+  --color-science: #4CAF7D;
+  --color-science-bg: #E1F5EE;
+  --color-science-text: #085041;
+
+  /* Score / progress only — never reuse for subject or status */
+  --color-score-bg: #E6F1FB;
+  --color-score-text: #0C447C;
+
+  /* Status / type tags */
+  --color-status-neutral-bg: #F1EFE8;
+  --color-status-neutral-text: #5F5E5A;
+  --color-neutral: #8A8A8A;
+  --color-neutral-bg: #F1EFE8;
+  --color-neutral-text: #5F5E5A;
+
+  /* Surfaces + type */
+  --bg-page: #FAF9F6;
+  --bg-card: #FFFFFF;
+
+  /* Isometric page texture (Uiverse cube tessellation, retinted) */
+  --bg-iso-size: 220px;
+  --bg-iso-c1: color-mix(in srgb, #FAF9F6 90%, #534AB7);
+  --bg-iso-c2: color-mix(in srgb, #FAF9F6 94%, #5F5E5A);
+  --bg-iso-c3: color-mix(in srgb, #FAF9F6 91%, #1A1A1A);
+  --text-primary: #1A1A1A;
+  --text-secondary: #6B6B6B;
+  --text-meta: #8A8A8A;
+  --border-subtle: #E0E0E0;
+  --border-list: #F0EFE9;
+
+  /* Elevation */
+  --shadow-card:
+    inset 0 -2em 2em rgba(0, 0, 0, 0.02),
+    0 0 0 1px rgba(0, 0, 0, 0.06),
+    0 2px 8px rgba(0, 0, 0, 0.06);
+  --shadow-card-hover:
+    inset 0 -2em 2em rgba(0, 0, 0, 0.03),
+    0 0 0 1px rgba(0, 0, 0, 0.08),
+    0 6px 16px rgba(0, 0, 0, 0.1);
+
+  /* Radius */
+  --radius-card: 14px;
+  --radius-card-sm: 12px;
+  --radius-pill: 999px;
+  --radius-input: 10px;
+  --radius-badge: 10px;
+
+  /* Type scale */
+  --type-page: 28px;
+  --type-page-weight: 700;
+  --type-card-title: 15px;
+  --type-card-title-weight: 500;
+  --type-section: 14px;
+  --type-section-weight: 600;
+  --type-body: 14px;
+  --type-meta: 12px;
+  --type-tag: 11px;
+  --font-sans: "Inter", "Segoe UI", sans-serif;
+
+  /* Spacing scale */
+  --space-page: 32px;
+  --space-card: 20px;
+  --space-card-lg: 24px;
+  --space-card-gap: 12px;
+  --space-col-gap: 24px;
+  --space-section: 16px;
+  --space-header-ident: 12px;
+
+  /* Avatar — circle, one size for people */
+  --avatar-size: 36px;
+  --avatar-radius: 50%;
+  --avatar-font: 12px;
+
+  /* Buttons */
+  --btn-pad-y: 10px;
+  --btn-pad-x: 20px;
+  --btn-font: 13px;
+  --btn-weight: 500;
+  --btn-gap: 6px;
+  --btn-outline: 1.5px;
+
+  /* Sidebar liquid-mercury texture (Uiverse, retinted to the navy rail) */
+  --sidebar-mercury-base: #1d3461;
+  --sidebar-mercury-deep: #152848;
+  --sidebar-mercury-sheen: color-mix(in srgb, #e8edf5 42%, transparent);
+  --sidebar-mercury-accent: color-mix(in srgb, #534AB7 55%, transparent);
+}

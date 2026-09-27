@@ -2,7 +2,7 @@
 {% set active_tab = "profile" %}
 {% set topbar_sub = "Profile" %}
 {% block title %}Profile — Bloom{% endblock %}
-{% block body_class %}{% if user.role == 'student' %}student {% endif %}profile-page student-refined{% endblock %}
+{% block body_class %}{% if user.role == 'student' %}student {% elif user.role == 'teacher' %}teacher-workspace {% endif %}profile-page student-refined{% endblock %}
 {% block page_header %}
   {% set name_parts = user.name.split(" ") %}
   {% set avatar_initials = (name_parts[0][:1] ~ (name_parts[-1][:1] if name_parts|length > 1 else ""))|upper %}
@@ -26,16 +26,21 @@
       <section class="profile-photo-edit" aria-labelledby="photo-title">
         <div class="profile-section-intro">
           <h2 class="profile-section-title" id="photo-title">Profile photo</h2>
-          <p class="profile-section-note">JPG, PNG, or WEBP · up to 2 MB. Appears in messages and your account menu.</p>
+          <p class="profile-section-note">JPG, PNG, or WEBP · up to 2 MB. Appears in messages and your account menu. Do not upload photos that are inappropriate.</p>
         </div>
         <form class="profile-photo-form" method="POST" action="{{ url_for('profile') }}" enctype="multipart/form-data" data-loading="Saving photo…">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
           <input type="hidden" name="action" value="photo" />
           <div class="field profile-photo-field">
-            <span class="profile-photo-field-label" id="photo-label">Choose a photo</span>
+            <span class="profile-photo-field-label sr-only" id="photo-label">Choose a photo</span>
             <div class="profile-photo-picker">
-              <input id="photo" class="profile-photo-input" name="photo" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" required aria-labelledby="photo-label" />
-              <label for="photo" class="profile-photo-choose">Choose file</label>
+              <label class="profile-photo-choose">
+                <span class="profile-photo-choose-icon" aria-hidden="true">
+                  <i class="fi fi-rr-cloud-upload-alt"></i>
+                </span>
+                <span class="profile-photo-choose-text">Click to upload image</span>
+                <input id="photo" class="profile-photo-input" name="photo" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" required aria-labelledby="photo-label" />
+              </label>
               <p class="file-chosen" aria-live="polite"></p>
             </div>
           </div>

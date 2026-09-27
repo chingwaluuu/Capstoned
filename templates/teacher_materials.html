@@ -1,44 +1,58 @@
 {% extends "layouts/pro.html" %}
 {% block title %}Materials — Bloom{% endblock %}
 {% block body_class %}teacher-workspace student-refined subject-accent-{{ subject_slug }}{% endblock %}
-{% block page_kicker %}Materials{% endblock %}
-{% block page_title %}Review before class{% endblock %}
-{% block page_subtitle %}Open the uploaded file, check the summary, then deploy it to {{ subject_name }} students.{% endblock %}
+{% block page_header %}
+  <header class="materials-upload-page materials-upload-hero" aria-labelledby="materials-title">
+    <p class="materials-upload-kicker">Materials</p>
+    <h1 class="materials-upload-title" id="materials-title">Review before class</h1>
+    <p class="materials-upload-sub">Open the uploaded file, check the summary, then deploy it to <span class="materials-subject">{{ subject_name }}</span> students.</p>
+  </header>
+{% endblock %}
 {% block content %}
-  <section class="home-section" aria-labelledby="upload-title">
-    <div class="section-heading-row">
-      <div>
-        <p class="section-eyebrow">Add a lesson</p>
-        <h2 id="upload-title" class="section-title section-title-sm">Upload material</h2>
-      </div>
-    </div>
-      <form class="login-form teacher-upload-form bloom-card" method="POST" action="{{ url_for('teacher_materials') }}" enctype="multipart/form-data" data-loading="Uploading and summarizing…">
+  <section class="home-section materials-upload-page" aria-labelledby="upload-title">
+    <form class="login-form materials-upload-form" method="POST" action="{{ url_for('teacher_materials') }}" enctype="multipart/form-data" data-loading="Uploading and summarizing…">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
       <input type="hidden" name="action" value="upload" />
+      <p class="materials-upload-form-kicker">Add a lesson</p>
+      <h2 class="materials-upload-form-title" id="upload-title">Upload material</h2>
+
       <div class="field">
         <label for="title">Material title</label>
         <input id="title" name="title" type="text" placeholder="Ecosystems" required />
       </div>
+
       <div class="field">
-        <label for="file">File</label>
-        <input id="file" name="file" type="file" accept=".pdf,.docx,.pptx,.txt" />
+        <span class="sr-only" id="file-label">File</span>
+        <div class="materials-dropzone" data-dropzone>
+          <input id="file" class="materials-drop-input" name="file" type="file" accept=".pdf,.docx,.pptx,.txt" aria-labelledby="file-label" />
+          <span class="materials-drop-icon" aria-hidden="true"><i class="fi fi-rr-cloud-upload-alt"></i></span>
+          <div class="materials-drop-copy">
+            <p class="materials-drop-title">Drop a file here or browse</p>
+            <p class="file-chosen materials-drop-status" data-empty="No file chosen" aria-live="polite">No file chosen</p>
+          </div>
+          <label class="materials-drop-browse" for="file">Browse</label>
+        </div>
       </div>
-      <div class="field">
-        <label for="notes">Or paste text</label>
+
+      <div class="field materials-paste-field">
+        <p class="materials-paste-divider"><span>Or paste text</span></p>
         <textarea id="notes" name="notes" rows="4" placeholder="Paste lesson text here..."></textarea>
       </div>
-      <p class="section-note">{{ subject_name }} · PDF, DOCX, PPTX, or pasted text. Students will not see it until you deploy the summary.</p>
-      <button type="submit" class="btn-primary">Upload &amp; prepare summary</button>
+
+      <div class="materials-upload-actions">
+        <a class="materials-upload-cancel" href="{{ url_for('teacher_home') }}">Cancel</a>
+        <button type="submit" class="btn-primary materials-upload-submit">Upload material</button>
+      </div>
     </form>
   </section>
 
-  <section class="home-section" aria-labelledby="pending-title">
+  <section class="home-section materials-upload-page" aria-labelledby="pending-title">
     <div class="section-heading-row">
       <div>
         <p class="section-eyebrow">Needs you</p>
         <h2 id="pending-title" class="section-title section-title-sm">Pending review</h2>
       </div>
-      <span class="count-badge {% if not pending %}count-badge-muted{% endif %}">{{ pending|length }}</span>
+      <span class="materials-section-count">{{ pending|length }}</span>
     </div>
     {% if pending %}
       <div class="hub-list stack-md pro-stagger-in">
@@ -66,13 +80,13 @@
     {% endif %}
   </section>
 
-  <section class="home-section" aria-labelledby="deployed-title">
+  <section class="home-section materials-upload-page" aria-labelledby="deployed-title">
     <div class="section-heading-row">
       <div>
         <p class="section-eyebrow">In class</p>
         <h2 id="deployed-title" class="section-title section-title-sm">Deployed to students</h2>
       </div>
-      <span class="count-badge count-badge-muted">{{ deployed|length }}</span>
+      <span class="materials-section-count">{{ deployed|length }}</span>
     </div>
     {% if deployed %}
       <div class="hub-list stack-md pro-stagger-in">
@@ -80,7 +94,7 @@
           <article class="hub-card pro-card-interactive">
             <div>
               <div class="teacher-status-row">
-                <span class="teacher-status-pill is-approved">Approved</span>
+                <span class="home-tag is-hue">Approved</span>
                 <span class="hub-card-meta">{{ item.source_label }}</span>
               </div>
               <h3 class="hub-card-title">{{ item.title }}</h3>
@@ -101,7 +115,7 @@
   </section>
 
   {% if rejected %}
-    <section class="home-section" aria-labelledby="rejected-title">
+    <section class="home-section materials-upload-page" aria-labelledby="rejected-title">
       <div class="section-heading-row">
         <div>
           <p class="section-eyebrow">Not used</p>

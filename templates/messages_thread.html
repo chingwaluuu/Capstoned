@@ -2,7 +2,7 @@
 {% set active_tab = "messages" if user.role == "student" else "" %}
 {% set topbar_sub = "Messages" %}
 {% block title %}{{ other.name }} — Messages — Bloom{% endblock %}
-{% block body_class %}{% if user.role == 'student' %}student {% endif %}pro-focus student-refined{% endblock %}
+{% block body_class %}{% if user.role == 'student' %}student {% elif user.role == 'teacher' %}teacher-workspace {% endif %}pro-focus student-refined{% endblock %}
 {% block page_header %}{% endblock %}
 {% block main_class %}chat-main{% endblock %}
 {% block content_class %}pro-content-plain chat-content{% endblock %}
@@ -56,7 +56,7 @@
           </div>
         </div>
         <button type="submit" class="chat-send-btn" aria-label="Send message" id="chat-send">
-          <svg class="icon-svg" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M3.4 11.2 20.2 3.6a.8.8 0 0 1 1.1 1.1L13.7 21.5a.8.8 0 0 1-1.5.1l-2.6-6.3-6.3-2.6a.8.8 0 0 1 .1-1.5Z"/></svg>
+          <i class="fi fi-rr-paper-plane-top" aria-hidden="true"></i>
           <span>Send</span>
         </button>
         <p class="chat-status" id="chat-status" hidden role="status" aria-live="polite"></p>
