@@ -20,17 +20,6 @@
         <span class="pro-nav-label" aria-hidden="true">Home</span>
       </a>
       <a
-        class="pro-nav-link {% if tab == 'subjects' %}is-active{% endif %}"
-        href="{{ url_for('subjects_index') }}"
-        aria-label="Subjects"
-        {% if tab == 'subjects' %}aria-current="page"{% endif %}
-      >
-        <span class="pro-nav-ico" aria-hidden="true">
-          <i class="fi fi-rs-book-alt"></i>
-        </span>
-        <span class="pro-nav-label" aria-hidden="true">Subjects</span>
-      </a>
-      <a
         class="pro-nav-link {% if tab == 'practice' %}is-active{% endif %}"
         href="{{ url_for('practice') }}"
         aria-label="Practice"

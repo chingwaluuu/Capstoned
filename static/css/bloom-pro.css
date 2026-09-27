@@ -10979,3 +10979,239 @@ html.pref-reduce-motion .qol-overlay {
   gap: var(--space-3);
 }
 
+.pro-body.student.pro-focus .pro-content {
+  width: min(calc(100% - 2rem), 48rem);
+}
+
+.pro-body.student .practice-take-shell.take-shell {
+  display: grid;
+  gap: var(--space-5);
+  max-width: none;
+  margin: 0;
+  padding: 0 0 var(--space-8);
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.pro-body.student .practice-take-shell .take-window-head {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-3);
+}
+
+.pro-body.student .practice-take-shell .take-window-head a.hub-back {
+  width: auto;
+  max-width: 100%;
+  justify-self: start;
+}
+
+.pro-body.student .practice-take-shell .take-window-title-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: var(--space-2) var(--space-5);
+}
+
+.pro-body.student .practice-take-shell .take-window-kicker {
+  grid-column: 1;
+}
+
+.pro-body.student .practice-take-shell .take-progress-label {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: start;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font-family: var(--font-sans);
+  font-size: var(--text-caption-size);
+  font-weight: 600;
+  color: var(--ink-muted);
+  white-space: nowrap;
+}
+
+.pro-body.student .practice-take-shell .take-title {
+  grid-column: 1;
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+.pro-body.student .practice-take-shell .take-window-note {
+  grid-column: 1 / -1;
+}
+
+.pro-body.student .practice-take-shell .take-window-kicker,
+.pro-body.student .practice-take-shell .take-window-note,
+.pro-body.student .practice-take-shell .take-q-kicker,
+.pro-body.student .practice-take-shell .summary-cite {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-caption-size);
+  font-weight: 500;
+  line-height: var(--text-caption-leading);
+  color: var(--ink-muted);
+}
+
+.pro-body.student .practice-take-shell .summary-cite {
+  display: inline-flex;
+  width: fit-content;
+  max-width: 100%;
+  justify-self: start;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--ink-muted);
+  font-weight: 500;
+}
+
+.pro-body.student .practice-take-shell .take-progress-label strong {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.pro-body.student .practice-take-shell .take-progress-block {
+  margin: 0;
+}
+
+.pro-body.student .practice-take-shell .take-progress {
+  height: 4px;
+  margin: 0;
+  border: 0;
+  background: var(--track);
+  background-image: none;
+}
+
+.pro-body.student .practice-take-shell .take-progress span {
+  background: var(--brand-primary);
+}
+
+.pro-body.student .practice-take-shell .take-steps {
+  display: none;
+}
+
+.pro-body.student .practice-take-shell .take-card {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+
+.pro-body.student .practice-take-shell .take-card[hidden] {
+  display: none !important;
+}
+
+.pro-body.student .practice-take-shell .take-q-kicker {
+  font-weight: 600;
+}
+
+.pro-body.student .practice-take-shell .take-question {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 1.15rem;
+  font-weight: 650;
+  line-height: 1.4;
+  color: var(--ink);
+}
+
+.pro-body.student .practice-take-shell .take-options {
+  display: grid;
+  gap: var(--space-3);
+  margin: var(--space-2) 0 0;
+}
+
+.pro-body.student .practice-take-shell .take-option {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 3.25rem;
+  margin: 0;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-input);
+  background: var(--surface);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: var(--text-body-size);
+  font-weight: 500;
+  line-height: var(--text-body-leading);
+  box-shadow: none;
+}
+
+.pro-body.student .practice-take-shell .take-option:hover,
+.pro-body.student .practice-take-shell .take-option:focus-within {
+  border-color: var(--brand-primary);
+  background: var(--canvas);
+}
+
+.pro-body.student .practice-take-shell .take-option:has(input:checked) {
+  border-color: var(--brand-primary);
+  background: color-mix(in srgb, var(--brand-primary) 8%, var(--surface));
+  box-shadow: none;
+}
+
+.pro-body.student .practice-take-shell .take-written {
+  margin: var(--space-2) 0 0;
+}
+
+.pro-body.student .practice-take-shell .take-written textarea {
+  width: 100%;
+  min-height: 10rem;
+  margin: 0;
+  padding: var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-input);
+  background: var(--canvas);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: var(--text-body-size);
+  font-weight: 500;
+  box-shadow: none;
+}
+
+.pro-body.student .practice-take-shell .take-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  margin: 0;
+}
+
+.pro-body.student .practice-take-shell .take-nav #prev-btn {
+  margin-right: auto;
+}
+
+.pro-body.student .practice-take-shell .take-nav .today-action,
+.pro-body.student .practice-take-shell .take-nav .today-action-soft {
+  min-width: 7.5rem;
+}
+
+@media (max-width: 720px) {
+  .pro-body.student .practice-take-shell .take-window-title-row {
+    align-items: flex-start;
+  }
+
+  .pro-body.student .practice-take-shell .take-nav {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .pro-body.student .practice-take-shell .take-nav #prev-btn,
+  .pro-body.student .practice-take-shell .take-nav #next-btn,
+  .pro-body.student .practice-take-shell .take-nav #submit-btn {
+    margin: 0;
+    width: 100%;
+  }
+}
+

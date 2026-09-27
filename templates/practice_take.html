@@ -7,21 +7,17 @@
 {% block content_class %}pro-content-plain{% endblock %}
 {% block content %}
     <section class="take-shell practice-take-shell subject-accent-{{ subject.slug }}" aria-labelledby="take-title">
-      <div class="take-top">
-        <div>
-          <a class="hub-back" href="{{ url_for('practice_setup', subject_slug=subject.slug, material_slug=material_slug) }}">Back to setup</a>
-          <div class="status-row take-status-row">
-            <span class="status-pill status-subject">{{ subject.name }}</span>
-            <span class="status-pill status-practice">{{ bloom_label }}</span>
-            <span class="status-pill status-neutral">{{ difficulty_name }}</span>
-          </div>
-          <h1 id="take-title" class="take-title">{{ material_title }} Practice</h1>
-          <p class="section-note">{{ questions|length }} questions · Your answers save on this device.</p>
+      <header class="take-window-head">
+        <a class="hub-back" href="{{ url_for('practice_setup', subject_slug=subject.slug, material_slug=material_slug) }}">Back to setup</a>
+        <div class="take-window-title-row">
+          <p class="take-window-kicker">{{ subject.name }} · {{ bloom_label }} · {{ difficulty_name }}</p>
+          <p class="take-progress-label" aria-live="polite">
+            Question <strong id="progress-text">1</strong> of {{ questions|length }}
+          </p>
+          <h1 id="take-title" class="take-title">{{ material_title }}</h1>
+          <p class="take-window-note">{{ questions|length }} question{% if questions|length != 1 %}s{% endif %} · Answers save on this device. This does not affect school grades.</p>
         </div>
-        <p class="take-progress-label" aria-live="polite">
-          Question <strong id="progress-text">1</strong> of {{ questions|length }}
-        </p>
-      </div>
+      </header>
 
       <div class="take-progress-block">
         <div class="take-progress" role="progressbar" aria-valuemin="1" aria-valuemax="{{ questions|length }}" aria-valuenow="1" aria-labelledby="take-title">
@@ -41,10 +37,7 @@
             data-question="{{ loop.index0 }}"
             {% if not loop.first %}hidden{% endif %}
           >
-            <div class="status-row question-status-row">
-              <span class="status-pill status-thinking">{{ q.bloom }}</span>
-              <span class="status-pill status-neutral">{{ q.type_label }}</span>
-            </div>
+            <p class="take-q-kicker">{{ q.bloom }} · {{ q.type_label }}</p>
             <h2 class="take-question">{{ q.prompt }}</h2>
             <p class="summary-cite">Source: {{ q.citation }}</p>
 
@@ -58,7 +51,7 @@
                 {% endfor %}
               </div>
             {% else %}
-              <label class="field">
+              <label class="field take-written">
                 <span class="sr-only">Your answer</span>
                 <textarea
                   name="q{{ q.id }}"
@@ -71,13 +64,11 @@
         {% endfor %}
 
         <div class="take-nav">
-          <button type="button" class="today-action today-action-soft" id="prev-btn" disabled>Return</button>
+          <button type="button" class="today-action today-action-soft" id="prev-btn" disabled>Previous</button>
           <button type="button" class="today-action" id="next-btn">Next</button>
           <button type="submit" class="today-action" id="submit-btn" hidden>Submit</button>
         </div>
       </form>
-
-      <p class="login-help">This is personal practice. It does not affect school grades.</p>
     </section>
 {% endblock %}
 {% block scripts %}

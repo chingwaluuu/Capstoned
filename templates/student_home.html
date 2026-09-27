@@ -84,7 +84,7 @@
             </a>
           {% endfor %}
         {% else %}
-          <a class="home-task hue-general is-empty" href="{{ url_for('subjects_index') }}">
+          <div class="home-task hue-general is-empty">
             <span class="home-task-mark" aria-hidden="true">
               <i class="fi fi-rs-book-alt"></i>
             </span>
@@ -108,7 +108,7 @@
                 <span class="home-task-metric-value">—</span>
               </span>
             </span>
-          </a>
+          </div>
         {% endif %}
       </div>
     </section>

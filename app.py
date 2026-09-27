@@ -2064,16 +2064,7 @@ def subjects_index():
     user = require_user()
     if not user:
         return redirect(url_for("login"))
-    if user["role"] != "student":
-        return redirect(url_for("home"))
-    subjects = build_student_subjects(user["id"])
-    context = {
-        "user": user,
-        "subjects": subjects,
-        "topbar_sub": "Subjects",
-    }
-    context.update(announcements_context(user))
-    return render_template("subjects_index.html", **context)
+    return redirect(url_for("home"))
 
 
 @app.route("/subjects/<slug>", methods=["GET", "POST"])
