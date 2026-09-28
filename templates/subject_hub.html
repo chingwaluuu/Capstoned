@@ -190,7 +190,12 @@
               {% if item.locked %}
                 <span class="today-action today-action-soft" aria-disabled="true" title="Waiting for teacher approval">{{ item.action }}</span>
               {% else %}
-                <a class="today-action" href="{{ item.href }}">{{ item.action }}</a>
+                <div class="hub-card-actions">
+                  {% if item.review_href %}
+                    <a class="today-action today-action-soft" href="{{ item.review_href }}">Review</a>
+                  {% endif %}
+                  <a class="today-action" href="{{ item.href }}">{{ item.action }}</a>
+                </div>
               {% endif %}
             </article>
           {% endfor %}

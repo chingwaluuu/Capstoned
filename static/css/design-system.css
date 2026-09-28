@@ -3053,3 +3053,75 @@
 .pro-body .subject-tile-chevron {
   display: none !important;
 }
+
+/* Practice hub — Review material, then Start */
+.pro-body.student .practice-shelf .practice-course-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.pro-body.student .practice-shelf a.practice-course-review {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 9px 18px;
+  border: 1px solid #E0E0E0;
+  border-radius: 999px;
+  background: transparent;
+  color: #5F5E5A;
+  font-family: var(--font-sans, inherit);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.pro-body.student .practice-shelf a.practice-course-review:hover,
+.pro-body.student .practice-shelf a.practice-course-review:focus-visible {
+  background: #FCFCFA;
+  color: #5F5E5A;
+  text-decoration: none;
+}
+
+.pro-body.student .practice-setup-start {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 16px;
+}
+
+.pro-body.student a.practice-setup-review {
+  font-size: 13px;
+  font-weight: 500;
+  color: #534AB7;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.pro-body.student a.practice-setup-review:hover,
+.pro-body.student a.practice-setup-review:focus-visible {
+  color: #3C3489;
+  text-decoration: none;
+}
+
+@media (max-width: 720px) {
+  .pro-body.student .practice-shelf .practice-course-actions {
+    margin-left: 52px;
+    width: calc(100% - 52px);
+    justify-content: flex-start;
+  }
+
+  .pro-body.student .practice-shelf .practice-course-go,
+  .pro-body.student .practice-shelf .practice-course-go.is-disabled {
+    margin-left: 0;
+  }
+
+  .pro-body.student .practice-setup-start {
+    justify-content: flex-start;
+  }
+}

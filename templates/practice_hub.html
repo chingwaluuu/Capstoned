@@ -16,7 +16,7 @@
         <p class="practice-count">{{ practice_available_count }} available</p>
       </header>
       {% if practice_available_count %}
-        <p class="practice-library-note">Approved checks are self-paced and take about 10 minutes.</p>
+        <p class="practice-library-note">Review the lesson first if you want, then start a self-paced check of about 10 minutes.</p>
       {% endif %}
 
       {% if practice_items %}
@@ -48,7 +48,12 @@
               {% if item.locked %}
                 <span class="practice-course-go is-disabled" aria-disabled="true">Locked</span>
               {% else %}
-                <a class="practice-course-go" href="{{ item.href }}">Start</a>
+                <div class="practice-course-actions">
+                  {% if item.review_href %}
+                    <a class="practice-course-review" href="{{ item.review_href }}">Review</a>
+                  {% endif %}
+                  <a class="practice-course-go" href="{{ item.href }}">Start</a>
+                </div>
               {% endif %}
             </article>
           {% endfor %}

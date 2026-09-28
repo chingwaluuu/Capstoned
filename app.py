@@ -2183,6 +2183,7 @@ def subject_hub(slug):
                 "meta": "From approved lesson · Personal practice",
                 "action": "Start",
                 "href": url_for("practice_setup", subject_slug=slug, material_slug=material.slug),
+                "review_href": lesson_review_href(slug, material),
                 "locked": False,
             }
         )
@@ -2785,6 +2786,7 @@ def practice():
                 "unlock_reason": None,
                 "unlock_date": None,
                 "href": url_for("practice_setup", subject_slug=material.subject_slug, material_slug=material.slug),
+                "review_href": lesson_review_href(material.subject_slug, material),
                 "locked": False,
             }
         )
@@ -2799,6 +2801,7 @@ def practice():
                 # No unlock_date in the Material model yet.
                 "unlock_date": None,
                 "href": None,
+                "review_href": None,
                 "locked": True,
             }
         )
