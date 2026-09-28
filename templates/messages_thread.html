@@ -14,10 +14,7 @@
       data-read-url="{{ url_for('messages_mark_read', user_id=other.id) }}"
     >
       <header class="chat-head">
-        <a class="hub-back chat-back" href="{{ url_for('messages_inbox') }}">
-          <i class="fi fi-rr-arrow-left chat-back-icon" aria-hidden="true"></i>
-          Back to conversations
-        </a>
+        <a class="hub-back chat-back" href="{{ url_for('messages_inbox') }}">Back to conversations</a>
         <div class="chat-person">
           {% with class_name="avatar avatar-lg chat-avatar", initials=other.initials, photo_url=other.photo_url %}
             {% include "partials/user_avatar.html" %}

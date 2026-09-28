@@ -88,7 +88,7 @@
               <p class="review-next-kicker">{{ step.kicker }}</p>
               <h3 class="review-next-title">{{ step.title }}</h3>
               <p class="review-next-meta">{{ step.meta }}</p>
-              <a class="btn-primary review-next-action" href="{{ step.href }}">{{ step.action }} <span aria-hidden="true">→</span></a>
+              <a class="btn-primary review-next-action" href="{{ step.href }}">{{ step.action }}</a>
             </div>
           {% endfor %}
           {% if other_steps %}
@@ -100,7 +100,7 @@
                     <h3 class="review-next-row-title">{{ step.title }}</h3>
                     <p class="review-next-meta">{{ step.meta }}</p>
                   </div>
-                  <a class="editorial-text-link" href="{{ step.href }}">{{ step.action }} <span aria-hidden="true">→</span></a>
+                  <a class="editorial-text-link" href="{{ step.href }}">{{ step.action }}</a>
                 </li>
               {% endfor %}
             </ul>

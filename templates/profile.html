@@ -186,14 +186,14 @@
                     <h3 class="profile-activity-title">{{ item.title }}</h3>
                     <p class="profile-activity-meta">{{ item.meta }}</p>
                   </div>
-                  <a class="editorial-text-link profile-activity-action" href="{{ item.href }}">Review →</a>
+                  <a class="editorial-text-link profile-activity-action" href="{{ item.href }}">Review</a>
                 </article>
               {% endfor %}
             </div>
           {% else %}
             <div class="profile-empty">
               <p class="empty-copy">No practice history yet. When you finish a practice check or assessment, it will show up here.</p>
-              <a class="editorial-text-link" href="{{ url_for('practice') }}">Go to Practice →</a>
+              <a class="editorial-text-link" href="{{ url_for('practice') }}">Go to Practice</a>
             </div>
           {% endif %}
         </section>

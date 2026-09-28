@@ -64,11 +64,11 @@
       <span class="wic-btn wic-btn-disabled" aria-disabled="true">{{ action_label or "Locked" }}</span>
     {% elif action_href and action_variant == "primary" %}
       <a class="wic-btn wic-btn-primary" href="{{ action_href }}">
-        {{ action_label }} <span aria-hidden="true">→</span>
+        {{ action_label }}
       </a>
     {% elif action_href %}
       <a class="wic-btn wic-btn-secondary" href="{{ action_href }}">
-        {{ action_label }} <span aria-hidden="true">→</span>
+        {{ action_label }}
       </a>
     {% endif %}
   </div>

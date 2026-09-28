@@ -112,7 +112,7 @@
               <div class="announce-empty" id="announce-filter-empty" hidden>
                 <h3 class="empty-title">You’re all caught up</h3>
                 <p class="empty-copy">You’ve read all your announcements.</p>
-                <a class="editorial-text-link" href="{{ url_for('announcements') }}">View all announcements <span aria-hidden="true">→</span></a>
+                <a class="editorial-text-link" href="{{ url_for('announcements') }}">View all announcements</a>
               </div>
             {% else %}
               <div class="announce-empty">
@@ -135,7 +135,7 @@
                   {% endif %}
                 </p>
                 {% if q or filter != 'all' %}
-                  <a class="editorial-text-link" href="{{ url_for('announcements') }}">View all announcements <span aria-hidden="true">→</span></a>
+                  <a class="editorial-text-link" href="{{ url_for('announcements') }}">View all announcements</a>
                 {% endif %}
               </div>
             {% endif %}
@@ -143,7 +143,7 @@
 
           <section class="announce-detail-pane" aria-live="polite" {% if not groups %}hidden{% endif %}>
             <h2 class="announce-pane-label">Message</h2>
-            <a class="hub-back announce-back" id="announce-back" href="{{ list_href }}" data-no-loading {% if not selected %}hidden{% endif %}>← Back to announcements</a>
+            <a class="hub-back announce-back" id="announce-back" href="{{ list_href }}" data-no-loading {% if not selected %}hidden{% endif %}>Back to announcements</a>
             <article
               class="announce-detail {% if arrive %}is-arrive{% endif %}"
               id="announce-detail"

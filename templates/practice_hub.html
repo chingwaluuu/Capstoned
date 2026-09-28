@@ -48,9 +48,7 @@
               {% if item.locked %}
                 <span class="practice-course-go is-disabled" aria-disabled="true">Locked</span>
               {% else %}
-                <a class="practice-course-go" href="{{ item.href }}">
-                  Start <i class="fi fi-rr-arrow-small-right" aria-hidden="true"></i>
-                </a>
+                <a class="practice-course-go" href="{{ item.href }}">Start</a>
               {% endif %}
             </article>
           {% endfor %}
@@ -59,7 +57,7 @@
         <div class="practice-empty">
           <h3 class="home-continue-title">Nothing to practice yet</h3>
           <p class="home-continue-meta">Your teacher hasn’t approved practice materials yet. When a lesson is ready, it will show up here for you to start.</p>
-          <a class="home-text-link" href="{{ url_for('home') }}#subjects-title">Go to your subjects →</a>
+          <a class="home-text-link" href="{{ url_for('home') }}#subjects-title">Go to your subjects</a>
         </div>
       {% endif %}
     </section>

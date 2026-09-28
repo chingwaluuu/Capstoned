@@ -2860,3 +2860,196 @@
     transition: none;
   }
 }
+
+/* Student subject hub — compact header row, no white command slab */
+.pro-body.student.student-refined.subject-hub-page:not(.teacher-workspace) .hub-command,
+.pro-body.student.subject-hub-page .hub-command {
+  display: block;
+  margin: 0 0 20px;
+  padding: 0 !important;
+  border: 0 !important;
+  border-left: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+.pro-body.student.student-refined.subject-hub-page:not(.teacher-workspace) .hub-command-top {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  margin: 0;
+  min-height: 0;
+}
+
+.pro-body.student.student-refined.subject-hub-page:not(.teacher-workspace):not(:has(.assessment-take-shell)):not(:has(.lobby-card:not(.profile-section))) .hub-command a.hub-back,
+.pro-body.student.student-refined.subject-hub-page:not(.teacher-workspace) .hub-command a.hub-back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  align-self: center;
+  gap: 6px;
+  width: fit-content;
+  min-height: 0;
+  margin: 0;
+  padding: 6px 14px !important;
+  border: 1px solid #E0E0E0 !important;
+  border-radius: 999px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #5F5E5A !important;
+  font-family: var(--font-sans, inherit) !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  line-height: 1.2;
+  letter-spacing: 0;
+  text-decoration: none;
+  text-transform: none;
+  white-space: nowrap;
+}
+
+.pro-body.student.subject-hub-page .hub-command a.hub-back [aria-hidden],
+.pro-body.student.student-refined.subject-hub-page .hub-command a.hub-back .fi {
+  display: none !important;
+}
+
+.pro-body.student.student-refined.subject-hub-page:not(.teacher-workspace):not(:has(.assessment-take-shell)):not(:has(.lobby-card:not(.profile-section))) .hub-command a.hub-back:hover,
+.pro-body.student.student-refined.subject-hub-page:not(.teacher-workspace):not(:has(.assessment-take-shell)):not(:has(.lobby-card:not(.profile-section))) .hub-command a.hub-back:focus-visible,
+.pro-body.student.student-refined.subject-hub-page:not(.teacher-workspace) .hub-command a.hub-back:hover,
+.pro-body.student.student-refined.subject-hub-page:not(.teacher-workspace) .hub-command a.hub-back:focus-visible {
+  background: #FCFCFA !important;
+  color: #5F5E5A !important;
+  text-decoration: none;
+}
+
+.pro-body.student.subject-hub-page .hub-command-title,
+.pro-body.student.student-refined.subject-hub-page .hub-command .hub-command-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  font-family: var(--font-sans, Inter, "Segoe UI", sans-serif) !important;
+  font-size: 22px !important;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+  color: #1A1A1A;
+}
+
+.pro-body.student.subject-hub-page .ask-teacher-link,
+.pro-body.student.subject-hub-page .hub-command .text-link.ask-teacher-link {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  margin: 0 !important;
+  margin-top: 0 !important;
+  margin-left: auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  color: #534AB7;
+  font-family: var(--font-sans, inherit);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.2;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.pro-body.student.subject-hub-page .ask-teacher-link:hover,
+.pro-body.student.subject-hub-page .hub-command .text-link.ask-teacher-link:hover {
+  color: #3C3489;
+  text-decoration: none;
+}
+
+.pro-body.student.subject-hub-page .hub-command-kicker {
+  display: none !important;
+}
+
+.pro-body.student.subject-hub-page .hub-command-meta,
+.pro-body.student.subject-hub-page .hub-command-next {
+  margin: 6px 0 0;
+  font-family: var(--font-sans, inherit);
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.4;
+  color: #8A8A8A;
+}
+
+.pro-body.student.subject-hub-page .hub-command-next {
+  margin-top: 2px;
+  color: #6B6B6B;
+}
+
+.pro-body.student.subject-hub-page .hub-path {
+  display: flex !important;
+  flex-wrap: wrap;
+  grid-template-columns: none;
+  gap: 8px;
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pro-body.student.subject-hub-page .hub-path-step {
+  flex: 0 0 auto;
+  min-width: 0;
+}
+
+.pro-body.student.subject-hub-page .hub-path-step a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: auto;
+  min-height: 0;
+  padding: 8px 16px;
+  border: 1px solid #E0E0E0;
+  border-radius: 999px !important;
+  background: transparent;
+  box-shadow: none;
+  color: #5F5E5A;
+  font-family: var(--font-sans, inherit);
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.pro-body.student.subject-hub-page .hub-path-step.is-current a {
+  border-color: transparent;
+  background: #534AB7;
+  color: #FFFFFF;
+  box-shadow: none;
+}
+
+.pro-body.student.subject-hub-page .hub-path-num {
+  display: none !important;
+}
+
+@media (max-width: 640px) {
+  .pro-body.student.student-refined.subject-hub-page:not(.teacher-workspace) .hub-command-top {
+    flex-wrap: wrap;
+    row-gap: 8px;
+  }
+
+  .pro-body.student.subject-hub-page .hub-command-title,
+  .pro-body.student.student-refined.subject-hub-page .hub-command .hub-command-title {
+    flex: 1 1 100%;
+    order: 3;
+    font-size: 22px !important;
+  }
+}
+
+/* Directional arrows stay off buttons/links app-wide. Assessments lobby/take keep their own markup. */
+.pro-body a .fi-rr-arrow-right,
+.pro-body a .fi-rr-arrow-left,
+.pro-body a .fi-rr-arrow-small-right,
+.pro-body button .fi-rr-arrow-right,
+.pro-body button .fi-rr-arrow-left,
+.pro-body .chat-back-icon,
+.pro-body .subject-tile-chevron {
+  display: none !important;
+}

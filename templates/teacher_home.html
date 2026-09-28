@@ -35,7 +35,7 @@
                 <p class="editorial-row-meta">{{ item.meta }}</p>
               </div>
               <div class="editorial-row-action">
-                <a class="editorial-text-link" href="{{ item.href }}">{{ item.action }} →</a>
+                <a class="editorial-text-link" href="{{ item.href }}">{{ item.action }}</a>
               </div>
             </article>
           {% endfor %}
@@ -44,7 +44,7 @@
         <article class="editorial-empty">
           <h3 class="empty-title">{{ empty_cta.title }}</h3>
           <p class="empty-copy">{{ empty_cta.note }}</p>
-          <a class="editorial-text-link" href="{{ empty_cta.href }}">{{ empty_cta.action }} →</a>
+          <a class="editorial-text-link" href="{{ empty_cta.href }}">{{ empty_cta.action }}</a>
         </article>
       {% endif %}
     </section>

@@ -8,19 +8,14 @@
   <section class="hub-command subject-{{ subject.slug }}" aria-labelledby="hub-title">
     <div class="hub-command-top">
       <a class="hub-back" href="{{ url_for('home') }}">Back to Home</a>
+      <h1 id="hub-title" class="hub-command-title">{{ subject.name }}</h1>
       {% if ask_teacher %}
         <a class="text-link ask-teacher-link" href="{{ ask_teacher.href }}">Ask {{ ask_teacher.name }}</a>
       {% endif %}
     </div>
-
-    <div class="hub-command-main">
-      <div class="hub-command-copy">
-        <p class="hub-command-kicker">Subject hub</p>
-        <h1 id="hub-title" class="hub-command-title">{{ subject.name }}</h1>
-        <p class="hub-command-meta">{{ subject.teacher }} · {{ subject.progress_label }}</p>
-        <p class="hub-command-next">{{ subject.next_action }}</p>
-      </div>
-    </div>
+    <p class="hub-command-kicker">Subject hub</p>
+    <p class="hub-command-meta">{{ subject.teacher }} · {{ subject.progress_label }}</p>
+    <p class="hub-command-next">{{ subject.next_action }}</p>
 
     <ol class="hub-path" aria-label="Learning path">
       <li class="hub-path-step {% if tab == 'study' %}is-current{% endif %}">

@@ -34,7 +34,7 @@
           <h2 id="results-story-title" class="home-continue-title">{{ results_story.title }}</h2>
           <p class="home-continue-meta">{{ results_story.message }}</p>
           <div class="home-continue-actions">
-            <a class="home-btn" href="{{ results_story.cta_href }}">{{ results_story.cta_label }} <span aria-hidden="true">→</span></a>
+            <a class="home-btn" href="{{ results_story.cta_href }}">{{ results_story.cta_label }}</a>
           </div>
         </section>
       {% endif %}
@@ -75,7 +75,7 @@
           <div class="results-empty home-panel">
             <h3 class="home-continue-title">No results yet</h3>
             <p class="home-continue-meta">Finish a practice check or assessment, then come back here to review feedback and decide what to try next.</p>
-            <a class="home-text-link" href="{{ url_for('practice') }}">Go to Practice <span aria-hidden="true">→</span></a>
+            <a class="home-text-link" href="{{ url_for('practice') }}">Go to Practice</a>
           </div>
         {% endif %}
       </section>
