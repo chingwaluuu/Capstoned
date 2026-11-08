@@ -28,6 +28,8 @@ from models import (
     Question,
     QuizDraft,
     Setting,
+    SchoolYear,
+    SchoolSection,
     Summary,
     User,
     db,
@@ -254,6 +256,7 @@ def ensure_schema():
         ("attempt", "difficulty", "VARCHAR(20)"),
         ("assessment", "difficulty", "VARCHAR(20)"),
         ("user", "avatar_filename", "VARCHAR(255)"),
+        ("user", "is_active", "BOOLEAN NOT NULL DEFAULT 1"),
     )
     preparer = db.engine.dialect.identifier_preparer
     with db.engine.begin() as conn:
@@ -299,6 +302,9 @@ def current_user():
         return None
     user = db.session.get(User, user_id)
     if not user:
+        session.clear()
+        return None
+    if not user.is_active:
         session.clear()
         return None
     return session_user_payload(user)
@@ -930,11 +936,15 @@ def _share_slices(rows: list[dict]) -> list[dict]:
     return rows
 
 
-def build_admin_class_monitor() -> dict:
+def build_admin_class_monitor(section_name: str | None = None) -> dict:
     """Section-wide student progress, HOTS strength, and class health for admin."""
-    students = User.query.filter_by(role="student").order_by(User.name).all()
+    students_query = User.query.filter_by(role="student")
+    if section_name:
+        students_query = students_query.filter_by(section=section_name)
+    students = students_query.order_by(User.name).all()
     teachers = User.query.filter_by(role="teacher").order_by(User.subject, User.name).all()
-    attempts = Attempt.query.order_by(Attempt.submitted_at.desc()).all()
+    student_ids = {student.id for student in students}
+    attempts = Attempt.query.filter(Attempt.user_id.in_(student_ids)).order_by(Attempt.submitted_at.desc()).all() if student_ids else []
 
     bloom_good = {"Analyze": 0, "Evaluate": 0, "Create": 0}
     bloom_total = {"Analyze": 0, "Evaluate": 0, "Create": 0}
@@ -1149,7 +1159,7 @@ def build_admin_class_monitor() -> dict:
     }
 
     return {
-        "section_label": "Grade 7 · Pilot Section",
+        "section_label": section_name or "No section selected",
         "student_count": len(students),
         "teacher_count": len(teachers),
         "teacher_names": ", ".join(
@@ -1949,7 +1959,7 @@ def login():
         password = request.form.get("password", "")
         remember = request.form.get("remember") == "1"
         user = User.query.filter_by(email=email).first()
-        if user and password and check_password_hash(user.password_hash, password):
+        if user and user.is_active and password and check_password_hash(user.password_hash, password):
             session.clear()
             session["user_id"] = user.id
             session.permanent = remember
@@ -3820,14 +3830,35 @@ def teacher_announce(user):
 @app.route("/admin")
 @require_role("admin")
 def admin_home(user):
-    monitor = build_admin_class_monitor()
+    years = SchoolYear.query.order_by(SchoolYear.name.desc()).all()
+    year_name = request.args.get("school_year") or next((y.name for y in years if y.active), years[0].name if years else "")
+    year = next((y for y in years if y.name == year_name), None)
+    grade = request.args.get("grade", "7")
+    sections = SchoolSection.query.filter_by(school_year_id=year.id, grade=int(grade)).order_by(SchoolSection.name).all() if year and grade.isdigit() and 7 <= int(grade) <= 10 else []
+    selected_section = request.args.get("section", type=int) or session.get("admin_default_section_id")
+    if selected_section not in {s.id for s in sections}:
+        selected_section = sections[0].id if sections else None
+    section_record = db.session.get(SchoolSection, selected_section) if selected_section else None
+    if section_record:
+        session["admin_default_section_id"] = section_record.id
+        students = User.query.filter_by(role="student", section=section_record.name).all()
+        # Keep the selected class scoped without changing existing attempt history.
+        monitor = build_admin_class_monitor(section_record.name)
+    else:
+        monitor = build_admin_class_monitor("__no_matching_section__")
     context = {
         "user": user,
         "topbar_sub": "Admin",
         "role_nav": admin_nav(),
         "active_nav": "home",
         "title": "Class monitor",
-        "subtitle": "See whether the Grade 7 pilot section is progressing — participation, HOTS strength, and student-by-student status.",
+        "subtitle": "Review progress for a school year, grade, and section.",
+        "school_year": year_name,
+        "school_years": years,
+        "grade": grade,
+        "grades": range(7, 11),
+        "sections": sections,
+        "selected_section": selected_section,
         "monitor": monitor,
     }
     context.update(announcements_context(user))
@@ -3838,6 +3869,49 @@ def admin_home(user):
 @require_role("admin")
 def admin_users(user):
     if request.method == "POST":
+        action = request.form.get("account_action")
+        if action:
+            record = db.session.get(User, request.form.get("user_id", type=int))
+            if not record:
+                flash("Account not found.", "danger")
+                return redirect(url_for("admin_users"))
+            if action == "update":
+                name = request.form.get("name", "").strip()
+                role = request.form.get("role", "").strip().lower()
+                if not name or role not in {"student", "teacher", "admin"}:
+                    flash("Enter a name and choose a valid role.", "danger")
+                elif record.id == user["id"] and role != "admin":
+                    flash("You cannot remove your own admin access here.", "danger")
+                else:
+                    record.name = name[:120]
+                    record.role = role
+                    if role == "teacher":
+                        record.section = request.form.get("section", "").strip() or record.section
+                    elif role == "student":
+                        record.subject = None
+                        record.section = request.form.get("section", "").strip() or record.section
+                    else:
+                        record.subject = None
+                    db.session.commit()
+                    flash("Account details updated.", "success")
+            elif action == "reset_password":
+                password = request.form.get("new_password", "")
+                if len(password) < 8:
+                    flash("Use a password with at least 8 characters.", "danger")
+                else:
+                    record.password_hash = generate_password_hash(password)
+                    db.session.commit()
+                    flash("Password reset. Share the new password securely with the account holder.", "success")
+            elif action == "toggle_active":
+                if record.id == user["id"]:
+                    flash("You cannot deactivate your own account.", "danger")
+                elif record.role == "admin" and record.is_active and User.query.filter_by(role="admin", is_active=True).count() <= 1:
+                    flash("At least one active admin account must remain.", "danger")
+                else:
+                    record.is_active = not record.is_active
+                    db.session.commit()
+                    flash("Account access " + ("restored." if record.is_active else "paused."), "success")
+            return redirect(url_for("admin_users"))
         raw = request.form.get("csv", "").strip()
         created = 0
         reader = csv.reader(io.StringIO(raw))
@@ -3874,9 +3948,16 @@ def admin_users(user):
         return redirect(url_for("admin_users"))
 
     panels = []
-    for record in User.query.order_by(User.role, User.name).all():
+    records = User.query.order_by(User.role, User.name).all()
+    sections = SchoolSection.query.order_by(SchoolSection.grade, SchoolSection.name).all()
+    for record in records:
         panels.append(
             {
+                "id": record.id,
+                "role": record.role,
+                "subject": record.subject or "",
+                "section": record.section or "",
+                "active": record.is_active,
                 "kicker": record.role.title() + (f" · {record.subject}" if record.subject else ""),
                 "title": record.name,
                 "meta": record.email,
@@ -3894,6 +3975,8 @@ def admin_users(user):
         title="Users",
         subtitle="Bulk import school emails, names, roles, and temporary passwords.",
         panels=panels,
+        user_counts={role: sum(1 for record in records if record.role == role) for role in ("student", "teacher", "admin")},
+        account_sections=sections,
         form_blocks=[
             {
                 "title": "Bulk import",
@@ -3919,30 +4002,73 @@ def admin_users(user):
     )
 
 
-@app.route("/admin/section")
+@app.route("/admin/section", methods=["GET", "POST"])
 @require_role("admin")
 def admin_section(user):
-    teachers = ", ".join(t.subject or t.name for t in User.query.filter_by(role="teacher").all()) or "None yet"
-    return render_template(
-        "staff_page.html",
-        user=user,
-        topbar_sub="Section",
-        role_nav=admin_nav(),
-        active_nav="section",
-        title="Section management",
-        subtitle="One Grade 7 pilot section with English, Math, and Science teachers.",
-        panels=[
-            {
-                "kicker": "Pilot section",
-                "title": "Grade 7 · Section A",
-                "meta": f"{User.query.filter_by(role='student').count()} students · Teachers: {teachers}",
-                "action": None,
-                "action_href": None,
-                "soft": True,
-            }
-        ],
-        form_blocks=[],
-    )
+    years = SchoolYear.query.order_by(SchoolYear.name.desc()).all()
+    if request.method == "POST":
+        action = request.form.get("action")
+        if action == "year":
+            name = request.form.get("year", "").strip()
+            if not re.fullmatch(r"\d{4}-\d{4}", name) or int(name[:4]) + 1 != int(name[-4:]):
+                flash("Enter a school year like 2026-2027.", "danger")
+            elif SchoolYear.query.filter_by(name=name).first():
+                flash("That school year already exists.", "danger")
+            else:
+                db.session.add(SchoolYear(name=name, active=not years))
+                db.session.commit()
+                flash(f"School year {name} added.", "success")
+        elif action == "activate_year":
+            chosen = db.session.get(SchoolYear, request.form.get("year_id", type=int))
+            if chosen:
+                SchoolYear.query.update({SchoolYear.active: False})
+                chosen.active = True
+                db.session.commit()
+                flash(f"{chosen.name} is now the active school year.", "success")
+        elif action == "section":
+            grade = request.form.get("grade", type=int)
+            name = request.form.get("name", "").strip()
+            year = SchoolYear.query.filter_by(active=True).first() or SchoolYear.query.order_by(SchoolYear.name.desc()).first()
+            if not year:
+                year = SchoolYear(name=f"{datetime.utcnow().year}-{datetime.utcnow().year + 1}", active=True)
+                db.session.add(year)
+                db.session.flush()
+            if grade not in range(7, 11) or not name:
+                flash("Choose Grade 7–10 and enter a section name.", "danger")
+            elif SchoolSection.query.filter_by(name=name, grade=grade, school_year_id=year.id).first():
+                flash("That section already exists for this grade.", "danger")
+            else:
+                db.session.add(SchoolSection(name=name, grade=grade, school_year_id=year.id))
+                db.session.commit()
+                flash("Section added.", "success")
+        elif action == "assign":
+            section = db.session.get(SchoolSection, request.form.get("section_id", type=int))
+            selected_ids = request.form.getlist("student_ids", type=int)
+            moved = 0
+            if section:
+                for student in User.query.filter(User.id.in_(selected_ids), User.role == "student").all():
+                    student.section = section.name
+                    moved += 1
+                db.session.commit()
+                flash(f"Assigned {moved} student(s) to {section.name}.", "success")
+        elif action == "rename_section":
+            section = db.session.get(SchoolSection, request.form.get("section_id", type=int))
+            name = request.form.get("name", "").strip()
+            if section and name:
+                old_name = section.name
+                section.name = name
+                for student in User.query.filter_by(role="student", section=old_name).all():
+                    student.section = name
+                db.session.commit()
+                flash("Section updated; student records remain attached.", "success")
+        return redirect(url_for("admin_section"))
+    sections = SchoolSection.query.order_by(SchoolSection.school_year_id.desc(), SchoolSection.grade, SchoolSection.name).all()
+    for section in sections:
+        section.student_count = User.query.filter_by(role="student", section=section.name).count()
+    students = User.query.filter_by(role="student").order_by(User.name).all()
+    unassigned_count = sum(1 for student in students if not student.section or not SchoolSection.query.filter_by(name=student.section).first())
+    current_year = next((year for year in SchoolYear.query.filter_by(active=True).all()), None)
+    return render_template("admin_sections.html", user=user, topbar_sub="Section management", role_nav=admin_nav(), active_nav="section", years=years, sections=sections, students=students, grades=range(7, 11), unassigned_count=unassigned_count, current_year=current_year)
 
 
 @app.route("/admin/reports")
@@ -3955,45 +4081,15 @@ def admin_reports(user):
 @require_role("admin")
 def admin_settings(user):
     if request.method == "POST":
-        # No editable controls are exposed — avoid a fake "saved" success.
-        flash("These are read-only pilot notes. Change upload/AI behavior via environment settings.", "danger")
+        for key in ("school_name", "default_school_year"):
+            record = db.session.get(Setting, key) or Setting(key=key)
+            record.value = request.form.get(key, "").strip()[:255]
+            db.session.add(record)
+        db.session.commit()
+        flash("School settings saved.", "success")
         return redirect(url_for("admin_settings"))
-    return render_template(
-        "staff_page.html",
-        user=user,
-        topbar_sub="Settings",
-        role_nav=admin_nav(),
-        active_nav="settings",
-        title="System settings",
-        subtitle="Read-only pilot defaults. Upload limits and AI keys are configured on the server.",
-        panels=[
-            {
-                "kicker": "Uploads",
-                "title": "20 MB · 100 pages · reject weak scans",
-                "meta": "Configured in app settings · No OCR in research scope",
-                "action": None,
-                "action_href": None,
-                "soft": True,
-            },
-            {
-                "kicker": "Privacy",
-                "title": "Minimize student data in AI prompts",
-                "meta": "Role-based access · school email accounts",
-                "action": None,
-                "action_href": None,
-                "soft": True,
-            },
-            {
-                "kicker": "AI",
-                "title": "Prompt engineering only",
-                "meta": "Set OPENAI_API_KEY or GEMINI_API_KEY. Without a key, Bloom uses a grounded fallback generator.",
-                "action": None,
-                "action_href": None,
-                "soft": True,
-            },
-        ],
-        form_blocks=[],
-    )
+    vals = {item.key: item.value for item in Setting.query.filter(Setting.key.in_(["school_name", "default_school_year"])).all()}
+    return render_template("admin_settings.html", user=user, topbar_sub="Settings", role_nav=admin_nav(), active_nav="settings", settings=vals, years=SchoolYear.query.order_by(SchoolYear.name.desc()).all())
 
 
 @app.route("/messages")

@@ -1,0 +1,19 @@
+{% extends "layouts/pro.html" %}
+{% block title %}General settings — Bloom{% endblock %}
+{% block body_class %}admin-settings-page{% endblock %}
+{% block page_kicker %}ADMINISTRATION{% endblock %}
+{% block page_title %}General settings{% endblock %}
+{% block page_subtitle %}Manage the school details and defaults used throughout Bloom.{% endblock %}
+{% block content %}
+<div class="general-settings-layout">
+  <nav class="settings-local-nav" aria-label="Settings categories"><a class="is-current" href="#school-details"><span aria-hidden="true">▦</span> School details</a><a href="#defaults"><span aria-hidden="true">⚙</span> System defaults</a></nav>
+  <div class="general-settings-content">
+    <form method="post" class="general-settings-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <section class="general-settings-card" id="school-details"><div class="settings-card-heading"><span class="settings-heading-icon" aria-hidden="true">▦</span><div><h2>School details</h2><p>These details help identify your Bloom workspace.</p></div></div><div class="settings-form-field"><label for="school-name">School name</label><input id="school-name" name="school_name" value="{{ settings.get('school_name','') }}" placeholder="e.g. Letran Calamba"><small>Used in school-facing pages and account context.</small></div></section>
+      <section class="general-settings-card" id="defaults"><div class="settings-card-heading"><span class="settings-heading-icon" aria-hidden="true">⚙</span><div><h2>System defaults</h2><p>Choose the default school year for admin views.</p></div></div><div class="settings-form-field"><label for="default-year">Default school year</label><select id="default-year" name="default_school_year"><option value="">Choose a school year</option>{% for year in years %}<option value="{{ year.name }}" {% if settings.get('default_school_year') == year.name or (not settings.get('default_school_year') and year.active) %}selected{% endif %}>{{ year.name }}</option>{% endfor %}</select><small>School years and sections are managed in Section Management.</small></div></section>
+      <div class="settings-save-row"><p>Your changes apply across the admin workspace.</p><button type="submit">Save changes</button></div>
+    </form>
+  </div>
+</div>
+{% endblock %}

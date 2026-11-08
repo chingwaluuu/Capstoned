@@ -14,6 +14,7 @@ class User(db.Model):
     subject = db.Column(db.String(40))  # English | Mathematics | Science
     password_hash = db.Column(db.String(255), nullable=False)
     section = db.Column(db.String(80), default="Grade 7 · Pilot Section")
+    is_active = db.Column(db.Boolean, default=True, nullable=False)
     avatar_filename = db.Column(db.String(255))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
@@ -154,6 +155,21 @@ class AnnouncementRead(db.Model):
 class Setting(db.Model):
     key = db.Column(db.String(80), primary_key=True)
     value = db.Column(db.String(255), default="")
+
+
+class SchoolYear(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(20), unique=True, nullable=False)
+    active = db.Column(db.Boolean, default=False, nullable=False)
+
+
+class SchoolSection(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(80), nullable=False)
+    grade = db.Column(db.Integer, nullable=False)
+    school_year_id = db.Column(db.Integer, db.ForeignKey("school_year.id"), nullable=False)
+    school_year = db.relationship("SchoolYear")
+    __table_args__ = (db.UniqueConstraint("name", "grade", "school_year_id", name="uq_section_grade_year"),)
 
 
 class QuizDraft(db.Model):

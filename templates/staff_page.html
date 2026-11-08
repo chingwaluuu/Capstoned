@@ -1,11 +1,20 @@
 {% extends "layouts/pro.html" %}
 {% block title %}{{ title }} — Bloom{% endblock %}
-{% block body_class %}staff-workspace student-refined{% if user and user.role == 'teacher' %} teacher-workspace subject-accent-{{ (user.subject or '')|lower }}{% endif %}{% endblock %}
+{% block body_class %}staff-workspace student-refined{% if user and user.role == 'teacher' %} teacher-workspace subject-accent-{{ (user.subject or '')|lower }}{% endif %}{% if user and user.role == 'admin' and active_nav == 'users' %} admin-users-page{% endif %}{% endblock %}
 {% block page_kicker %}{% if user and user.role == "teacher" %}Teacher{% elif user and user.role == "admin" %}Admin{% else %}Bloom{% endif %}{% endblock %}
 {% block page_title %}{{ title }}{% endblock %}
 {% block page_subtitle %}{{ subtitle }}{% endblock %}
 {% block content %}
   {% set announce_split = active_nav == "announce" %}
+
+  {% if active_nav == 'users' %}
+    <section class="admin-user-overview" aria-label="Account totals">
+      <article><span>All accounts</span><strong>{{ panels|length }}</strong></article>
+      <article><span>Students</span><strong>{{ user_counts.student }}</strong></article>
+      <article><span>Teachers</span><strong>{{ user_counts.teacher }}</strong></article>
+      <article><span>Admins</span><strong>{{ user_counts.admin }}</strong></article>
+    </section>
+  {% endif %}
 
   {% if form_blocks %}
     {% if announce_split %}<div class="announce-compose-split">{% endif %}
@@ -13,7 +22,7 @@
       <section class="home-section staff-compose-page{% if announce_split %} announce-compose-form-col{% endif %}" {% if block.id %}id="{{ block.id }}"{% endif %} aria-labelledby="staff-form-{{ loop.index }}">
         <form class="login-form staff-compose-form" method="POST" action="{{ block.action }}" {% if block.enctype %}enctype="{{ block.enctype }}"{% endif %} {% if block.loading %}data-loading="{{ block.loading }}"{% endif %} {% if block.confirm %}data-confirm="{{ block.confirm }}"{% endif %}>
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-            <p class="staff-compose-kicker">Form</p>
+              <p class="staff-compose-kicker">{% if active_nav == 'users' %}ACCOUNT SETUP{% else %}Form{% endif %}</p>
             <h2 class="staff-compose-title" id="staff-form-{{ loop.index }}">{{ block.title }}</h2>
             {% if block.note %}
               <p class="staff-compose-note">{{ block.note }}</p>
@@ -57,7 +66,7 @@
         <div class="announce-recent-list">
           {% for panel in panels %}
             <article class="hub-card announce-recent-card">
-              <p class="hub-card-kicker home-tag is-hue">{{ panel.kicker }}</p>
+              <p class="hub-card-kicker home-tag is-hue">{{ panel.kicker }}{% if active_nav == 'users' and not panel.active %} · Access paused{% endif %}</p>
               <h3 class="announce-recent-title">{{ panel.title }}</h3>
               <p class="announce-recent-date">{{ panel.date or panel.meta.split(" — ")[0] }}</p>
             </article>
@@ -72,19 +81,21 @@
     <section class="home-section staff-compose-page" aria-labelledby="staff-panels-title">
         <div class="section-heading-row">
           <div>
-            <p class="staff-compose-kicker">Records</p>
-            <h2 id="staff-panels-title" class="staff-compose-list-title">{{ title }}</h2>
+            <p class="staff-compose-kicker">{% if active_nav == 'users' %}DIRECTORY{% else %}Records{% endif %}</p>
+            <h2 id="staff-panels-title" class="staff-compose-list-title">{% if active_nav == 'users' %}School accounts{% else %}{{ title }}{% endif %}</h2>
           </div>
           <span class="materials-section-count">{{ panels|length }}</span>
         </div>
+      {% if active_nav == 'users' %}<label class="admin-user-search-label" for="admin-user-search">Find an account</label><input class="admin-user-search" id="admin-user-search" type="search" placeholder="Search by name, email, role or subject" data-admin-user-search>{% endif %}
       <div class="hub-list stack-md pro-stagger-in">
         {% for panel in panels %}
-          <article class="hub-card hub-card-stack pro-card-interactive">
+          <article class="hub-card hub-card-stack pro-card-interactive" {% if active_nav == 'users' %}data-admin-user-card data-search="{{ (panel.kicker ~ ' ' ~ panel.title ~ ' ' ~ panel.meta)|lower }}"{% endif %}>
             <div>
               <p class="hub-card-kicker home-tag is-hue">{{ panel.kicker }}</p>
               <h3 class="hub-card-title">{{ panel.title }}</h3>
               <p class="hub-card-meta">{{ panel.meta }}</p>
             </div>
+            {% if active_nav == 'users' %}<details class="account-actions"><summary>Manage account</summary><div class="account-action-grid"><form method="post"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="account_action" value="update"><input type="hidden" name="user_id" value="{{ panel.id }}"><label>Name<input name="name" value="{{ panel.title }}" required></label><label>Role<select name="role">{% for role in ['student','teacher','admin'] %}<option value="{{ role }}" {% if panel.role == role %}selected{% endif %}>{{ role|title }}</option>{% endfor %}</select></label><label>Section<input name="section" value="{{ panel.section }}" placeholder="Grade 7 · Section A"></label><button type="submit">Save account</button></form><form method="post"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="account_action" value="reset_password"><input type="hidden" name="user_id" value="{{ panel.id }}"><label>Set temporary password<input type="password" name="new_password" minlength="8" autocomplete="new-password" required></label><button type="submit">Reset password</button></form><form method="post" data-confirm="{{ 'Restore access to this account?' if not panel.active else 'Pause access to this account? Account history will be kept.' }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="account_action" value="toggle_active"><input type="hidden" name="user_id" value="{{ panel.id }}"><button class="today-action today-action-soft">{{ 'Reactivate account' if not panel.active else 'Pause account access' }}</button></form></div></details>{% endif %}
             {% if panel.form_action and panel.action %}
               <div class="hub-card-actions">
                 <form method="POST" action="{{ panel.form_action }}" data-confirm="Approve this upload? Students will be able to practice from it after summarization." data-loading="Approving and summarizing…">
@@ -116,4 +127,5 @@
       <p class="empty-copy">{{ subtitle }}</p>
     </article>
   {% endif %}
+  {% if active_nav == 'users' %}<script>document.querySelector('[data-admin-user-search')?.addEventListener('input',e=>{const q=e.target.value.trim().toLowerCase();document.querySelectorAll('[data-admin-user-card]').forEach(card=>card.hidden=!card.dataset.search.includes(q))});</script>{% endif %}
 {% endblock %}
