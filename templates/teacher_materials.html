@@ -1,6 +1,6 @@
 {% extends "layouts/pro.html" %}
 {% block title %}Materials — Bloom{% endblock %}
-{% block body_class %}teacher-workspace student-refined subject-accent-{{ subject_slug }}{% endblock %}
+{% block body_class %}teacher-workspace teacher-materials-page student-refined subject-accent-{{ subject_slug }}{% endblock %}
 {% block page_header %}
   <header class="materials-upload-page materials-upload-hero" aria-labelledby="materials-title">
     <p class="materials-upload-kicker">Materials</p>
@@ -9,6 +9,8 @@
   </header>
 {% endblock %}
 {% block content %}
+  <div class="teacher-materials-layout">
+    <div class="teacher-materials-upload-column">
   <section class="home-section materials-upload-page" aria-labelledby="upload-title">
     <form class="login-form materials-upload-form" method="POST" action="{{ url_for('teacher_materials') }}" enctype="multipart/form-data" data-loading="Uploading and summarizing…">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
@@ -46,6 +48,8 @@
     </form>
   </section>
 
+    </div>
+    <div class="teacher-materials-library">
   <section class="home-section materials-upload-page" aria-labelledby="pending-title">
     <div class="section-heading-row">
       <div>
@@ -139,4 +143,6 @@
       </div>
     </section>
   {% endif %}
+    </div>
+  </div>
 {% endblock %}

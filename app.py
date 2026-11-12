@@ -692,18 +692,23 @@ def unread_message_count(user_id: int) -> int:
 def can_access_conversation(user, conversation: Conversation) -> bool:
     if not conversation:
         return False
-    if user["role"] == "student":
-        return conversation.student_id == user["id"]
-    if user["role"] == "teacher":
-        return conversation.teacher_id == user["id"]
-    return False
+    return user["role"] in {"student", "teacher"} and user["id"] in {
+        conversation.student_id,
+        conversation.teacher_id,
+    }
 
 
 def get_or_create_conversation(student_id: int, teacher_id: int) -> Conversation:
-    conversation = Conversation.query.filter_by(student_id=student_id, teacher_id=teacher_id).first()
+    conversation = Conversation.query.filter(
+        or_(
+            (Conversation.student_id == student_id) & (Conversation.teacher_id == teacher_id),
+            (Conversation.student_id == teacher_id) & (Conversation.teacher_id == student_id),
+        )
+    ).first()
     if conversation:
         return conversation
-    conversation = Conversation(student_id=student_id, teacher_id=teacher_id)
+    first_id, second_id = sorted((student_id, teacher_id))
+    conversation = Conversation(student_id=first_id, teacher_id=second_id)
     db.session.add(conversation)
     db.session.commit()
     return conversation
@@ -728,6 +733,9 @@ def serialize_message(message: ChatMessage, user_id: int) -> dict:
     status = "sent"
     if mine and message.read_at:
         status = "read"
+    created = message.created_at
+    today = datetime.utcnow().date()
+    day_label = "Today" if created and created.date() == today else "Yesterday" if created and (today - created.date()).days == 1 else created.strftime("%b %d, %Y") if created else ""
     return {
         "id": message.id,
         "body": message.body,
@@ -735,11 +743,14 @@ def serialize_message(message: ChatMessage, user_id: int) -> dict:
         "status": status,
         "created_label": relative_time(message.created_at),
         "created_at": message.created_at.strftime("%b %d · %I:%M %p") if message.created_at else "",
+        "date_key": created.date().isoformat() if created else "",
+        "date_label": day_label,
     }
 
 
 def conversation_preview(conversation: Conversation, user_id: int) -> dict:
-    other = conversation.teacher if conversation.student_id == user_id else conversation.student
+    other_id = conversation.teacher_id if conversation.student_id == user_id else conversation.student_id
+    other = db.session.get(User, other_id)
     last = conversation.messages[-1] if conversation.messages else None
     unread = sum(1 for message in conversation.messages if message.sender_id != user_id and message.read_at is None)
     subject_name = other.subject if other and other.subject else ""
@@ -756,7 +767,10 @@ def conversation_preview(conversation: Conversation, user_id: int) -> dict:
         "id": conversation.id,
         "other_id": other.id if other else 0,
         "name": other.name if other else "Unknown",
+        "contact_role": other.role if other else "",
         "meta": (other.subject or other.role.title()) if other else "",
+        "section": (other.section or "Grade 7 · Pilot Section") if other else "",
+        "needs_reply": bool(last and last.sender_id != user_id),
         "subject_slug": subject_slug,
         "initials": initials(other.name if other else "B"),
         "photo_url": photo_url_for(other),
@@ -777,22 +791,31 @@ def same_section(user, other) -> bool:
     return left == right
 
 
+def same_chat_section(user, other) -> bool:
+    left = (user.get("section") if isinstance(user, dict) else getattr(user, "section", None)) or ""
+    right = (other.get("section") if isinstance(other, dict) else getattr(other, "section", None)) or ""
+    return bool(left and right and left.casefold() == right.casefold())
+
+
 def allowed_chat_partner(user, other) -> bool:
     if not other:
         return False
-    if not same_section(user, other):
+    eligible_roles = {"student", "teacher"}
+    user_role = user.get("role") if isinstance(user, dict) else getattr(user, "role", None)
+    if user_role not in eligible_roles or other.role not in eligible_roles or user["id"] == other.id:
         return False
-    if user["role"] == "student":
-        return other.role == "teacher"
-    if user["role"] == "teacher":
-        return other.role == "student"
-    return False
+    if user_role == "teacher" and other.role == "student":
+        return True
+    return same_chat_section(user, other)
 
 
 def find_conversation(user, other):
-    if user["role"] == "student":
-        return Conversation.query.filter_by(student_id=user["id"], teacher_id=other.id).first()
-    return Conversation.query.filter_by(student_id=other.id, teacher_id=user["id"]).first()
+    return Conversation.query.filter(
+        or_(
+            (Conversation.student_id == user["id"]) & (Conversation.teacher_id == other.id),
+            (Conversation.student_id == other.id) & (Conversation.teacher_id == user["id"]),
+        )
+    ).first()
 
 
 def ask_teacher_context(user, subject_name: str, topic: str, draft: str | None = None):
@@ -4101,50 +4124,54 @@ def messages_inbox():
         flash("Messages are for students and teachers.", "danger")
         return redirect(url_for("home"))
 
-    threads = []
-    if user["role"] == "student":
-        teachers = User.query.filter_by(role="teacher").order_by(User.subject, User.name).all()
-        for teacher in teachers:
-            if not same_section(user, teacher):
-                continue
-            conversation = Conversation.query.filter_by(student_id=user["id"], teacher_id=teacher.id).first()
-            if conversation and conversation.messages:
-                threads.append(conversation_preview(conversation, user["id"]))
-            else:
-                subject_slug = next(
-                    (slug for slug, meta in SUBJECTS.items() if meta["name"] == (teacher.subject or "")),
-                    "general",
-                )
-                preview = "No messages yet — start a private question about a lesson or assessment"
-                threads.append(
-                    {
-                        "id": 0,
-                        "other_id": teacher.id,
-                        "name": teacher.name,
-                        "meta": teacher.subject or "Teacher",
-                        "subject_slug": subject_slug,
-                        "initials": initials(teacher.name),
-                        "photo_url": photo_url_for(teacher),
-                        "preview": preview,
-                        "when": "",
-                        "unread": 0,
-                        "started": False,
-                        "href": url_for("messages_thread", user_id=teacher.id),
-                        "search": f"{teacher.name} {teacher.subject or ''} {preview}".lower(),
-                    }
-                )
-    else:
-        conversations = (
-            Conversation.query.filter_by(teacher_id=user["id"])
-            .order_by(Conversation.updated_at.desc())
-            .all()
+    conversations = (
+        Conversation.query.filter(
+            or_(Conversation.student_id == user["id"], Conversation.teacher_id == user["id"])
         )
-        threads = [
-            conversation_preview(item, user["id"])
-            for item in conversations
-            if item.messages and item.student and same_section(user, item.student)
-        ]
-        threads.sort(key=lambda item: (0 if item["unread"] else 1, item["when"] == ""))
+        .order_by(Conversation.updated_at.desc())
+        .all()
+    )
+    existing = {}
+    for conversation in conversations:
+        other_id = conversation.teacher_id if conversation.student_id == user["id"] else conversation.student_id
+        existing[other_id] = conversation
+
+    contacts = User.query.filter(
+        User.role.in_(("student", "teacher")), User.id != user["id"]
+    ).order_by(User.name).all()
+    threads = []
+    for contact in contacts:
+        if not allowed_chat_partner(user, contact):
+            continue
+        conversation = existing.get(contact.id)
+        if conversation and conversation.messages:
+            thread = conversation_preview(conversation, user["id"])
+        else:
+            preview = "No messages yet — start a private conversation"
+            subject_slug = next(
+                (slug for slug, meta in SUBJECTS.items() if meta["name"] == (contact.subject or "")),
+                "general",
+            )
+            thread = {
+                "id": conversation.id if conversation else 0,
+                "other_id": contact.id,
+                "name": contact.name,
+                "contact_role": contact.role,
+                "meta": contact.subject or contact.role.title(),
+                "section": contact.section or "",
+                "subject_slug": subject_slug,
+                "initials": initials(contact.name),
+                "photo_url": photo_url_for(contact),
+                "preview": preview,
+                "when": "",
+                "unread": 0,
+                "started": False,
+                "needs_reply": False,
+                "href": url_for("messages_thread", user_id=contact.id),
+                "search": f"{contact.name} {contact.role} {contact.subject or ''} {preview}".lower(),
+            }
+        threads.append(thread)
+    threads.sort(key=lambda item: (0 if item["unread"] else 1, item["when"] == ""))
 
     subject_filters = [
         {"slug": meta["slug"], "name": meta["name"]}
@@ -4176,18 +4203,14 @@ def messages_thread(user_id):
     other = db.session.get(User, user_id)
     if not other or not allowed_chat_partner(user, other):
         flash(
-            "You can only message your teachers."
+            "You can only message people in your section."
             if user["role"] == "student"
-            else "You can only message students in your section.",
+            else "You can only message people in your section.",
             "danger",
         )
         return redirect(url_for("messages_inbox"))
 
     conversation = find_conversation(user, other)
-    if user["role"] == "teacher" and (not conversation or not conversation.messages):
-        flash("That student has not started a conversation yet.", "danger")
-        return redirect(url_for("messages_inbox"))
-
     if request.method == "POST":
         body = (request.form.get("body") or "").strip()
         if not body:
@@ -4198,10 +4221,7 @@ def messages_thread(user_id):
             if user["role"] == "student":
                 conversation = get_or_create_conversation(user["id"], other.id)
             elif not conversation:
-                flash("That student has not started a conversation yet.", "danger")
-                if request.headers.get("X-Requested-With") == "fetch":
-                    return jsonify({"ok": False, "error": "Could not send that message."}), 400
-                return redirect(url_for("messages_inbox"))
+                conversation = get_or_create_conversation(other.id, user["id"])
             if conversation and can_access_conversation(user, conversation):
                 db.session.add(
                     ChatMessage(conversation_id=conversation.id, sender_id=user["id"], body=body)
@@ -4232,6 +4252,7 @@ def messages_thread(user_id):
             "photo_url": photo_url_for(other),
         },
         "messages": messages,
+        "needs_reply": bool(messages and user["role"] == "teacher" and not messages[-1]["mine"]),
         "draft": draft,
         "poll_url": url_for("messages_updates", user_id=other.id),
         "send_url": url_for("messages_thread", user_id=other.id),

@@ -2,21 +2,47 @@
 {% set active_tab = "messages" if not is_teacher else "" %}
 {% set topbar_sub = "Messages" %}
 {% block title %}Messages — Bloom{% endblock %}
-{% block body_class %}{% if not is_teacher %}student {% else %}teacher-workspace {% endif %}student-refined{% endblock %}
+{% block body_class %}{% if not is_teacher %}student {% else %}teacher-workspace teacher-messages-page {% endif %}student-refined{% endblock %}
 {% block page_kicker %}{% endblock %}
+{% block page_header %}{% if not is_teacher %}{{ super() }}{% endif %}{% endblock %}
 {% block page_title %}Messages{% endblock %}
 {% block page_subtitle %}
   {% if is_teacher %}
-    Private academic chats with your students.
+    Private chats with students and your section team.
   {% else %}
-    Ask your teachers about lessons, assessments, and materials.
+    Message classmates and teachers in your section.
   {% endif %}
 {% endblock %}
 {% block content %}
+  {% if is_teacher %}
+  <div class="teacher-messages-wrap">
+    <header class="teacher-messages-heading"><div><h1>Messages</h1><p>Private chats with students and your section team.</p></div><div class="teacher-message-heading-actions"><span>Replies stay between you and the recipient</span><button type="button" class="teacher-new-message-button" data-new-message-open aria-haspopup="dialog">New message</button></div></header>
+    <dialog class="teacher-new-message-dialog" data-new-message-dialog aria-labelledby="new-message-title">
+      <div class="teacher-new-message-content">
+        <header><div><span>NEW CONVERSATION</span><h2 id="new-message-title">Choose a student</h2><p>Search the school directory to start a private message.</p></div><button type="button" data-new-message-close aria-label="Close">×</button></header>
+        <label class="teacher-new-message-search"><span class="sr-only">Search students</span><input type="search" placeholder="Search students" data-new-message-search></label>
+        <div class="teacher-new-message-list" data-new-message-list>
+          {% for thread in threads if thread.contact_role == 'student' %}
+            <a href="{{ thread.href }}" data-new-message-recipient data-search="{{ thread.search }}"><span class="teacher-message-avatar tone-{{ loop.index0 % 4 }}">{{ thread.initials }}</span><span><strong>{{ thread.name }}</strong><small>{{ thread.section or 'Section not assigned' }}</small></span><span aria-hidden="true">→</span></a>
+          {% else %}
+            <p class="teacher-new-message-empty">No students are currently assigned to your section.</p>
+          {% endfor %}
+        </div>
+      </div>
+    </dialog>
+    <section class="teacher-inbox-grid" aria-label="Teacher messages">
+      <aside class="teacher-conversation-pane"><div class="teacher-conversation-top"><div><h2>People in your section</h2><span class="teacher-conversation-count" data-message-count>{{ threads|length }} people</span></div><label class="teacher-message-search"><span class="sr-only">Search people</span><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 4 4"/></svg><input type="search" placeholder="Search people" data-message-search-input></label></div>
+        <div class="teacher-message-filters" role="group" aria-label="Conversation filters" data-message-filters><button type="button" class="is-active" data-message-filter="all" aria-pressed="true" {% if not threads %}disabled{% endif %}>All</button><button type="button" data-message-filter="unread" aria-pressed="false" {% if not threads %}disabled{% endif %}>Unread</button></div>
+        <div class="teacher-conversation-list" data-message-list>{% for thread in threads %}<a class="teacher-conversation-row{% if thread.unread %} is-unread{% endif %}" href="{{ thread.href }}" data-message-row data-unread="{{ 1 if thread.unread else 0 }}" data-search="{{ thread.search }}"><span class="teacher-message-avatar tone-{{ loop.index0 % 4 }}">{{ thread.initials }}</span><span class="teacher-conversation-copy"><span class="teacher-conversation-topline"><strong>{{ thread.name }}</strong>{% if thread.when %}<time>{{ thread.when }}</time>{% endif %}</span><small>{{ thread.section or 'Grade 7 · Pilot Section' }}{% if thread.meta %} · {{ thread.meta }}{% endif %}</small><span class="teacher-conversation-preview">{{ thread.preview }}{% if thread.unread %}<i aria-label="Unread"></i>{% endif %}</span></span></a>{% endfor %}<div class="teacher-conversation-empty" data-message-empty {% if threads %}hidden{% endif %}>Conversations will be listed here.</div></div>
+      </aside>
+      {% if threads %}<section class="teacher-inbox-placeholder"><div><span aria-hidden="true"><svg viewBox="0 0 160 120"><path d="M18 15h74a14 14 0 0 1 14 14v30a14 14 0 0 1-14 14H52L30 88V73h-2a14 14 0 0 1-14-14V29a14 14 0 0 1 14-14Z" fill="#C9D0EE"/><circle cx="42" cy="44" r="4" fill="white"/><circle cx="56" cy="44" r="4" fill="white"/><circle cx="70" cy="44" r="4" fill="white"/><path d="M69 54h72a14 14 0 0 1 14 14v23a14 14 0 0 1-14 14h-7v10l-18-10H69a14 14 0 0 1-14-14V68a14 14 0 0 1 14-14Z" fill="#1F2A5C"/><path d="M82 76h46M82 87h32" stroke="#8590C8" stroke-width="4" stroke-linecap="round"/></svg></span><h2>Select a conversation</h2><p>Choose someone from your section to read or send a private message.</p></div></section>{% else %}<section class="teacher-inbox-placeholder is-no-messages"><div><span aria-hidden="true"><svg viewBox="0 0 160 120"><path d="M18 15h74a14 14 0 0 1 14 14v30a14 14 0 0 1-14 14H52L30 88V73h-2a14 14 0 0 1-14-14V29a14 14 0 0 1 14-14Z" fill="#C9D0EE"/><circle cx="42" cy="44" r="4" fill="white"/><circle cx="56" cy="44" r="4" fill="white"/><circle cx="70" cy="44" r="4" fill="white"/><path d="M69 54h72a14 14 0 0 1 14 14v23a14 14 0 0 1-14 14h-7v10l-18-10H69a14 14 0 0 1-14-14V68a14 14 0 0 1 14-14Z" fill="#1F2A5C"/><path d="M82 76h46M82 87h32" stroke="#8590C8" stroke-width="4" stroke-linecap="round"/></svg></span><h2>No section contacts yet</h2><p>Classmates and teachers assigned to your section will show up here.</p><a href="{{ url_for('teacher_materials') }}">Go to lessons and materials</a></div></section>{% endif %}
+    </section>
+  </div>
+  {% else %}
   <section class="message-inbox" aria-labelledby="conversation-title">
     <header class="practice-head message-head">
       <h2 class="practice-head-title" id="conversation-title">
-        {% if is_teacher %}Student conversations{% else %}Your teachers{% endif %}
+        {% if is_teacher %}People in your section{% else %}People in your section{% endif %}
       </h2>
       <p class="practice-count" data-message-count>
         {{ threads|length }} conversation{% if threads|length != 1 %}s{% endif %}
@@ -26,13 +52,13 @@
     {% if threads %}
       <div class="message-toolbar">
         <form class="announce-search message-search" role="search" data-message-search onsubmit="return false;">
-          <label class="sr-only" for="message-q">{% if is_teacher %}Search students or messages{% else %}Search teachers or messages{% endif %}</label>
+          <label class="sr-only" for="message-q">Search people or messages</label>
           <span class="search-icon" aria-hidden="true"><i class="fi fi-rr-search"></i></span>
           <input
             id="message-q"
             class="announce-q"
             type="search"
-            placeholder="{% if is_teacher %}Search students or messages…{% else %}Search teachers or messages…{% endif %}"
+            placeholder="Search people or messages…"
             autocomplete="off"
           />
         </form>
@@ -88,17 +114,14 @@
       </div>
     {% else %}
       <div class="message-empty">
-        <h3 class="empty-title">{% if is_teacher %}No student messages yet{% else %}No teachers to message yet{% endif %}</h3>
+        <h3 class="empty-title">No section contacts yet</h3>
         <p class="empty-copy">
-          {% if is_teacher %}
-            When a student asks a question, it will appear here.
-          {% else %}
-            Your subject teachers will show up here when accounts are ready.
-          {% endif %}
+          Classmates and teachers assigned to your section will show up here.
         </p>
       </div>
     {% endif %}
   </section>
+  {% endif %}
 {% endblock %}
 {% block scripts %}
   <script src="{{ url_for('static', filename='js/messages_inbox.js') }}" defer></script>

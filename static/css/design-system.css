@@ -3125,3 +3125,329 @@
     justify-content: flex-start;
   }
 }
+
+/* ---------------------------------------------------------------------------
+   Teacher workspace pages — full-width layouts that share the home page shell
+   --------------------------------------------------------------------------- */
+.pro-body.teacher-materials-page .teacher-materials-layout,
+.pro-body.teacher-hots-page .hots-generator-page {
+  display: grid;
+  grid-template-columns: minmax(340px, 0.82fr) minmax(0, 1.18fr);
+  align-items: start;
+  gap: clamp(20px, 2.2vw, 36px);
+  width: 100%;
+  max-width: none;
+}
+
+.pro-body.teacher-materials-page .teacher-materials-upload-column,
+.pro-body.teacher-materials-page .teacher-materials-library,
+.pro-body.teacher-hots-page .hots-sets-section {
+  display: grid;
+  align-content: start;
+  gap: 18px;
+  min-width: 0;
+}
+
+.pro-body.teacher-materials-page .materials-upload-page,
+.pro-body.teacher-materials-page .materials-upload-form,
+.pro-body.teacher-hots-page .pro-content,
+.pro-body.teacher-hots-page .pro-hero,
+.pro-body.teacher-hots-page .hots-generator-page {
+  width: 100%;
+  max-width: none;
+  box-sizing: border-box;
+}
+
+.pro-body.teacher-materials-page .home-section.materials-upload-page + .home-section.materials-upload-page,
+.pro-body.teacher-materials-page .home-section.materials-upload-page,
+.pro-body.teacher-materials-page .teacher-materials-library > .home-section {
+  margin-top: 0;
+}
+
+.pro-body.teacher-materials-page .materials-upload-form {
+  position: sticky;
+  top: 88px;
+  padding: clamp(22px, 2vw, 32px);
+}
+
+.pro-body.teacher-hots-page .hots-generator-page {
+  gap: clamp(20px, 2.2vw, 36px);
+}
+
+.pro-body.teacher-hots-page .hots-generate-card,
+.pro-body.teacher-hots-page .hots-sets-section {
+  min-width: 0;
+}
+
+.pro-body.teacher-hots-page .hots-generate-card {
+  position: sticky;
+  top: 88px;
+}
+
+.pro-body.teacher-hots-page .hots-set-card {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.pro-body.teacher-monitor-page .teacher-student-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  width: 100%;
+}
+
+.pro-body.teacher-monitor-page .teacher-monitor-list {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 440px), 1fr));
+  align-items: start;
+}
+
+.pro-body.teacher-monitor-page .teacher-monitor-card {
+  min-width: 0;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.pro-body.teacher-workspace.profile-page .profile-shell {
+  width: 100%;
+  max-width: none;
+  grid-template-columns: minmax(0, 1.45fr) minmax(300px, 0.8fr);
+  gap: clamp(20px, 2.2vw, 36px);
+}
+
+.pro-body.teacher-workspace.profile-page .profile-photo-edit {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 0.8fr);
+  align-items: center;
+  gap: 24px;
+}
+
+.pro-body.teacher-workspace.profile-page .profile-photo-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 12px;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+}
+
+.pro-body.teacher-workspace.profile-page .profile-photo-picker,
+.pro-body.teacher-workspace.profile-page .profile-photo-field {
+  min-width: 0;
+  margin-top: 0;
+}
+
+.pro-body.teacher-workspace.profile-page .profile-photo-choose {
+  width: 100%;
+  height: 132px;
+  box-sizing: border-box;
+  gap: 10px;
+  padding: 14px;
+  border-color: #D9D4C9;
+  border-radius: 12px;
+  background: #FAF9F6;
+  box-shadow: none;
+}
+
+.pro-body.teacher-workspace.profile-page .profile-photo-choose-icon .fi {
+  font-size: 2rem;
+}
+
+.pro-body.teacher-workspace.profile-page .profile-photo-actions {
+  display: flex;
+  align-items: flex-end;
+  height: 100%;
+}
+
+.pro-body:is(.teacher-workspace, .staff-workspace) .announce-compose-form-col {
+  flex: 0 1 clamp(360px, 28vw, 500px);
+  width: auto;
+  max-width: none;
+}
+
+.pro-body:is(.teacher-workspace, .staff-workspace) .announce-compose-form-col .staff-compose-form {
+  position: sticky;
+  top: 88px;
+}
+
+.pro-body:is(.teacher-workspace, .staff-workspace) .announce-compose-list-col {
+  min-width: 0;
+}
+
+@media (max-width: 1000px) {
+  .pro-body.teacher-materials-page .teacher-materials-layout,
+  .pro-body.teacher-hots-page .hots-generator-page {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .pro-body.teacher-materials-page .materials-upload-form,
+  .pro-body.teacher-hots-page .hots-generate-card,
+  .pro-body:is(.teacher-workspace, .staff-workspace) .announce-compose-form-col .staff-compose-form {
+    position: static;
+  }
+
+  .pro-body.teacher-workspace.profile-page .profile-shell {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .pro-body.teacher-workspace.profile-page .profile-aside-col {
+    position: static;
+  }
+}
+
+@media (max-width: 680px) {
+  .pro-body.teacher-workspace.profile-page .profile-photo-edit,
+  .pro-body.teacher-workspace.profile-page .profile-photo-form {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .pro-body.teacher-workspace.profile-page .profile-photo-actions {
+    height: auto;
+  }
+
+  .pro-body:is(.teacher-workspace, .staff-workspace) .announce-compose-form-col {
+    flex-basis: 100%;
+  }
+}
+
+/* HOTS alignment: the pro-content keeps its outer page margins, so let its
+   width be auto instead of adding 100% on top of those margins. */
+.pro-body.teacher-hots-page .pro-hero {
+  padding-left: calc(var(--space-page) * 2);
+  padding-right: calc(var(--space-page) * 2);
+}
+
+.pro-body.teacher-hots-page .pro-content {
+  width: auto;
+  margin-left: var(--space-page);
+  margin-right: var(--space-page);
+}
+
+.pro-body.teacher-hots-page .hots-sets-heading {
+  align-items: center;
+  padding: 0 24px;
+}
+
+.pro-body.teacher-hots-page .hots-sets-count {
+  margin: 0;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #F1EFE8;
+  color: #5F5E5A;
+  line-height: 1.2;
+}
+
+/* Keep teacher actions aligned with Bloom's navy and neutral button palette. */
+.pro-body.teacher-workspace .staff-compose-submit,
+.pro-body.teacher-workspace .btn-primary.staff-compose-submit,
+.pro-body.teacher-hots-page .hots-generate-submit,
+.pro-body.teacher-hots-page .btn-primary.hots-generate-submit {
+  background: #1F2A5C;
+  color: #FFFFFF;
+}
+
+.pro-body.teacher-workspace .btn-primary.staff-compose-submit:hover,
+.pro-body.teacher-hots-page .btn-primary.hots-generate-submit:hover {
+  background: #19234F;
+  color: #FFFFFF;
+}
+
+.pro-body.teacher-monitor-page .teacher-monitor-card form[data-confirm^="Close this assessment"] .today-action-soft {
+  border-color: #D9D4C9;
+  background: #FFFFFF;
+  color: #3A362F;
+}
+
+.pro-body.teacher-monitor-page .teacher-monitor-card form[data-confirm^="Close this assessment"] .today-action-soft:hover {
+  border-color: #C9C2B4;
+  background: #F7F5F0;
+  color: #1A1A1A;
+}
+
+/* Profile settings use the same navy and warm neutrals as the main workspace. */
+.pro-body.profile-page .profile-photo-edit,
+.pro-body.profile-page .profile-account,
+.pro-body.profile-page .profile-security {
+  border: 1px solid #E5E0D6;
+  border-radius: 16px;
+  background: #FFFFFF;
+  box-shadow: 0 8px 24px rgba(31, 42, 92, 0.06);
+}
+
+.pro-body.profile-page .profile-photo-edit {
+  padding: clamp(20px, 2.4vw, 30px);
+}
+
+.pro-body.profile-page .profile-avatar {
+  border-color: #D8DCE8;
+  background: #E9EDF8;
+  color: #1F2A5C;
+}
+
+.pro-body.profile-page .profile-photo-choose {
+  border-color: #D8DCE8;
+  background: #F8F9FC;
+  color: #1F2A5C;
+}
+
+.pro-body.profile-page .profile-photo-choose:hover,
+.pro-body.profile-page .profile-photo-choose:focus-within {
+  border-color: #1F2A5C;
+  background: #F1F3FA;
+}
+
+.pro-body.profile-page .profile-photo-choose:focus-within {
+  box-shadow: 0 0 0 3px rgba(31, 42, 92, 0.14);
+}
+
+.pro-body.profile-page .profile-photo-save,
+.pro-body.profile-page .profile-password-actions .btn-primary {
+  background: #1F2A5C;
+  color: #FFFFFF;
+}
+
+.pro-body.profile-page .profile-photo-save:hover,
+.pro-body.profile-page .profile-password-actions .btn-primary:hover {
+  background: #19234F;
+  color: #FFFFFF;
+}
+
+.pro-body.profile-page .profile-photo-remove {
+  border: 1px solid #D9D4C9;
+  border-radius: 999px;
+  background: #FFFFFF;
+  color: #5F5E5A;
+  text-decoration: none;
+}
+
+.pro-body.profile-page .profile-photo-remove:hover {
+  border-color: #C9C2B4;
+  background: #F7F5F0;
+  color: #3A362F;
+}
+
+.pro-body.profile-page .profile-security .today-action-soft,
+.pro-body.profile-page .profile-password-actions .today-action-soft {
+  border: 1px solid #D9D4C9;
+  background: #FFFFFF;
+  color: #3A362F;
+}
+
+.pro-body.profile-page .profile-security .today-action-soft:hover,
+.pro-body.profile-page .profile-password-actions .today-action-soft:hover {
+  border-color: #C9C2B4;
+  background: #F7F5F0;
+  color: #1A1A1A;
+}
+
+.pro-body.profile-page .profile-identity-meta {
+  color: #515B7B;
+}
+
+@media (min-width: 1100px) {
+  .pro-body.teacher-workspace.profile-page .profile-aside-col {
+    position: static;
+    top: auto;
+    padding: 0;
+    border: 0;
+    background: transparent;
+  }
+}

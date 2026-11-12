@@ -2,7 +2,7 @@
 {% set active_tab = "messages" if user.role == "student" else "" %}
 {% set topbar_sub = "Messages" %}
 {% block title %}{{ other.name }} — Messages — Bloom{% endblock %}
-{% block body_class %}{% if user.role == 'student' %}student {% elif user.role == 'teacher' %}teacher-workspace {% endif %}student-refined{% endblock %}
+{% block body_class %}{% if user.role == 'student' %}student {% elif user.role == 'teacher' %}teacher-workspace teacher-messages-page {% endif %}student-refined{% endblock %}
 {% block page_header %}{% endblock %}
 {% block main_class %}chat-main{% endblock %}
 {% block content_class %}pro-content-plain chat-content{% endblock %}
@@ -21,14 +21,17 @@
           {% endwith %}
           <div class="chat-person-copy">
             <h1 class="chat-name">{{ other.name }}</h1>
-            <p class="chat-meta-line">{{ other.section or "Grade 7 · Pilot Section" }}</p>
+            <p class="chat-meta-line">{{ other.section or "Grade 7 · Pilot Section" }}{% if other.meta %} · {{ other.meta }}{% endif %}</p>
           </div>
         </div>
+        {% if user.role == 'teacher' and needs_reply %}<span class="teacher-needs-reply">Needs reply</span>{% endif %}
       </header>
 
       <div class="chat-thread pro-stagger-in" id="chat-thread">
         {% if messages %}
+          {% set namespace = namespace(last_date='') %}
           {% for item in messages %}
+            {% if item.date_key and item.date_key != namespace.last_date %}<div class="teacher-chat-date"><span>{{ item.date_label }}</span></div>{% set namespace.last_date = item.date_key %}{% endif %}
             <article class="chat-bubble {% if item.mine %}is-mine{% else %}is-theirs{% endif %}" data-id="{{ item.id }}">
               <p class="chat-text">{{ item.body }}</p>
               <p class="chat-stamp">{{ item.created_label }}{% if item.mine %} · {{ "Read" if item.status == "read" else "Sent" }}{% endif %}</p>
@@ -36,8 +39,8 @@
           {% endfor %}
         {% else %}
           <div class="chat-empty" id="chat-empty">
-            <h2 class="empty-title">Ask {{ other.name.split(' ')[0] }}</h2>
-            <p class="empty-copy">Start with a clear question about a lesson, assessment, or material.</p>
+            <h2 class="empty-title">Message {{ other.name.split(' ')[0] }}</h2>
+            <p class="empty-copy">Start a private conversation with someone in your section.</p>
           </div>
         {% endif %}
       </div>

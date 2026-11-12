@@ -2,12 +2,12 @@
   const list = document.querySelector("[data-message-list]");
   if (!list) return;
 
-  const rows = [...list.querySelectorAll(".message-row")];
+  const rows = [...list.querySelectorAll(".message-row, [data-message-row]")];
   const empty = document.querySelector("[data-message-empty]");
   const emptyTitle = empty ? empty.querySelector("[data-message-empty-title]") : null;
   const emptyCopy = empty ? empty.querySelector("[data-message-empty-copy]") : null;
   const countBadge = document.querySelector("[data-message-count]");
-  const searchInput = document.querySelector("[data-message-search] input");
+  const searchInput = document.querySelector("[data-message-search] input, [data-message-search-input]");
   const filterRow = document.querySelector("[data-message-filters]");
   const pills = filterRow ? [...filterRow.querySelectorAll("[data-message-filter]")] : [];
 
@@ -115,6 +115,33 @@
     searchInput.addEventListener("input", () => {
       query = searchInput.value.trim().toLowerCase();
       apply();
+    });
+  }
+
+  const newMessageDialog = document.querySelector("[data-new-message-dialog]");
+  const newMessageOpen = document.querySelector("[data-new-message-open]");
+  const newMessageClose = document.querySelector("[data-new-message-close]");
+  const newMessageSearch = document.querySelector("[data-new-message-search]");
+  const recipientRows = [...document.querySelectorAll("[data-new-message-recipient]")];
+
+  if (newMessageDialog && newMessageOpen) {
+    newMessageOpen.addEventListener("click", () => {
+      newMessageDialog.showModal();
+      if (newMessageSearch) {
+        newMessageSearch.value = "";
+        recipientRows.forEach((row) => { row.hidden = false; });
+        window.setTimeout(() => newMessageSearch.focus(), 0);
+      }
+    });
+    newMessageClose?.addEventListener("click", () => newMessageDialog.close());
+    newMessageDialog.addEventListener("click", (event) => {
+      if (event.target === newMessageDialog) newMessageDialog.close();
+    });
+    newMessageSearch?.addEventListener("input", () => {
+      const term = newMessageSearch.value.trim().toLowerCase();
+      recipientRows.forEach((row) => {
+        row.hidden = !((row.dataset.search || "").toLowerCase().includes(term));
+      });
     });
   }
 
