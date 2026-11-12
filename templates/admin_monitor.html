@@ -29,7 +29,24 @@
       </div>
     </section>
     <p class="admin-monitor-insight">{{ monitor.insight }}</p>
-    <p class="section-note admin-monitor-teachers">Teachers: {{ monitor.teacher_names }} · {{ monitor.approved_materials }} materials · {{ monitor.published_assessments }} assessments · {{ monitor.recent_attempts }} attempts this week</p>
+    <section class="admin-monitor-context" aria-label="Section teaching team and resources">
+      <div class="admin-monitor-team">
+        <span class="admin-monitor-context-label">Teaching team</span>
+        <p>{{ monitor.teacher_names }}</p>
+      </div>
+      <div class="admin-monitor-context-stat">
+        <strong>{{ monitor.approved_materials }}</strong>
+        <span>Materials</span>
+      </div>
+      <div class="admin-monitor-context-stat">
+        <strong>{{ monitor.published_assessments }}</strong>
+        <span>Assessments</span>
+      </div>
+      <div class="admin-monitor-context-stat">
+        <strong>{{ monitor.recent_attempts }}</strong>
+        <span>Attempts this week</span>
+      </div>
+    </section>
   </div>
 {% endblock %}
 {% block content %}
