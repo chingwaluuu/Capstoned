@@ -50,15 +50,25 @@
   </div>
 {% endblock %}
 {% block content %}
+  {% if not school_years %}
+    <section class="admin-monitor-empty-year" role="status" aria-labelledby="admin-no-years-title">
+      <span class="admin-monitor-empty-year-icon" aria-hidden="true">!</span>
+      <div>
+        <h2 id="admin-no-years-title">No school year has been set up</h2>
+        <p>Add a school year in Section Management. It will then appear in this filter.</p>
+      </div>
+      <a href="{{ url_for('admin_section') }}">Set up school years</a>
+    </section>
+  {% endif %}
   <form class="admin-monitor-filters" method="get" action="{{ url_for('admin_home') }}" aria-label="Filter class monitor">
     <label>School year
-      <select name="school_year" onchange="this.form.submit()">{% for year in school_years %}<option value="{{ year.name }}" {% if school_year == year.name %}selected{% endif %}>{{ year.name }}</option>{% endfor %}</select>
+      <select name="school_year" onchange="this.form.submit()" {% if not school_years %}disabled{% endif %}>{% if not school_years %}<option value="">No school years yet</option>{% endif %}{% for year in school_years %}<option value="{{ year.name }}" {% if school_year == year.name %}selected{% endif %}>{{ year.name }}</option>{% endfor %}</select>
     </label>
     <label>Grade
-      <select name="grade" onchange="this.form.submit()">{% for level in grades %}<option value="{{ level }}" {% if grade|int == level %}selected{% endif %}>Grade {{ level }}</option>{% endfor %}</select>
+      <select name="grade" onchange="this.form.submit()" {% if not school_years %}disabled{% endif %}>{% for level in grades %}<option value="{{ level }}" {% if grade|int == level %}selected{% endif %}>Grade {{ level }}</option>{% endfor %}</select>
     </label>
     <label>Section
-      <select name="section" onchange="this.form.submit()">{% for section in sections %}<option value="{{ section.id }}" {% if section.id == selected_section %}selected{% endif %}>{{ section.name }}</option>{% endfor %}</select>
+      <select name="section" onchange="this.form.submit()" {% if not sections %}disabled{% endif %}>{% if not sections %}<option value="">No sections for this grade</option>{% endif %}{% for section in sections %}<option value="{{ section.id }}" {% if section.id == selected_section %}selected{% endif %}>{{ section.name }}</option>{% endfor %}</select>
     </label>
   </form>
   <section class="admin-stat-grid" aria-label="Class health">

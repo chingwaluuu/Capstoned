@@ -4038,7 +4038,7 @@ def admin_section(user):
             elif SchoolYear.query.filter_by(name=name).first():
                 flash("That school year already exists.", "danger")
             else:
-                db.session.add(SchoolYear(name=name, active=not years))
+                db.session.add(SchoolYear(name=name, active=not years or not any(year.active for year in years)))
                 db.session.commit()
                 flash(f"School year {name} added.", "success")
         elif action == "activate_year":
@@ -4051,12 +4051,12 @@ def admin_section(user):
         elif action == "section":
             grade = request.form.get("grade", type=int)
             name = request.form.get("name", "").strip()
-            year = SchoolYear.query.filter_by(active=True).first() or SchoolYear.query.order_by(SchoolYear.name.desc()).first()
+            year = db.session.get(SchoolYear, request.form.get("school_year_id", type=int))
             if not year:
-                year = SchoolYear(name=f"{datetime.utcnow().year}-{datetime.utcnow().year + 1}", active=True)
-                db.session.add(year)
-                db.session.flush()
-            if grade not in range(7, 11) or not name:
+                year = SchoolYear.query.filter_by(active=True).first() or SchoolYear.query.order_by(SchoolYear.name.desc()).first()
+            if not year:
+                flash("Add a school year before creating sections.", "danger")
+            elif grade not in range(7, 11) or not name:
                 flash("Choose Grade 7–10 and enter a section name.", "danger")
             elif SchoolSection.query.filter_by(name=name, grade=grade, school_year_id=year.id).first():
                 flash("That section already exists for this grade.", "danger")

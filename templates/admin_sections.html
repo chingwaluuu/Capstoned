@@ -11,6 +11,44 @@
   <article><span>Students enrolled</span><strong>{{ students|length - unassigned_count }}</strong></article>
   <article class="is-unassigned"><span>Unassigned students</span><div><strong>{{ unassigned_count }}</strong>{% if unassigned_count > 0 %}<small>Needs attention</small>{% endif %}</div></article>
 </section>
+<section class="setup-year-manager" aria-labelledby="school-years-title">
+  <div class="setup-year-manager-heading">
+    <div>
+      <p class="setup-year-kicker">ADMINISTRATION</p>
+      <h2 id="school-years-title">School years</h2>
+      <p>Add a year here, then choose it when creating sections. The active year is selected by default.</p>
+    </div>
+    <form class="setup-year-add" method="post">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="action" value="year">
+      <label class="sr-only" for="new-school-year">New school year</label>
+      <input id="new-school-year" name="year" inputmode="numeric" placeholder="2026-2027" pattern="[0-9]{4}-[0-9]{4}" aria-describedby="school-year-format" required>
+      <button type="submit">Add school year</button>
+      <small id="school-year-format">Use the format YYYY-YYYY, such as 2026-2027.</small>
+    </form>
+  </div>
+  {% if years %}
+    <ul class="setup-year-list" aria-label="Existing school years">
+      {% for year in years %}
+        <li>
+          <strong>{{ year.name }}</strong>
+          {% if year.active %}
+            <span class="setup-year-active"><i aria-hidden="true"></i>Active</span>
+          {% else %}
+            <form method="post">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <input type="hidden" name="action" value="activate_year">
+              <input type="hidden" name="year_id" value="{{ year.id }}">
+              <button type="submit" class="setup-year-activate">Set active</button>
+            </form>
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="setup-year-empty">No school years have been added yet. Add the first year above to enable section setup.</p>
+  {% endif %}
+</section>
 <section class="setup-panel setup-sections-panel"><div class="setup-sections-heading"><div><h2>Sections and students</h2><p>Open a section to assign or move students.</p></div><div class="setup-header-actions"><div class="setup-grade-filters" role="group" aria-label="Filter sections by grade"><button class="is-selected" data-grade-filter="all">All</button>{% for grade in range(7, 11) %}<button data-grade-filter="{{ grade }}">Grade {{ grade }}</button>{% endfor %}</div></div></div>
   <div class="setup-section-grid">{% for section in sections %}<article class="setup-section-card" data-grade="{{ section.grade }}">
     <div class="setup-section-meta"><div><span>GRADE {{ section.grade }}</span><h3>{{ section.name }}</h3></div><div class="setup-card-tools"><small>{{ section.school_year.name }}</small><button class="setup-edit-trigger" type="button" aria-label="Edit section name" data-open-assignment="edit-{{ section.id }}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 5 5 5M4 20l4.5-1 11-11a2.1 2.1 0 0 0-3-3l-11 11L4 20Z"/></svg></button></div></div>
@@ -19,9 +57,9 @@
   </article>
   <dialog class="student-assignment-dialog setup-edit-dialog" id="edit-{{ section.id }}"><form method="post" class="student-assignment-form"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="action" value="rename_section"><input type="hidden" name="section_id" value="{{ section.id }}"><header><div><p>GRADE {{ section.grade }}</p><h2>Edit section name</h2></div><button type="button" class="assignment-close" aria-label="Close" data-close-assignment>×</button></header><label class="assignment-search-label" for="rename-{{ section.id }}">Section name</label><input class="assignment-search" id="rename-{{ section.id }}" name="name" value="{{ section.name }}" required><footer><span></span><button type="button" data-close-assignment>Cancel</button><button class="assignment-submit">Save changes</button></footer></form></dialog>
   <dialog class="student-assignment-dialog" id="assign-{{ section.id }}"><form method="post" class="student-assignment-form"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="action" value="assign"><input type="hidden" name="section_id" value="{{ section.id }}"><header><div><p>GRADE {{ section.grade }} · {{ section.school_year.name }}</p><h2>{{ section.name }}</h2><span>Tick the students who belong in this section.</span></div><button type="button" class="assignment-close" aria-label="Close" data-close-assignment>×</button></header><label class="assignment-search-label" for="student-search-{{ section.id }}">Find a student</label><input class="assignment-search" id="student-search-{{ section.id }}" type="search" placeholder="Search by name" data-student-search><div class="assignment-filters"><button type="button" class="is-active" data-student-filter="all">All</button><button type="button" data-student-filter="unassigned">Unassigned</button></div><div class="assignment-select-all"><label><input type="checkbox" data-select-all> Select all</label><span>{{ students|length }} students</span></div><div class="assignment-student-list">{% for student in students %}<label class="assignment-student-row" data-student-row data-name="{{ student.name|lower }}" data-grade="{{ '7' if (student.section or '').lower().startswith('grade 7') else section.grade }}" data-unassigned="{{ 'true' if not student.section or 'unassigned' in student.section.lower() else 'false' }}"><input type="checkbox" name="student_ids" value="{{ student.id }}" data-student-check {% if student.section == section.name %}checked{% endif %}><span class="assignment-avatar">{{ student.name[:1]|upper }}</span><span class="assignment-student-copy"><strong>{{ student.name }}</strong><small>Grade {{ section.grade }} · {{ student.section or 'Unassigned' }}</small></span>{% if student.section == section.name %}<em>Already in this section</em>{% elif student.section %}<em>Moves from {{ student.section }}</em>{% endif %}</label>{% endfor %}</div><footer><span data-selected-count>0 selected</span><button type="button" data-close-assignment>Cancel</button><button type="submit" class="assignment-submit">Assign students</button></footer></form></dialog>
-  {% endfor %}<button class="setup-add-card" type="button" data-open-assignment="new-section-dialog"><span>＋</span><strong>Add another section</strong><small>Click to create a section</small></button></div>
+{% endfor %}{% if years %}<button class="setup-add-card" type="button" data-open-assignment="new-section-dialog"><span>＋</span><strong>Add another section</strong><small>Click to create a section</small></button>{% else %}<div class="setup-add-card is-disabled" aria-disabled="true"><span>＋</span><strong>Add a school year first</strong><small>Use the School years panel above to get started.</small></div>{% endif %}</div>
 </section>
-<dialog class="student-assignment-dialog setup-edit-dialog" id="new-section-dialog"><form method="post" class="student-assignment-form setup-section-form"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="action" value="section"><header><div><p>ADMIN</p><h2>New section</h2><span>Pick the year and grade, then name the section.</span></div><button type="button" class="assignment-close" aria-label="Close" data-close-assignment>×</button></header><div class="setup-new-fields"><div><label for="new-section-year">School year</label><select id="new-section-year" name="school_year_id">{% for year in years %}<option value="{{ year.id }}" {% if year.active %}selected{% endif %}>{{ year.name }}</option>{% endfor %}</select></div><div class="setup-fields-row"><div><label for="new-section-grade">Grade</label><select id="new-section-grade" name="grade">{% for grade in grades %}<option value="{{ grade }}">Grade {{ grade }}</option>{% endfor %}</select></div><div><label for="new-section-name">Section name</label><input id="new-section-name" name="name" placeholder="Section A" required></div></div></div><footer><span></span><button type="button" data-close-assignment>Cancel</button><button class="assignment-submit">Create section</button></footer></form></dialog>
+<dialog class="student-assignment-dialog setup-edit-dialog" id="new-section-dialog"><form method="post" class="student-assignment-form setup-section-form"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="action" value="section"><header><div><p>ADMIN</p><h2>New section</h2><span>Pick the year and grade, then name the section.</span></div><button type="button" class="assignment-close" aria-label="Close" data-close-assignment>×</button></header><div class="setup-new-fields"><div><label for="new-section-year">School year</label><select id="new-section-year" name="school_year_id" required>{% for year in years %}<option value="{{ year.id }}" {% if year.active %}selected{% endif %}>{{ year.name }}</option>{% endfor %}</select></div><div class="setup-fields-row"><div><label for="new-section-grade">Grade</label><select id="new-section-grade" name="grade">{% for grade in grades %}<option value="{{ grade }}">Grade {{ grade }}</option>{% endfor %}</select></div><div><label for="new-section-name">Section name</label><input id="new-section-name" name="name" placeholder="Section A" required></div></div></div><footer><span></span><button type="button" data-close-assignment>Cancel</button><button class="assignment-submit">Create section</button></footer></form></dialog>
 <script>
 document.querySelectorAll('[data-grade-filter]').forEach(button=>button.addEventListener('click',()=>{document.querySelectorAll('[data-grade-filter]').forEach(item=>item.classList.toggle('is-selected',item===button));document.querySelectorAll('.setup-section-card').forEach(card=>card.hidden=button.dataset.gradeFilter!=='all'&&card.dataset.grade!==button.dataset.gradeFilter)}));
 document.querySelectorAll('[data-open-assignment]').forEach(button=>button.addEventListener('click',()=>{const dialog=document.getElementById(button.dataset.openAssignment);dialog.showModal();dialog.querySelector('input:not([type=hidden]),select')?.focus()}));

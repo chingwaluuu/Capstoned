@@ -14,6 +14,7 @@
       <article><span>Teachers</span><strong>{{ user_counts.teacher }}</strong></article>
       <article><span>Admins</span><strong>{{ user_counts.admin }}</strong></article>
     </section>
+    <div class="admin-users-layout">
   {% endif %}
 
   {% if form_blocks %}
@@ -53,9 +54,13 @@
               </div>
             {% endfor %}
             {% if block.sample_target %}
-              <button type="button" class="text-link" data-fill-target="{{ block.sample_target }}" data-fill-value="{{ block.sample_value }}">Insert sample rows</button>
+              <div class="admin-import-actions">
+                <button type="button" class="text-link" data-fill-target="{{ block.sample_target }}" data-fill-value="{{ block.sample_value }}">Insert sample rows</button>
+                <button type="submit" class="btn-primary staff-compose-submit">{{ block.submit }}</button>
+              </div>
+            {% else %}
+              <button type="submit" class="btn-primary staff-compose-submit">{{ block.submit }}</button>
             {% endif %}
-            <button type="submit" class="btn-primary staff-compose-submit">{{ block.submit }}</button>
           </form>
       </section>
     {% endfor %}
@@ -127,5 +132,6 @@
       <p class="empty-copy">{{ subtitle }}</p>
     </article>
   {% endif %}
+  {% if active_nav == 'users' %}</div>{% endif %}
   {% if active_nav == 'users' %}<script>document.querySelector('[data-admin-user-search')?.addEventListener('input',e=>{const q=e.target.value.trim().toLowerCase();document.querySelectorAll('[data-admin-user-card]').forEach(card=>card.hidden=!card.dataset.search.includes(q))});</script>{% endif %}
 {% endblock %}
