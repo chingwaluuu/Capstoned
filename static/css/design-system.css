@@ -4858,3 +4858,64 @@ math {
     flex-direction: column;
   }
 }
+.pro-body.student.practice-setup-page {
+  --brand-primary: #1F2A5C;
+  --brand-primary-hover: #172047;
+  --bloom-primary: #1F2A5C;
+  --bloom-active: #172047;
+  --bloom-focus: rgba(31, 42, 92, 0.28);
+}
+
+.pro-body.student.practice-setup-page .practice-option:hover,
+.pro-body.student.practice-setup-page .practice-type:hover,
+.pro-body.student.practice-setup-page .count-stepper-btn:hover {
+  border-color: #1F2A5C;
+}
+
+.pro-body.student.practice-setup-page .practice-option.is-selected,
+.pro-body.student.practice-setup-page .practice-option:has(input:checked),
+.pro-body.student.practice-setup-page .practice-type.is-selected,
+.pro-body.student.practice-setup-page .practice-type:has(input:checked) {
+  border-color: #1F2A5C;
+  background-color: color-mix(in srgb, #1F2A5C 7%, #fff);
+}
+
+.pro-body.student.practice-setup-page .practice-option input:checked,
+.pro-body.student.practice-setup-page .practice-type input:checked,
+.pro-body.student.practice-setup-page input[type="checkbox"],
+.pro-body.student.practice-setup-page input[type="radio"] {
+  accent-color: #1F2A5C;
+}
+
+.pro-body.student.practice-setup-page .practice-option input:checked,
+.pro-body.student.practice-setup-page .practice-type input:checked {
+  border-color: #1F2A5C;
+  background-color: #1F2A5C;
+}
+
+.pro-body.student.practice-setup-page .count-stepper-btn:hover {
+  background: color-mix(in srgb, #1F2A5C 7%, #fff);
+  color: #1F2A5C;
+}
+
+.pro-body.student.practice-setup-page .count-stepper-input {
+  border-color: #1F2A5C;
+  background: color-mix(in srgb, #1F2A5C 7%, #fff);
+}
+
+.pro-body.student.practice-setup-page .practice-submit-btn.btn-primary {
+  border-color: #1F2A5C;
+  background: #1F2A5C;
+  color: #fff;
+}
+
+.pro-body.student.practice-setup-page .practice-submit-btn.btn-primary:hover {
+  border-color: #172047;
+  background: #172047;
+}
+
+.pro-body.student.practice-setup-page a.practice-setup-review,
+.pro-body.student.practice-setup-page a.practice-setup-review:hover,
+.pro-body.student.practice-setup-page a.practice-setup-review:focus-visible {
+  color: #1F2A5C;
+}

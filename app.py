@@ -188,12 +188,12 @@ DIFFICULTIES = {
     },
     "medium": {
         "key": "medium",
-        "label": "Medium",
+        "label": "Average",
         "hint": "Practice with a balanced level of challenge.",
     },
     "hard": {
         "key": "hard",
-        "label": "Hard",
+        "label": "Difficult",
         "hint": "Challenge yourself with more complex problems.",
     },
 }
@@ -3801,7 +3801,7 @@ def teacher_monitor(user):
                 "submitted": len(attempts),
                 "student_count": student_count or 1,
                 "avg": avg,
-                "difficulty": difficulty_label(assessment.difficulty) if assessment.difficulty else "Medium",
+                "difficulty": difficulty_label(assessment.difficulty) if assessment.difficulty else "Average",
                 "extra_attempt": assessment.extra_attempt,
                 "release_scores": assessment.release_scores,
                 "release_answers": assessment.release_answers,
