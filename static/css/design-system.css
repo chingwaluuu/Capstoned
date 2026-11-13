@@ -1657,6 +1657,317 @@
   }
 }
 
+/* Math symbol input and live notation preview for student HOTS responses. */
+.pro-body.student .math-answer-panel {
+  display: grid;
+  gap: 10px;
+  width: 100%;
+}
+
+.pro-body.student .math-symbol-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+  color: #273454;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.pro-body.student .math-symbol-heading small {
+  color: #737B8D;
+  font-size: 11px;
+  font-weight: 400;
+}
+
+.pro-body.student .math-symbol-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.pro-body.student .math-symbol-toolbar button {
+  min-width: 38px;
+  min-height: 36px;
+  padding: 0 9px;
+  border: 1px solid #D9DDE7;
+  border-radius: 8px;
+  background: #FFFFFF;
+  color: #1F2A5C;
+  font: 500 17px/1 "Cambria Math", "STIX Two Math", "Times New Roman", serif;
+  cursor: pointer;
+}
+
+.pro-body.student .math-symbol-toolbar button:hover,
+.pro-body.student .math-symbol-toolbar button:focus-visible {
+  border-color: #7180AE;
+  background: #F2F4FA;
+}
+
+.pro-body.student .math-symbol-toolbar button:focus-visible {
+  outline: 3px solid rgba(31, 42, 92, 0.14);
+  outline-offset: 1px;
+}
+
+.pro-body.student .practice-take-shell .math-answer-panel .math-answer-input {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 9rem;
+  margin: 0;
+  padding: var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-input);
+  background: var(--canvas);
+  color: var(--ink);
+  font: 500 var(--text-body-size)/var(--text-body-leading) var(--font-sans);
+  box-shadow: none;
+}
+
+.pro-body.student .math-answer-preview {
+  display: block;
+  padding: 10px 12px;
+  border: 1px solid #E3E7F0;
+  border-radius: 10px;
+  background: #F7F8FC;
+}
+
+.pro-body.student .math-answer-preview[hidden] {
+  display: none;
+}
+
+.pro-body.student .math-answer-preview > span {
+  display: block;
+  margin-bottom: 5px;
+  color: #69748C;
+  font: 600 10px/1.2 var(--font-sans, Arial, sans-serif);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.pro-body.student .math-answer-preview p {
+  margin: 0;
+  color: #17213D;
+  font: 20px/1.5 "Cambria Math", "STIX Two Math", "Times New Roman", serif;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.pro-body.student .math-answer-example {
+  margin: -2px 0 0;
+  color: #737B8D;
+  font-size: 11px;
+}
+
+.pro-body.teacher-hots-page .hots-math-guide {
+  margin: 12px 0 16px;
+  padding: 12px 14px;
+  border: 1px solid #DDE3F0;
+  border-radius: 10px;
+  background: #F7F8FC;
+}
+
+.pro-body.teacher-hots-page .hots-math-guide strong {
+  color: #1F2A5C;
+  font-size: 12px;
+}
+
+.pro-body.teacher-hots-page .hots-math-guide p {
+  margin: 4px 0 0;
+  color: #5E6677;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.pro-body .is-math-notation {
+  font-family: var(--font-sans), "Cambria Math", "STIX Two Math", sans-serif;
+  font-variant-numeric: lining-nums;
+}
+
+.pro-body.student .math-symbol-help {
+  margin: -3px 0 0;
+  color: #737B8D;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+/* Student Practice shelf: cards stay readable without stretching into rows. */
+.pro-body.student.home-editorial .practice-library.practice-shelf {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 1480px;
+  margin: 0 auto;
+  padding: clamp(18px, 2.2vw, 28px);
+  border: 1px solid #E5E0D6;
+  border-radius: 16px;
+  background: #FFFFFF;
+  box-shadow: 0 8px 24px rgba(31, 42, 92, 0.055);
+}
+
+.pro-body.student.home-editorial .practice-shelf .home-card-mark {
+  background: #E9EDF8;
+  color: #1F2A5C;
+}
+
+.pro-body.student.home-editorial .practice-shelf .practice-library-note {
+  color: #667085;
+}
+
+.pro-body.student.home-editorial .practice-shelf .filter-chips,
+.pro-body.student.home-editorial .practice-shelf .filter-chips.subject-filter-row {
+  padding-left: 48px;
+  margin-bottom: 16px;
+}
+
+.pro-body.student.home-editorial .practice-shelf .chip-link {
+  min-height: 34px;
+  padding: 7px 14px;
+  border-color: #D9DDE7;
+  background: #FFFFFF;
+  color: #4F5870;
+}
+
+.pro-body.student.home-editorial .practice-shelf .chip-link:hover,
+.pro-body.student.home-editorial .practice-shelf .chip-link:focus-visible {
+  border-color: #AEB7D0;
+  background: #F7F8FC;
+  color: #1F2A5C;
+}
+
+.pro-body.student.home-editorial .practice-shelf .chip-link.active,
+.pro-body.student.home-editorial .practice-shelf .chip-link[aria-pressed="true"],
+.pro-body.student.home-editorial .practice-shelf .chip-link.active:hover {
+  border-color: #1F2A5C;
+  background: #1F2A5C;
+  color: #FFFFFF;
+}
+
+.pro-body.student.home-editorial .practice-shelf .practice-course-list {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  padding-top: 16px;
+  border-top: 1px solid #EEEAE1;
+}
+
+.pro-body.student.home-editorial .practice-shelf .practice-course,
+.pro-body.student.home-editorial .practice-shelf .practice-course.card,
+.pro-body.student.home-editorial .practice-shelf .practice-course.card:first-child {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr);
+  align-items: start;
+  gap: 10px 12px;
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid #E8E5DE;
+  border-radius: 13px;
+  background: #FCFBF9;
+}
+
+.pro-body.student.home-editorial .practice-shelf .practice-course-mark {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.pro-body.student.home-editorial .practice-shelf .practice-course-copy {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.pro-body.student.home-editorial .practice-shelf .practice-course-actions {
+  grid-column: 2;
+  grid-row: 2;
+  width: auto;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  margin: 4px 0 0;
+  margin-left: 0;
+}
+
+.pro-body.student.home-editorial .practice-shelf a.practice-course-review {
+  border-color: #D9D4C9;
+  background: #FFFFFF;
+  color: #3A362F;
+}
+
+.pro-body.student.home-editorial .practice-shelf a.practice-course-review:hover,
+.pro-body.student.home-editorial .practice-shelf a.practice-course-review:focus-visible {
+  border-color: #BFC6D9;
+  background: #F5F6FA;
+  color: #1F2A5C;
+}
+
+.pro-body.student.home-editorial .practice-shelf .practice-course-go:not(.is-disabled) {
+  border-radius: 10px;
+  background: #1F2A5C;
+  color: #FFFFFF;
+  font-weight: 600;
+}
+
+.pro-body.student.home-editorial .practice-shelf .practice-course-go:not(.is-disabled):hover,
+.pro-body.student.home-editorial .practice-shelf .practice-course-go:not(.is-disabled):focus-visible {
+  background: #19234F;
+}
+
+.pro-body.student.home-editorial .practice-shelf .practice-course.is-locked {
+  opacity: 0.72;
+}
+
+/* Make the student's current destination unmistakable on the dark rail. */
+.pro-body.student .pro-rail .pro-nav-link.is-active {
+  min-width: 2.65rem;
+  min-height: 2.65rem;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.16);
+  color: #FFFFFF;
+  box-shadow: 0 3px 10px rgba(8, 15, 42, 0.18);
+}
+
+.pro-body.student .pro-rail .pro-nav-link.is-active .pro-nav-ico {
+  border: 1px solid rgba(255, 255, 255, 0.42);
+  border-radius: 10px;
+  background: #FFFFFF;
+  color: #1F2A5C;
+  box-shadow: 0 2px 7px rgba(8, 15, 42, 0.2);
+}
+
+.pro-body.student .pro-rail .pro-nav-link.is-active:hover,
+.pro-body.student .pro-rail .pro-nav-link.is-active:focus-visible {
+  border-color: rgba(255, 255, 255, 0.42);
+  background: rgba(255, 255, 255, 0.22);
+  color: #FFFFFF;
+}
+
+.pro-body.student.home-editorial .home-greeting {
+  color: #17213D;
+}
+
+.pro-body.student.home-editorial .practice-shelf .chip-link.active,
+.pro-body.student.home-editorial .practice-shelf .chip-link[aria-pressed="true"],
+.pro-body.student.home-editorial .practice-shelf .chip-link.active:hover {
+  border-color: #1F2A5C;
+  background: #1F2A5C;
+  color: #FFFFFF;
+}
+
+@media (max-width: 850px) {
+  .pro-body.student.home-editorial .practice-shelf .practice-course-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .pro-body.student.home-editorial .practice-shelf .filter-chips,
+  .pro-body.student.home-editorial .practice-shelf .filter-chips.subject-filter-row {
+    padding-left: 0;
+  }
+
+  .pro-body.student.home-editorial .practice-shelf .practice-course-actions {
+    grid-column: 1 / -1;
+    width: auto;
+  }
+}
+
 @media (max-width: 900px) {
   .pro-body.admin-users-page .admin-users-layout {
     grid-template-columns: minmax(0, 1fr);
@@ -4147,5 +4458,403 @@
     padding: 0;
     border: 0;
     background: transparent;
+  }
+}
+math {
+  font-size: 1.2em;
+  line-height: 1.45;
+  color: inherit;
+  white-space: normal;
+}
+
+.summary-body,
+.teacher-summary-intro,
+.review-why-text,
+.review-compare-text,
+.hots-q-prompt,
+.hots-q-choices,
+.take-question,
+.take-option {
+  line-height: 1.85;
+}
+
+.pro-body.teacher-review-page .teacher-review-footer {
+  display: grid;
+  gap: 14px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-subtle, #e7e2d9);
+}
+
+.pro-body.teacher-review-page .teacher-review-tools,
+.pro-body.teacher-review-page .teacher-review-tool-actions,
+.pro-body.teacher-review-page .teacher-review-decision-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pro-body.teacher-review-page .teacher-review-tools {
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.pro-body.teacher-review-page .teacher-review-tools-label {
+  color: var(--color-primary, #534ab7);
+  font-size: 0.76rem;
+  font-weight: 750;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.pro-body.teacher-review-page .teacher-review-tool-actions form,
+.pro-body.teacher-review-page .teacher-review-decision-actions form {
+  margin: 0;
+}
+
+.pro-body.teacher-review-page .teacher-review-regenerate,
+.pro-body.teacher-review-page .teacher-review-reject,
+.pro-body.teacher-review-page .teacher-review-publish {
+  min-height: 42px;
+  padding: 0 17px;
+  border-radius: 12px;
+  font-weight: 650;
+}
+
+.pro-body.teacher-review-page .teacher-review-regenerate {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  border-color: var(--border-subtle, #d9d3c8);
+  background: var(--bg-card, #fff);
+  color: var(--text-primary, #202536);
+}
+
+.pro-body.teacher-review-page .teacher-review-regenerate > span {
+  font-size: 1.15rem;
+  line-height: 1;
+}
+
+.pro-body.teacher-review-page .teacher-review-student-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 42px;
+  padding: 0 10px;
+  color: var(--color-primary, #534ab7);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.pro-body.teacher-review-page .teacher-review-student-link:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.pro-body.teacher-review-page .teacher-review-decision {
+  display: grid;
+  gap: 16px;
+  padding: 18px 20px 14px;
+  border: 1px solid var(--border-subtle, #e7e2d9);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--bg-page, #f7f5f0) 72%, var(--bg-card, #fff));
+}
+
+.pro-body.teacher-review-page .teacher-review-decision-copy {
+  display: grid;
+  gap: 15px;
+}
+
+.pro-body.teacher-review-page .teacher-review-decision-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.pro-body.teacher-review-page .teacher-review-decision-heading > div {
+  display: grid;
+  gap: 4px;
+}
+
+.pro-body.teacher-review-page .teacher-review-decision-copy strong {
+  color: var(--text-primary, #202536);
+  font-size: 1.02rem;
+  font-weight: 720;
+}
+
+.pro-body.teacher-review-page .teacher-review-decision-copy span,
+.pro-body.teacher-review-page .teacher-review-deploy-note {
+  color: var(--text-secondary, #656b76);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.pro-body.teacher-review-page .teacher-review-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  flex: 0 0 auto;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #fff1dc;
+  color: #995400;
+  font-size: 0.78rem;
+  font-weight: 650;
+}
+
+.pro-body.teacher-review-page .teacher-review-status-badge i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.pro-body.teacher-review-page .teacher-review-status-badge.is-approved {
+  background: color-mix(in srgb, #16845b 12%, var(--bg-card, #fff));
+  color: #126b4b;
+}
+
+.pro-body.teacher-review-page .teacher-review-checks {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pro-body.teacher-review-page .teacher-review-checks li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 9px 11px;
+  border: 1px solid var(--border-subtle, #e7e2d9);
+  border-radius: 11px;
+  background: var(--bg-card, #fff);
+  color: var(--text-secondary, #656b76);
+  font-size: 0.82rem;
+}
+
+.pro-body.teacher-review-page .teacher-review-checks li > span {
+  color: #16845b;
+  font-weight: 800;
+}
+
+.pro-body.teacher-review-page .teacher-review-decision-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--border-subtle, #ded8ce);
+}
+
+.pro-body.teacher-review-page .teacher-review-publish {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-width: 190px;
+}
+
+.pro-body.teacher-review-page .teacher-review-publish span {
+  font-size: 1.15em;
+  transition: transform 160ms ease;
+}
+
+.pro-body.teacher-review-page .teacher-review-publish:hover span {
+  transform: translateX(3px);
+}
+
+.pro-body.teacher-review-page .teacher-review-reject {
+  border-color: color-mix(in srgb, #b42318 27%, var(--border-subtle, #e7e2d9));
+  background: var(--bg-card, #fff);
+  color: #a12620;
+}
+
+.pro-body.teacher-review-page .teacher-review-reject:hover {
+  border-color: #b42318;
+  background: #fff4f2;
+  color: #8f1d18;
+}
+
+.pro-body.teacher-workspace.teacher-review-page .teacher-review-regenerate,
+.pro-body.teacher-workspace.teacher-review-page .teacher-review-reject {
+  border: 1px solid #1f2a5c;
+  background: var(--bg-card, #fff);
+  color: #1f2a5c;
+}
+
+.pro-body.teacher-workspace.teacher-review-page .teacher-review-regenerate:hover,
+.pro-body.teacher-workspace.teacher-review-page .teacher-review-reject:hover {
+  border-color: #172047;
+  background: color-mix(in srgb, #1f2a5c 7%, var(--bg-card, #fff));
+  color: #172047;
+}
+
+.pro-body.teacher-workspace.teacher-review-page .teacher-review-publish {
+  border: 1px solid #1f2a5c;
+  background: #1f2a5c;
+  color: #fff;
+}
+
+.pro-body.teacher-workspace.teacher-review-page .teacher-review-publish:hover {
+  border-color: #172047;
+  background: #172047;
+  color: #fff;
+}
+
+.pro-body.teacher-workspace.teacher-review-page .teacher-review-publish:disabled {
+  border-color: #a9afc4;
+  background: #a9afc4;
+  color: #fff;
+  cursor: not-allowed;
+}
+
+/* Keep every action on the material review page in the same navy palette. */
+.pro-body.teacher-workspace.teacher-review-page .btn-primary,
+.pro-body.teacher-workspace.teacher-review-page .today-action:not(.today-action-soft) {
+  border-color: #1f2a5c;
+  background: #1f2a5c;
+  color: #fff;
+}
+
+.pro-body.teacher-workspace.teacher-review-page .today-action-soft,
+.pro-body.teacher-workspace.teacher-review-page .hub-back {
+  border-color: #1f2a5c;
+  background: var(--bg-card, #fff);
+  color: #1f2a5c;
+}
+
+.pro-body.teacher-workspace.teacher-review-page .btn-primary:hover,
+.pro-body.teacher-workspace.teacher-review-page .today-action:not(.today-action-soft):hover {
+  border-color: #172047;
+  background: #172047;
+  color: #fff;
+}
+
+.pro-body.teacher-workspace.teacher-review-page .today-action-soft:hover,
+.pro-body.teacher-workspace.teacher-review-page .hub-back:hover {
+  border-color: #172047;
+  background: color-mix(in srgb, #1f2a5c 7%, var(--bg-card, #fff));
+  color: #172047;
+}
+
+.pro-body.teacher-workspace.teacher-review-page :is(.btn-primary, .today-action, .hub-back):focus-visible {
+  outline: 3px solid color-mix(in srgb, #1f2a5c 32%, transparent);
+  outline-offset: 2px;
+}
+
+/* One navy action system across teacher windows, including announcements. */
+.pro-body.teacher-workspace:not(:has(.assessment-take-shell)) .btn-primary,
+.pro-body.teacher-workspace .today-action:not(.today-action-soft),
+.pro-body.announce-body .btn-primary,
+.pro-body.announce-body .today-action:not(.today-action-soft) {
+  border: 1px solid #1f2a5c;
+  background: #1f2a5c;
+  color: #fff;
+}
+
+.pro-body.teacher-workspace:not(:has(.assessment-take-shell)) .today-action-soft,
+.pro-body.teacher-workspace:not(:has(.assessment-take-shell)) .hub-back,
+.pro-body.announce-body .today-action-soft,
+.pro-body.announce-body .hub-back {
+  border: 1px solid #1f2a5c;
+  background: var(--bg-card, #fff);
+  color: #1f2a5c;
+}
+
+.pro-body.teacher-workspace:not(:has(.assessment-take-shell)) .btn-primary:hover,
+.pro-body.teacher-workspace .today-action:not(.today-action-soft):hover,
+.pro-body.announce-body .btn-primary:hover,
+.pro-body.announce-body .today-action:not(.today-action-soft):hover {
+  border-color: #172047;
+  background: #172047;
+  color: #fff;
+}
+
+.pro-body.teacher-workspace:not(:has(.assessment-take-shell)) .today-action-soft:hover,
+.pro-body.teacher-workspace:not(:has(.assessment-take-shell)) .hub-back:hover,
+.pro-body.announce-body .today-action-soft:hover,
+.pro-body.announce-body .hub-back:hover {
+  border-color: #172047;
+  background: color-mix(in srgb, #1f2a5c 7%, var(--bg-card, #fff));
+  color: #172047;
+}
+
+.pro-body.teacher-workspace:not(:has(.assessment-take-shell)) :is(.btn-primary, .today-action, .hub-back):focus-visible,
+.pro-body.announce-body :is(.btn-primary, .today-action, .hub-back):focus-visible {
+  outline: 3px solid color-mix(in srgb, #1f2a5c 32%, transparent);
+  outline-offset: 2px;
+}
+
+.pro-body.teacher-workspace:not(:has(.assessment-take-shell)) :is(.btn-primary, .today-action):disabled,
+.pro-body.announce-body :is(.btn-primary, .today-action):disabled {
+  border-color: #a9afc4;
+  background: #a9afc4;
+  color: #fff;
+  cursor: not-allowed;
+}
+
+.pro-body.teacher-review-page .teacher-review-tools-label,
+.pro-body.teacher-review-page .teacher-review-student-link {
+  color: #1f2a5c;
+}
+
+.pro-body.teacher-review-page .teacher-review-complete {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  margin: 0;
+  padding: 9px 13px;
+  border-radius: 999px;
+  background: color-mix(in srgb, #16845b 12%, var(--bg-card, #fff));
+  color: #126b4b;
+  font-size: 0.88rem;
+  font-weight: 650;
+}
+
+.pro-body.teacher-review-page .teacher-review-deploy-note {
+  margin: 0;
+}
+
+@media (max-width: 680px) {
+  .pro-body.teacher-review-page .teacher-review-checks {
+    grid-template-columns: 1fr;
+  }
+
+  .pro-body.teacher-review-page .teacher-review-decision-bottom {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .pro-body.teacher-review-page .teacher-review-decision-actions {
+    display: grid;
+    grid-template-columns: 1fr 1.25fr;
+  }
+
+  .pro-body.teacher-review-page .teacher-review-decision-actions form,
+  .pro-body.teacher-review-page .teacher-review-publish,
+  .pro-body.teacher-review-page .teacher-review-reject {
+    width: 100%;
+  }
+}
+
+@media (max-width: 420px) {
+  .pro-body.teacher-review-page .teacher-review-decision-heading {
+    flex-direction: column;
+  }
+
+  .pro-body.teacher-review-page .teacher-review-decision-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .pro-body.teacher-review-page .teacher-review-tools {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }

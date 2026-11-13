@@ -40,22 +40,61 @@
               <span class="status-pill status-thinking">{{ q.bloom }}</span>
               <span class="status-pill status-neutral">{{ q.type_label }}</span>
             </div>
-            <h2 class="take-question">{{ q.prompt }}</h2>
+            <h2 class="take-question{% if assessment.subject_slug == 'mathematics' %} is-math-notation{% endif %}">{{ q.prompt|math_notation }}</h2>
             <p class="summary-cite">Source: {{ q.citation }}</p>
             {% if q.type == 'mcq' %}
               <div class="take-options">
                 {% for opt in q.options %}
                   <label class="take-option">
                     <input type="radio" name="q{{ q.id }}" value="{{ opt.id }}" />
-                    <span>{{ opt.text }}</span>
+                    <span{% if assessment.subject_slug == 'mathematics' %} class="is-math-notation"{% endif %}>{{ opt.text|math_notation }}</span>
                   </label>
                 {% endfor %}
               </div>
             {% else %}
-              <label class="field">
-                <span class="sr-only">Your answer</span>
-                <textarea name="q{{ q.id }}" rows="5" placeholder="Type your answer here..."></textarea>
-              </label>
+              {% if assessment.subject_slug == "mathematics" %}
+                <div class="field math-answer-field">
+                  <label class="sr-only" for="math-answer-{{ q.id }}">Your answer</label>
+                  <div class="math-answer-panel" data-math-answer>
+                    <div class="math-symbol-heading">
+                      <span>Math symbols</span>
+                      <small>Tap a symbol to insert it</small>
+                    </div>
+                    <div class="math-symbol-toolbar" role="group" aria-label="Insert a math symbol">
+                      <button type="button" data-math-symbol="×" aria-label="Insert multiplication sign" title="Multiplication">×</button>
+                      <button type="button" data-math-symbol="÷" aria-label="Insert division sign" title="Division">÷</button>
+                      <button type="button" data-math-symbol="−" aria-label="Insert minus sign" title="Minus">−</button>
+                      <button type="button" data-math-symbol="±" aria-label="Insert plus or minus sign" title="Plus or minus">±</button>
+                      <button type="button" data-math-symbol="√" aria-label="Insert square root sign" title="Square root">√</button>
+                      <button type="button" data-math-symbol="²" aria-label="Insert squared exponent" title="Squared">²</button>
+                      <button type="button" data-math-symbol="³" aria-label="Insert cubed exponent" title="Cubed">³</button>
+                      <button type="button" data-math-symbol="½" aria-label="Insert one half" title="One half">½</button>
+                      <button type="button" data-math-symbol="¼" aria-label="Insert one quarter" title="One quarter">¼</button>
+                      <button type="button" data-math-symbol="⅓" aria-label="Insert one third" title="One third">⅓</button>
+                      <button type="button" data-math-symbol="π" aria-label="Insert pi" title="Pi">π</button>
+                      <button type="button" data-math-symbol="θ" aria-label="Insert theta" title="Theta">θ</button>
+                      <button type="button" data-math-symbol="≤" aria-label="Insert less than or equal to" title="Less than or equal to">≤</button>
+                      <button type="button" data-math-symbol="≥" aria-label="Insert greater than or equal to" title="Greater than or equal to">≥</button>
+                      <button type="button" data-math-symbol="≠" aria-label="Insert not equal to" title="Not equal to">≠</button>
+                      <button type="button" data-math-symbol="≈" aria-label="Insert approximately equal to" title="Approximately">≈</button>
+                      <button type="button" data-math-symbol="∠" aria-label="Insert angle sign" title="Angle">∠</button>
+                      <button type="button" data-math-symbol="°" aria-label="Insert degree sign" title="Degrees">°</button>
+                    </div>
+                    <p class="math-symbol-help">² means squared · √ means square root · π is pi.</p>
+                    <textarea id="math-answer-{{ q.id }}" class="math-answer-input" name="q{{ q.id }}" rows="5" placeholder="Type your answer here..."></textarea>
+                    <output class="math-answer-preview" data-math-preview hidden aria-live="polite">
+                      <span>Preview</span>
+                      <p data-math-preview-text></p>
+                    </output>
+                    <p class="math-answer-example">Examples: x² + 3 · √16 = 4 · ½ × 8 = 4</p>
+                  </div>
+                </div>
+              {% else %}
+                <label class="field">
+                  <span class="sr-only">Your answer</span>
+                  <textarea name="q{{ q.id }}" rows="5" placeholder="Type your answer here..."></textarea>
+                </label>
+              {% endif %}
             {% endif %}
           </article>
         {% endfor %}
@@ -71,4 +110,5 @@
 {% endblock %}
 {% block scripts %}
   <script src="{{ url_for('static', filename='js/practice_take.js') }}" defer></script>
+  {% if assessment.subject_slug == "mathematics" %}<script src="{{ url_for('static', filename='js/math_answer_tools.js') }}?v=1" defer></script>{% endif %}
 {% endblock %}

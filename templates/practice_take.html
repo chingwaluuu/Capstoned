@@ -38,7 +38,7 @@
             {% if not loop.first %}hidden{% endif %}
           >
             <p class="take-q-kicker">{{ q.bloom }} · {{ q.type_label }}</p>
-            <h2 class="take-question">{{ q.prompt }}</h2>
+            <h2 class="take-question">{{ q.prompt|math_notation }}</h2>
             <p class="summary-cite">Source: {{ q.citation }}</p>
 
             {% if q.type == 'mcq' %}
@@ -46,7 +46,7 @@
                 {% for opt in q.options %}
                   <label class="take-option">
                     <input type="radio" name="q{{ q.id }}" value="{{ opt.id }}" {% if loop.first and false %}{% endif %} />
-                    <span>{{ opt.text }}</span>
+                    <span>{{ opt.text|math_notation }}</span>
                   </label>
                 {% endfor %}
               </div>

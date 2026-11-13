@@ -10,6 +10,12 @@
       <p class="hots-kicker">Create</p>
       <h2 id="hots-generate-title" class="hots-card-title">Generate a HOTS set</h2>
       <p class="hots-help">Questions stay grounded in the uploaded lesson text. Review before publishing.</p>
+      {% if subject_slug == "mathematics" %}
+        <aside class="hots-math-guide" aria-label="Math notation guide">
+          <strong>Math notation</strong>
+          <p>Questions use familiar, readable symbols. For example: x², √16, ½ × 8, and π.</p>
+        </aside>
+      {% endif %}
       {% if materials %}
         <form class="hots-generate-form" method="POST" action="{{ url_for('teacher_hots') }}" data-loading="Generating HOTS questions…">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
@@ -123,9 +129,9 @@
                   <span class="hots-bloom-pill is-{{ bloom_key }}">{{ question.bloom }}</span>
                   <span class="hots-q-format">{{ type_label }}{% if question.citation %} · {{ question.citation }}{% endif %}</span>
                 </div>
-                <h3 class="hots-q-prompt">{{ question.prompt }}</h3>
+                <h3 class="hots-q-prompt{% if subject_slug == 'mathematics' %} is-math-notation{% endif %}">{{ question.prompt|math_notation }}</h3>
                 {% if question.options() %}
-                  <p class="hots-q-choices">{% for opt in question.options() %}{{ opt.id }}) {{ opt.text }}{% if not loop.last %}  {% endif %}{% endfor %}</p>
+                  <p class="hots-q-choices{% if subject_slug == 'mathematics' %} is-math-notation{% endif %}">{% for opt in question.options() %}{{ opt.id }}) {{ opt.text|math_notation }}{% if not loop.last %}  {% endif %}{% endfor %}</p>
                   {% if question.answer %}
                     <p class="hots-q-answer">Answer: {{ question.answer }}</p>
                   {% endif %}

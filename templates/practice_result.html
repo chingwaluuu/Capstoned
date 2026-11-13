@@ -47,21 +47,21 @@
               </p>
               <span class="review-item-status is-{{ item.status }}">{{ item.status_label }}</span>
             </div>
-            <h3 class="review-item-prompt">{{ item.prompt }}</h3>
+            <h3 class="review-item-prompt">{{ item.prompt|math_notation }}</h3>
             <div class="review-compare{% if not item.correct_answer %} is-single{% endif %}">
               <div class="review-compare-cell">
                 <p class="review-label">Your answer</p>
-                <p class="review-compare-text{% if item.your_answer == '(No answer)' %} is-empty{% endif %}">{{ item.your_answer }}</p>
+                <p class="review-compare-text{% if item.your_answer == '(No answer)' %} is-empty{% endif %}">{{ item.your_answer|math_notation }}</p>
               </div>
               {% if item.correct_answer %}
                 <div class="review-compare-cell is-suggested">
                   <p class="review-label">Suggested answer</p>
-                  <p class="review-compare-text">{{ item.correct_answer }}</p>
+                  <p class="review-compare-text">{{ item.correct_answer|math_notation }}</p>
                 </div>
               {% endif %}
             </div>
             <div class="review-why">
-              <p class="review-why-text">{{ item.explanation }}</p>
+              <p class="review-why-text">{{ item.explanation|math_notation }}</p>
               {% if item.rubric %}
                 <p class="review-why-note">Rubric note: {{ item.rubric }}</p>
               {% endif %}

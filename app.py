@@ -4,6 +4,7 @@ import json
 import logging
 import os
 import re
+from fractions import Fraction
 from datetime import datetime, timedelta
 from functools import wraps
 
@@ -14,9 +15,10 @@ from sqlalchemy import inspect as sa_inspect, or_, text
 from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
 
-from ai import generate_hots_questions, last_ai_error, summarize_material
+from ai import SummaryGenerationError, generate_hots_questions, last_ai_error, summarize_material
 from csrf import init_csrf
 from extract import ExtractError, extract_text
+from math_render import render_math
 from models import (
     Announcement,
     AnnouncementRead,
@@ -86,6 +88,13 @@ def database_uri() -> str:
 
 
 app = Flask(__name__)
+
+
+@app.template_filter("math_notation")
+def math_notation(value):
+    return render_math(value)
+
+
 app.secret_key = SECRET_KEY
 os.makedirs(app.instance_path, exist_ok=True)
 app.config["SQLALCHEMY_DATABASE_URI"] = database_uri()
@@ -1213,9 +1222,26 @@ def build_admin_class_monitor(section_name: str | None = None) -> dict:
 
 def lesson_review_href(subject_slug: str, material: Material | None = None) -> str:
     """Prefer the lesson summary; fall back to the subject Study tab."""
-    if material and material.status == "approved" and material.summary:
+    if material and material.status == "approved" and has_student_ready_summary(material):
         return url_for("summary_reader", slug=subject_slug, material_slug=material.slug)
     return url_for("subject_hub", slug=subject_slug, tab="study")
+
+
+def has_student_ready_summary(material: Material | None) -> bool:
+    """Hide legacy raw-text fallback summaries that were saved as if they were summaries."""
+    if not material or not material.summary:
+        return False
+    sections = material.summary.sections()
+    if not sections:
+        return False
+    intro = (material.summary.intro or "").strip().lower()
+    legacy_intro = intro.startswith("this is a fuller study summary of ")
+    legacy_headings = all(
+        isinstance(section, dict)
+        and (section.get("heading") or "").strip().lower().startswith("lesson part ")
+        for section in sections
+    )
+    return not (legacy_intro and legacy_headings)
 
 
 def format_due_compact(deadline: datetime | None, now: datetime) -> tuple[str | None, bool]:
@@ -2204,7 +2230,7 @@ def subject_hub(slug):
             {
                 "kicker": "Approved material",
                 "title": material.title,
-                "meta": "Summary ready · Citations included" if material.summary else "Approved for study",
+                "meta": "Summary ready · Citations included" if has_student_ready_summary(material) else "Approved for study",
                 "summary_href": url_for("summary_reader", slug=slug, material_slug=material.slug),
                 "practice_href": url_for("practice_setup", subject_slug=slug, material_slug=material.slug),
             }
@@ -2300,9 +2326,9 @@ def summary_reader(slug, material_slug):
         return redirect(url_for("login"))
     meta = SUBJECTS.get(slug)
     material = Material.query.filter_by(slug=material_slug, subject_slug=slug).first()
-    if not meta or not material or material.status != "approved" or not material.summary:
+    if not meta or not material or material.status != "approved" or not has_student_ready_summary(material):
         flash("That summary is not available.", "danger")
-        return redirect(url_for("home"))
+        return redirect(url_for("subject_hub", slug=slug, tab="study") if meta else url_for("home"))
     teacher = User.query.filter_by(role="teacher", subject=meta["name"]).first()
     context = {
         "user": user,
@@ -2689,7 +2715,7 @@ def assessment_lobby(slug):
         "taken": taken,
         "allowed": allowed,
         "review_href": review_href,
-        "has_summary": bool(material and material.status == "approved" and material.summary),
+        "has_summary": bool(material and material.status == "approved" and has_student_ready_summary(material)),
         "ask_teacher": ask_teacher_context(
             user, SUBJECTS[assessment.subject_slug]["name"], assessment.title
         ),
@@ -3445,9 +3471,20 @@ def teacher_home(user):
 def material_review_payload(material: Material) -> dict:
     owner = material.owner
     has_file = bool(material_file_path(material))
+    summary_sections = material.summary.sections() if has_student_ready_summary(material) else []
+    cited_pages = [
+        int(page)
+        for section in summary_sections
+        for page in re.findall(r"\d+", str(section.get("citation") or ""))
+    ]
+    citation_label = ""
+    if cited_pages:
+        first_page, last_page = min(cited_pages), max(cited_pages)
+        citation_label = f"pp. {first_page}–{last_page}" if first_page != last_page else f"p. {first_page}"
     return {
         "id": material.id,
         "title": material.title,
+        "subject_slug": material.subject_slug,
         "status": material.status,
         "source": material.source,
         "source_label": "Student backup" if material.source == "student" else "Teacher upload",
@@ -3460,14 +3497,15 @@ def material_review_payload(material: Material) -> dict:
         "has_file": has_file,
         "file_href": url_for("teacher_material_file", material_id=material.id) if has_file else None,
         "review_href": url_for("teacher_material_review", material_id=material.id),
-        "has_summary": bool(material.summary),
+        "has_summary": has_student_ready_summary(material),
+        "citation_label": citation_label,
         "summary": {
-            "intro": material.summary.intro if material.summary else "",
-            "sections": material.summary.sections() if material.summary else [],
+            "intro": material.summary.intro if has_student_ready_summary(material) else "",
+            "sections": summary_sections,
         },
         "student_summary_href": (
             url_for("summary_reader", slug=material.subject_slug, material_slug=material.slug)
-            if material.status == "approved" and material.summary
+            if material.status == "approved" and has_student_ready_summary(material)
             else None
         ),
     }
@@ -3545,8 +3583,13 @@ def teacher_material_review(user, material_id):
                 attach_summary(material)
                 db.session.commit()
                 flash("Summary updated. Review it before deploying.", "success")
+            except SummaryGenerationError as exc:
+                db.session.rollback()
+                flash(str(exc), "danger")
             except Exception:
-                flash("Could not generate a summary. Try again or paste more lesson text.", "danger")
+                db.session.rollback()
+                logger.exception("Could not generate summary for material %s", material.id)
+                flash("Could not generate the summary. Check the AI provider settings and try again.", "danger")
             return redirect(url_for("teacher_material_review", material_id=material.id))
         if action == "approve":
             try:

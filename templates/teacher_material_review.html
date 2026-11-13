@@ -39,52 +39,76 @@
       </div>
 
       {% if material.has_summary %}
-        <p class="teacher-summary-intro">{{ material.summary.intro }}</p>
+        <p class="teacher-summary-intro">{{ material.summary.intro|math_notation }}</p>
         <div class="summary-sections">
           {% for section in material.summary.sections %}
             <article class="summary-section">
               <h3 class="summary-heading">{{ section.heading }}</h3>
-              <p class="summary-body">{{ section.body }}</p>
+              <p class="summary-body">{{ section.body|math_notation }}</p>
               <p class="summary-cite">Source: {{ section.citation }}</p>
             </article>
           {% endfor %}
         </div>
       {% else %}
-        <p class="section-note">No summary yet. Generate a fuller study summary from the extracted text, then read it before deploying.</p>
+        <p class="section-note">No student-ready summary is available. Generate one with a working AI provider, then review it before students see it.</p>
       {% endif %}
 
-      <div class="teacher-review-actions">
-        <form method="POST" action="{{ url_for('teacher_material_review', material_id=material.id) }}" data-loading="Generating summary…">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-          <input type="hidden" name="action" value="summarize" />
-          <button class="today-action today-action-soft" type="submit">{{ "Regenerate summary" if material.has_summary else "Generate summary" }}</button>
-        </form>
-        {% if material.student_summary_href %}
-          <a class="today-action today-action-soft" href="{{ material.student_summary_href }}">Student view</a>
-        {% endif %}
-      </div>
-
-      {% if material.status == "pending" %}
-        <div class="teacher-review-actions teacher-review-deploy">
-          <form method="POST" action="{{ url_for('teacher_material_review', material_id=material.id) }}" data-confirm="Deploy this summary to students? They will be able to read it and practice from it." data-loading="Deploying…">
+      <footer class="teacher-review-footer">
+        <div class="teacher-review-tools">
+          <span class="teacher-review-tools-label">Summary tools</span>
+          <form method="POST" action="{{ url_for('teacher_material_review', material_id=material.id) }}" data-loading="Generating summary…">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-            <input type="hidden" name="action" value="approve" />
-            <button class="btn-primary" type="submit" {% if not material.has_summary %}disabled{% endif %}>Deploy to students</button>
-          </form>
-          <form method="POST" action="{{ url_for('teacher_material_review', material_id=material.id) }}" data-confirm="Reject this upload? Students will not be able to practice from it.">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-            <input type="hidden" name="action" value="reject" />
-            <button class="today-action today-action-soft" type="submit">Reject</button>
+            <input type="hidden" name="action" value="summarize" />
+            <button class="today-action today-action-soft teacher-review-regenerate" type="submit"><span aria-hidden="true">↻</span>{{ "Regenerate summary" if material.has_summary else "Generate summary" }}</button>
           </form>
         </div>
-        {% if not material.has_summary %}
-          <p class="section-note">Generate a summary before deploying.</p>
+
+        {% if material.status in ["pending", "approved"] %}
+          <div class="teacher-review-decision{% if material.status == 'approved' %} is-approved{% endif %}">
+            <div class="teacher-review-decision-copy">
+              <div class="teacher-review-decision-heading">
+                <div>
+                  <strong>{{ "Ready to publish?" if material.status == "pending" else "Published to students" }}</strong>
+                  <span>{{ "Students can study and practice after you deploy this summary." if material.status == "pending" else "Students can now study and practice from this lesson." }}</span>
+                </div>
+                <span class="teacher-review-status-badge{% if material.status == 'approved' %} is-approved{% endif %}"><i aria-hidden="true"></i>{{ "Draft · awaiting review" if material.status == "pending" else "Live for students" }}</span>
+              </div>
+              {% if material.has_summary %}
+                <ul class="teacher-review-checks" aria-label="Summary readiness">
+                  <li><span aria-hidden="true">✓</span> Summary generated</li>
+                  <li><span aria-hidden="true">✓</span> {% if material.subject_slug == "mathematics" %}Math formatting enabled{% else %}Student view ready{% endif %}</li>
+                  <li><span aria-hidden="true">✓</span> Sources cited{% if material.citation_label %} ({{ material.citation_label }}){% endif %}</li>
+                </ul>
+              {% endif %}
+            </div>
+            {% if material.status == "pending" %}
+              <div class="teacher-review-decision-bottom">
+                <span class="teacher-review-deploy-note">Review the summary before deploying it.</span>
+                <div class="teacher-review-decision-actions">
+                  <form method="POST" action="{{ url_for('teacher_material_review', material_id=material.id) }}" data-confirm="Reject this upload? Students will not be able to practice from it.">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                    <input type="hidden" name="action" value="reject" />
+                    <button class="today-action today-action-soft teacher-review-reject" type="submit">Reject upload</button>
+                  </form>
+                  <form method="POST" action="{{ url_for('teacher_material_review', material_id=material.id) }}" data-confirm="Deploy this summary to students? They will be able to read it and practice from it." data-loading="Deploying…">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                    <input type="hidden" name="action" value="approve" />
+                    <button class="btn-primary teacher-review-publish" type="submit" {% if not material.has_summary %}disabled{% endif %}>Deploy to students <span aria-hidden="true">→</span></button>
+                  </form>
+                </div>
+              </div>
+            {% elif material.student_summary_href %}
+              <a class="teacher-review-student-link" href="{{ material.student_summary_href }}">Preview student view <span aria-hidden="true">↗</span></a>
+            {% endif %}
+          </div>
+        {% else %}
+          <p class="section-note">{{ material.reject_reason or "This upload was rejected." }}</p>
         {% endif %}
-      {% elif material.status == "approved" %}
-        <p class="count-badge">Deployed to students</p>
-      {% else %}
-        <p class="section-note">{{ material.reject_reason or "This upload was rejected." }}</p>
-      {% endif %}
+
+        {% if not material.has_summary %}
+          <p class="teacher-review-deploy-note">Generate a summary before you can deploy this lesson.</p>
+        {% endif %}
+      </footer>
     </section>
   </div>
 {% endblock %}
