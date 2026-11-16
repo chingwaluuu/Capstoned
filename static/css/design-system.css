@@ -5726,7 +5726,25 @@ math {
   margin: 0;
 }
 
+/* Let admin workspaces use the available canvas while retaining readable gutters. */
+.pro-body.admin-school-setup :is(.pro-hero, .pro-content),
+.pro-body.admin-users-page :is(.pro-hero, .pro-content),
+.pro-body.admin-settings-page :is(.pro-hero, .pro-content) {
+  width: 100%;
+  max-width: none;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.pro-body.admin-settings-page .general-settings-layout {
+  grid-template-columns: 220px minmax(0, 1fr);
+}
+
 @media (max-width: 760px) {
+  .pro-body.admin-settings-page .general-settings-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
   .pro-body.student .student-message-workspace {
     height: calc(100vh - 205px);
     min-height: 420px;
