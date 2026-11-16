@@ -265,7 +265,7 @@ def ensure_schema():
         ("attempt", "difficulty", "VARCHAR(20)"),
         ("assessment", "difficulty", "VARCHAR(20)"),
         ("user", "avatar_filename", "VARCHAR(255)"),
-        ("user", "is_active", "BOOLEAN NOT NULL DEFAULT 1"),
+        ("user", "is_active", "BOOLEAN NOT NULL DEFAULT TRUE"),
     )
     preparer = db.engine.dialect.identifier_preparer
     with db.engine.begin() as conn:
