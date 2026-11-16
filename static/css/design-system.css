@@ -5397,6 +5397,9 @@ math {
 }
 
 .pro-body.student .student-message-filters .chip-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   min-height: 30px;
   padding: 0 12px;
   border: 1px solid #E3DFD6;
@@ -5404,7 +5407,16 @@ math {
   background: #FFFFFF;
   color: #49536A;
   font-size: 0.76rem;
+  font-weight: 600;
   line-height: 1;
+  cursor: pointer;
+  transition: background 140ms ease, border-color 140ms ease, color 140ms ease, transform 140ms ease;
+}
+
+.pro-body.student .student-message-filters .chip-link:not(.active):not(.is-active):hover {
+  border-color: #AEB7D3;
+  background: #F3F5FB;
+  color: var(--message-navy);
 }
 
 .pro-body.student .student-message-filters .chip-link.active,
@@ -5412,6 +5424,59 @@ math {
   border-color: var(--message-navy);
   background: var(--message-navy);
   color: #FFFFFF;
+}
+
+.pro-body.student .student-message-filters .chip-link:focus-visible,
+.pro-body.student .student-message-panel-chat .chat-send-btn:focus-visible,
+.pro-body.student .student-message-panel-chat .chat-back:focus-visible {
+  outline: 3px solid rgba(31, 42, 92, 0.25);
+  outline-offset: 2px;
+}
+
+.pro-body.student .student-message-panel-chat .chat-send-btn {
+  min-height: 40px;
+  padding: 0 18px;
+  border: 1px solid #1F2A5C;
+  border-radius: 999px;
+  background: #1F2A5C;
+  box-shadow: none;
+  color: #FFFFFF;
+  font-size: 0.84rem;
+  font-weight: 650;
+  transition: background 140ms ease, border-color 140ms ease, transform 140ms ease;
+}
+
+.pro-body.student .student-message-panel-chat .chat-send-btn:hover:not(:disabled) {
+  border-color: #172047;
+  background: #172047;
+  transform: translateY(-1px);
+}
+
+.pro-body.student .student-message-panel-chat .chat-send-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.pro-body.student .student-message-panel-chat .chat-send-btn:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.pro-body.student .student-message-panel-chat .chat-back {
+  min-height: 34px;
+  padding: 0 13px;
+  border: 1px solid #D5D9E7;
+  border-radius: 999px;
+  background: #FFFFFF;
+  color: #1F2A5C;
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.pro-body.student .student-message-panel-chat .chat-back:hover {
+  border-color: #AEB7D3;
+  background: #F3F5FB;
+  color: #172047;
 }
 
 .pro-body.student .student-message-list {
