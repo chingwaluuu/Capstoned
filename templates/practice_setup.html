@@ -81,7 +81,12 @@
 
       <fieldset class="practice-setup-section" id="question-types-fieldset">
         <legend class="practice-setup-legend">Length and question types</legend>
-        <p class="practice-setup-hint">Pick how many questions to generate, and which formats to include.</p>
+        <p class="practice-setup-hint">Choose 1–15 questions and the formats to practice.</p>
+        {% if practice_limit_applies %}
+          <p class="practice-quota-note" role="status">
+            {{ practice_generations_used }} of {{ practice_generations_limit }} practice generations used for {{ subject.name }} today. It resets at midnight Philippines time.
+          </p>
+        {% endif %}
 
         <div class="practice-setup-build">
           <div class="practice-count-group">
@@ -149,8 +154,8 @@
 
         <div class="practice-setup-start">
           <a class="editorial-text-link practice-setup-review" href="{{ back_href }}">Review material first</a>
-          <button type="submit" class="btn-primary practice-submit-btn" data-setup-submit>
-            Generate practice check
+          <button type="submit" class="btn-primary practice-submit-btn" data-setup-submit {% if practice_limit_applies and practice_generations_used >= practice_generations_limit %}disabled aria-disabled="true"{% endif %}>
+            {% if practice_limit_applies and practice_generations_used >= practice_generations_limit %}Daily limit reached{% else %}Generate practice check{% endif %}
           </button>
         </div>
       </div>

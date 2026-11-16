@@ -1,0 +1,85 @@
+{% extends "layouts/pro.html" %}
+{% block title %}Faculty posts — Bloom{% endblock %}
+{% block body_class %}admin-faculty-page student-refined{% endblock %}
+{% block page_kicker %}Admin directory{% endblock %}
+{% block page_title %}Faculty posts{% endblock %}
+{% block page_subtitle %}Browse lessons and practice assessments created by teachers across the school.{% endblock %}
+{% block content %}
+  <div class="admin-faculty-toolbar">
+    <label for="faculty-post-search">Find a post</label>
+    <input id="faculty-post-search" type="search" placeholder="Search title, teacher, subject, or status" data-faculty-post-search>
+    <span>{{ materials|length }} lessons · {{ assessments|length }} practice assessments</span>
+  </div>
+
+  <div class="admin-faculty-grid">
+    <section class="admin-faculty-panel" aria-labelledby="faculty-lessons-title">
+      <header>
+        <div><p class="section-eyebrow">Teacher uploads</p><h2 id="faculty-lessons-title">Lessons</h2></div>
+        <strong>{{ materials|length }}</strong>
+      </header>
+      {% if materials %}
+        <div class="admin-faculty-list">
+          {% for material in materials %}
+            <article class="admin-faculty-item" data-faculty-post data-search="{{ (material.title ~ ' ' ~ material.owner.name ~ ' ' ~ material.subject_slug ~ ' ' ~ material.status)|lower }}">
+              <div class="admin-faculty-item-heading">
+                <div><span class="admin-faculty-subject">{{ material.subject_slug|title }}</span><span class="admin-faculty-status status-{{ material.status }}">{{ material.status|title }}</span></div>
+                <time>{{ material.created_at.strftime('%b %d, %Y') if material.created_at else '' }}</time>
+              </div>
+              <h3>{{ material.title }}</h3>
+              <p class="admin-faculty-byline">{{ material.owner.name }} · {{ material.owner.email }}</p>
+              <p class="admin-faculty-file">{{ material.filename or 'Text lesson' }}{% if material.summary %} · Summary available{% else %} · No summary yet{% endif %}</p>
+              <details>
+                <summary>View lesson content</summary>
+                <pre>{{ material.extracted_text or 'No extracted lesson text is available.' }}</pre>
+                {% if material.summary %}
+                  <div class="admin-faculty-summary"><strong>Student summary</strong><p>{{ material.summary.intro }}</p></div>
+                {% endif %}
+              </details>
+            </article>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="admin-faculty-empty">No teacher lessons have been posted yet.</p>
+      {% endif %}
+    </section>
+
+    <section class="admin-faculty-panel" aria-labelledby="faculty-practice-title">
+      <header>
+        <div><p class="section-eyebrow">Teacher-created practice</p><h2 id="faculty-practice-title">Practice assessments</h2></div>
+        <strong>{{ assessments|length }}</strong>
+      </header>
+      {% if assessments %}
+        <div class="admin-faculty-list">
+          {% for assessment in assessments %}
+            {% set teacher = teachers_by_id.get(assessment.created_by) %}
+            <article class="admin-faculty-item" data-faculty-post data-search="{{ (assessment.title ~ ' ' ~ (teacher.name if teacher else '') ~ ' ' ~ assessment.subject_slug ~ ' ' ~ assessment.status)|lower }}">
+              <div class="admin-faculty-item-heading">
+                <div><span class="admin-faculty-subject">{{ assessment.subject_slug|title }}</span><span class="admin-faculty-status status-{{ assessment.status }}">{{ assessment.status|title }}</span></div>
+                <time>{{ assessment.created_at.strftime('%b %d, %Y') if assessment.created_at else '' }}</time>
+              </div>
+              <h3>{{ assessment.title }}</h3>
+              <p class="admin-faculty-byline">{{ teacher.name if teacher else 'Teacher account unavailable' }}{% if teacher %} · {{ teacher.email }}{% endif %}</p>
+              <p class="admin-faculty-file">{{ assessment.questions|length }} questions · {{ difficulty_label(assessment.difficulty) }}</p>
+              <details>
+                <summary>View assessment questions</summary>
+                <ol>{% for question in assessment.questions %}<li><strong>{{ question.bloom }} · {{ question.qtype|title }}</strong><p>{{ question.prompt }}</p></li>{% endfor %}</ol>
+              </details>
+            </article>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="admin-faculty-empty">No teacher-created practice assessments have been posted yet.</p>
+      {% endif %}
+    </section>
+  </div>
+{% endblock %}
+{% block scripts %}
+  <script>
+    document.querySelector('[data-faculty-post-search]')?.addEventListener('input', event => {
+      const query = event.target.value.trim().toLowerCase();
+      document.querySelectorAll('[data-faculty-post]').forEach(item => {
+        item.hidden = !item.dataset.search.includes(query);
+      });
+    });
+  </script>
+{% endblock %}

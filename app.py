@@ -5,8 +5,9 @@ import logging
 import os
 import re
 from fractions import Fraction
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from functools import wraps
+from zoneinfo import ZoneInfo
 
 from urllib.parse import urlencode
 
@@ -27,6 +28,7 @@ from models import (
     ChatMessage,
     Conversation,
     Material,
+    PracticeGeneration,
     Question,
     QuizDraft,
     Setting,
@@ -245,6 +247,60 @@ def clamp_practice_count(value, default: int = 3) -> int:
         return default
 
 
+PRACTICE_GENERATIONS_PER_SUBJECT_DAILY = 3
+PHILIPPINES_TIME = ZoneInfo("Asia/Manila")
+
+
+def practice_generation_day_window():
+    """Return today's Manila-local boundaries as naive UTC datetimes for storage queries."""
+    now_local = datetime.now(PHILIPPINES_TIME)
+    start_local = now_local.replace(hour=0, minute=0, second=0, microsecond=0)
+    end_local = start_local + timedelta(days=1)
+    return (
+        start_local.astimezone(timezone.utc).replace(tzinfo=None),
+        end_local.astimezone(timezone.utc).replace(tzinfo=None),
+    )
+
+
+def practice_generations_used_today(user_id: int, subject_slug: str) -> int:
+    start, end = practice_generation_day_window()
+    return PracticeGeneration.query.filter_by(user_id=user_id, subject_slug=subject_slug).filter(
+        PracticeGeneration.created_at >= start,
+        PracticeGeneration.created_at < end,
+    ).count()
+
+
+def reserve_practice_generation(user_id: int, subject_slug: str):
+    """Reserve one of today's generations before calling the external AI service."""
+    start, end = practice_generation_day_window()
+    # Lock the account row so concurrent requests for one student serialize on PostgreSQL.
+    db.session.query(User.id).filter_by(id=user_id).with_for_update().first()
+    PracticeGeneration.query.filter_by(user_id=user_id).filter(
+        PracticeGeneration.created_at < start,
+    ).delete(synchronize_session=False)
+    used = PracticeGeneration.query.filter_by(user_id=user_id, subject_slug=subject_slug).filter(
+        PracticeGeneration.created_at >= start,
+        PracticeGeneration.created_at < end,
+    ).count()
+    if used >= PRACTICE_GENERATIONS_PER_SUBJECT_DAILY:
+        db.session.commit()
+        return used, None
+    reservation = PracticeGeneration(user_id=user_id, subject_slug=subject_slug)
+    db.session.add(reservation)
+    db.session.commit()
+    return used + 1, reservation.id
+
+
+def release_practice_generation(reservation_id: int | None):
+    """Return quota when a generation fails before a practice check is created."""
+    if not reservation_id:
+        return
+    reservation = db.session.get(PracticeGeneration, reservation_id)
+    if reservation:
+        db.session.delete(reservation)
+        db.session.commit()
+
+
 def practice_setup_url(subject_slug, material_slug, difficulty="medium", focus="mixed", count=3, types=None):
     base = url_for("practice_setup", subject_slug=subject_slug, material_slug=material_slug)
     pairs = [
@@ -385,10 +441,25 @@ def assessments_awaiting_release(subject_slug: str) -> list:
 def admin_nav():
     return [
         {"label": "Home", "endpoint": "admin_home", "key": "home"},
+        {"label": "Faculty posts", "endpoint": "admin_faculty_posts", "key": "faculty"},
         {"label": "Users", "endpoint": "admin_users", "key": "users"},
         {"label": "Section", "endpoint": "admin_section", "key": "section"},
         {"label": "Settings", "endpoint": "admin_settings", "key": "settings"},
     ]
+
+
+def password_is_strong(password: str) -> bool:
+    """Require a mixed-character password for newly set account credentials."""
+    return (
+        len(password) >= 8
+        and any(char.islower() for char in password)
+        and any(char.isupper() for char in password)
+        and any(char.isdigit() for char in password)
+        and any(not char.isalnum() and not char.isspace() for char in password)
+    )
+
+
+PASSWORD_REQUIREMENTS = "Use at least 8 characters with an uppercase letter, a lowercase letter, a number, and a symbol."
 
 
 def announcement_read_ids(user_id: int) -> set[int]:
@@ -2374,6 +2445,10 @@ def practice_setup(subject_slug, material_slug):
         "selected_focus": selected_focus,
         "selected_count": selected_count,
         "selected_types": selected_types,
+        "practice_limit_applies": user["role"] == "student",
+        "practice_generations_used": practice_generations_used_today(user["id"], subject_slug)
+        if user["role"] == "student" else 0,
+        "practice_generations_limit": PRACTICE_GENERATIONS_PER_SUBJECT_DAILY,
         "back_href": url_for("summary_reader", slug=subject_slug, material_slug=material.slug)
         if material.summary
         else url_for("subject_hub", slug=subject_slug, tab="study"),
@@ -2399,10 +2474,26 @@ def practice_take(subject_slug, material_slug):
         count = clamp_practice_count(request.form.get("count", 3))
         difficulty = normalize_difficulty(request.form.get("difficulty") or session.get("practice_difficulty"))
         session["practice_difficulty"] = difficulty
-        questions = generate_hots_questions(
-            material.title, material.extracted_text, meta["name"], focus, count, types, difficulty
-        )
+        reservation_id = None
+        if user["role"] == "student":
+            used, reservation_id = reserve_practice_generation(user["id"], subject_slug)
+            if reservation_id is None:
+                flash(
+                    f"You've used all {PRACTICE_GENERATIONS_PER_SUBJECT_DAILY} practice generations for {meta['name']} today. Try again tomorrow.",
+                    "danger",
+                )
+                return redirect(practice_setup_url(subject_slug, material_slug, difficulty, focus, count, types))
+        try:
+            questions = generate_hots_questions(
+                material.title, material.extracted_text, meta["name"], focus, count, types, difficulty
+            )
+        except Exception:
+            release_practice_generation(reservation_id)
+            logger.exception("Practice generation failed")
+            flash("We couldn't generate your practice right now. Please try again.", "danger")
+            return redirect(practice_setup_url(subject_slug, material_slug, difficulty, focus, count, types))
         if not questions:
+            release_practice_generation(reservation_id)
             flash(
                 "We couldn't generate your practice right now. "
                 f"Your selected difficulty: {difficulty_label(difficulty)}.",
@@ -3128,8 +3219,8 @@ def profile_password():
         confirm = request.form.get("confirm_password", "")
         if not check_password_hash(record.password_hash, current):
             flash("Current password is incorrect.", "danger")
-        elif len(new) < 8:
-            flash("New password must be at least 8 characters.", "danger")
+        elif not password_is_strong(new):
+            flash(PASSWORD_REQUIREMENTS, "danger")
         elif new != confirm:
             flash("New passwords do not match.", "danger")
         else:
@@ -3931,6 +4022,35 @@ def admin_home(user):
     return render_template("admin_monitor.html", **context)
 
 
+@app.route("/admin/faculty-posts")
+@require_role("admin")
+def admin_faculty_posts(user):
+    teacher_ids = [row.id for row in User.query.filter_by(role="teacher").all()]
+    materials = (
+        Material.query.filter(Material.owner_id.in_(teacher_ids))
+        .order_by(Material.created_at.desc(), Material.id.desc())
+        .all()
+        if teacher_ids else []
+    )
+    assessments = (
+        Assessment.query.filter(Assessment.created_by.in_(teacher_ids))
+        .order_by(Assessment.created_at.desc(), Assessment.id.desc())
+        .all()
+        if teacher_ids else []
+    )
+    teachers_by_id = {row.id: row for row in User.query.filter(User.id.in_(teacher_ids)).all()} if teacher_ids else {}
+    return render_template(
+        "admin_faculty_posts.html",
+        user=user,
+        topbar_sub="Faculty posts",
+        role_nav=admin_nav(),
+        active_nav="faculty",
+        materials=materials,
+        assessments=assessments,
+        teachers_by_id=teachers_by_id,
+    )
+
+
 @app.route("/admin/users", methods=["GET", "POST"])
 @require_role("admin")
 def admin_users(user):
@@ -3962,8 +4082,8 @@ def admin_users(user):
                     flash("Account details updated.", "success")
             elif action == "reset_password":
                 password = request.form.get("new_password", "")
-                if len(password) < 8:
-                    flash("Use a password with at least 8 characters.", "danger")
+                if not password_is_strong(password):
+                    flash(PASSWORD_REQUIREMENTS, "danger")
                 else:
                     record.password_hash = generate_password_hash(password)
                     db.session.commit()
@@ -3980,6 +4100,7 @@ def admin_users(user):
             return redirect(url_for("admin_users"))
         raw = request.form.get("csv", "").strip()
         created = 0
+        skipped_weak_passwords = 0
         reader = csv.reader(io.StringIO(raw))
         for row in reader:
             if not row or len(row) < 4:
@@ -3989,6 +4110,9 @@ def admin_users(user):
             email = email.lower()
             role = role.lower()
             if role not in {"student", "teacher", "admin"} or User.query.filter_by(email=email).first():
+                continue
+            if not password_is_strong(password):
+                skipped_weak_passwords += 1
                 continue
             if role == "teacher":
                 subject = canonical_subject_name(subject)
@@ -4002,15 +4126,17 @@ def admin_users(user):
                     name=name or email.split("@")[0],
                     role=role,
                     subject=subject,
-                    password_hash=generate_password_hash(password or "Temp1234"),
+                    password_hash=generate_password_hash(password),
                 )
             )
             created += 1
         db.session.commit()
         if created:
             flash(f"Imported {created} user(s). They can sign in with their temporary passwords.", "success")
+            if skipped_weak_passwords:
+                flash(f"Skipped {skipped_weak_passwords} row(s): temporary passwords did not meet the security requirements.", "danger")
         else:
-            flash("No new users imported. Check the CSV format, or those emails may already exist.", "danger")
+            flash("No users imported. Check the CSV format, password rules, and whether the email addresses already exist.", "danger")
         return redirect(url_for("admin_users"))
 
     panels = []
@@ -4046,13 +4172,13 @@ def admin_users(user):
         form_blocks=[
             {
                 "title": "Bulk import",
-                "note": "CSV rows: email, full name, role, temporary password, subject (teachers)",
+                "note": "CSV rows: email, full name, role, temporary password, subject (teachers). Passwords need 8+ characters, uppercase and lowercase letters, a number, and a symbol.",
                 "action": url_for("admin_users"),
                 "submit": "Import users",
                 "loading": "Importing users…",
                 "confirm": "Import these accounts? Temporary passwords will be set from the CSV.",
                 "sample_target": "csv",
-                "sample_value": "student2@letran-calamba.edu.ph, Ana Cruz, student, Temp1234\nenglish2@letran-calamba.edu.ph, Jane Cruz, teacher, Temp1234, English",
+                "sample_value": "student2@letran-calamba.edu.ph, Ana Cruz, student, Temp1234!\nenglish2@letran-calamba.edu.ph, Jane Cruz, teacher, Temp1234!, English",
                 "fields": [
                     {
                         "id": "csv",
