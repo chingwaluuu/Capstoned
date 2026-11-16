@@ -11,14 +11,14 @@ Bloom was implemented as a web application using Python, Flask, SQLite, and the 
 
 The development phase produced a working prototype for a Grade 7 pilot in English, Mathematics, and Science at Letran Calamba Junior High School. The system uses role-based access (`student`, `teacher`, `admin`), session authentication, CSRF protection on form posts, and an AI module that summarizes uploaded lesson text and generates HOTS questions from that text only.
 
-The screenshots below were captured from the running prototype. Insert each image under its figure caption when you paste this chapter into the official thesis.
+The figures below use the original 1280-pixel screen captures in `docs/audit-screenshots`; the image links keep the source screenshots at full resolution rather than embedding compressed thumbnails. When placing them in the final Word/PDF manuscript, keep each screenshot large enough for labels and controls to remain readable.
 
 ### Login and role-based access
 
 Users sign in with school email and password. A valid student account is redirected to the student home; a teacher is redirected to the teacher workspace; an administrator is redirected to the admin home. An invalid password returns the user to the login page. Logout is confirmed on a GET page and completed only by POST so that browser prefetch cannot sign a user out by accident.
 
 **Figure 8.** Login page of Bloom  
-*Insert: `docs/audit-screenshots/01-login.png`*
+![Bloom screen: 01 login](audit-screenshots/01-login.png)
 
 The login screen is the single entry point for all roles. This supports the study’s requirement that Bloom be used as a school system, not as an open public chatbot.
 
@@ -27,87 +27,89 @@ The login screen is the single entry point for all roles. This supports the stud
 After login, the student home presents subjects (English, Mathematics, Science), a short “Do this next” queue, and practice averages. Navigation is shared across student pages: Home, Practice, Results, Announcements, Messages, and Profile.
 
 **Figure 9.** Student home  
-*Insert: `docs/audit-screenshots/02-home.png`*
+![Bloom screen: 02 home](audit-screenshots/02-home.png)
 
 The subject hub is the lesson workspace for one subject. Students open approved summaries, start practice, and (when the teacher allows) upload a backup file that stays pending until the teacher deploys it. This keeps student-uploaded files from reaching the class until a teacher reviews them.
 
 **Figure 10.** Subject hub (Science)  
-*Insert: `docs/audit-screenshots/08-subject-hub.png`*
+![Bloom screen: 08 subject hub](audit-screenshots/08-subject-hub.png)
 
 Approved lesson text is turned into a short, student-friendly summary. The summarizer is instructed to use only the uploaded lesson, which addresses the problem that generic AI tools often add outside facts that are not in the school material.
 
 **Figure 11.** Lesson summary reader  
-*Insert: `docs/audit-screenshots/10-summary.png`*
+![Bloom screen: 10 summary](audit-screenshots/10-summary.png)
 
 Guided practice is the student HOTS loop. The learner sets difficulty (easy, medium, hard), Bloom focus (Analyze, Evaluate, Create, or mixed), item count, and question types, then generates a practice set. Difficulty is designed to change complexity, not to drop the item below Analyze–Evaluate–Create.
 
 **Figure 12.** Practice library  
-*Insert: `docs/audit-screenshots/03-practice.png`*
+![Bloom screen: 03 practice](audit-screenshots/03-practice.png)
 
 **Figure 13.** Practice setup  
-*Insert: `docs/audit-screenshots/09-practice-setup.png`*
+![Bloom screen: 09 practice setup](audit-screenshots/09-practice-setup.png)
 
 **Figure 14.** Practice take  
-*Insert: `docs/audit-screenshots/15-practice-take.png`*
+![Bloom screen: 15 practice take](audit-screenshots/15-practice-take.png)
 
 After submission, Bloom stores an attempt and shows a result review (score for auto-scored items, explanations when released). Assessment attempts are started by POST so that opening a link cannot silently consume an attempt.
 
 **Figure 15.** Results history  
-*Insert: `docs/audit-screenshots/04-results.png`*
+![Bloom screen: 04 results](audit-screenshots/04-results.png)
 
 **Figure 16.** Result review  
-*Insert: `docs/audit-screenshots/13-result-review.png`*
+![Bloom screen: 13 result review](audit-screenshots/13-result-review.png)
 
 Announcements and messages support learning beyond the quiz itself. Teachers post subject announcements; students mark them read. Students may start a conversation with their subject teacher.
 
 **Figure 17.** Announcements  
-*Insert: `docs/audit-screenshots/05-announcements.png`*
+![Bloom screen: 05 announcements](audit-screenshots/05-announcements.png)
 
 **Figure 18.** Messages inbox  
-*Insert: `docs/audit-screenshots/06-messages.png`*
+![Bloom screen: 06 messages](audit-screenshots/06-messages.png)
 
 **Figure 19.** Message thread  
-*Insert: `docs/audit-screenshots/12-messages-thread.png`*
+![Bloom screen: 12 messages thread](audit-screenshots/12-messages-thread.png)
 
 The profile page lets the student update a photo and password. Photo files are stored on the server and are not shown to users who are not signed in.
 
 **Figure 20.** Student profile  
-*Insert: `docs/audit-screenshots/07-profile.png`*
+![Bloom screen: 07 profile](audit-screenshots/07-profile.png)
 
 ### Teacher module
 
 The teacher home is scoped to the teacher’s subject. From here the teacher manages materials, generates HOTS items, monitors attempts, and posts announcements.
 
 **Figure 21.** Teacher home  
-*Insert: `docs/audit-screenshots/14-teacher-home.png`*
+![Bloom screen: 14 teacher home](audit-screenshots/14-teacher-home.png)
 
 On Materials, the teacher uploads a PDF, DOCX, PPTX, or TXT file. The system extracts text, builds a summary, and keeps student backup uploads in **Pending review** until the teacher deploys or rejects them. A teacher of another subject cannot open another subject’s file.
 
 **Figure 22.** Teacher materials  
-*Insert: `docs/audit-screenshots/19-teacher-materials.png`*
+![Bloom screen: 19 teacher materials](audit-screenshots/19-teacher-materials.png)
 
 The HOTS workspace generates Analyze, Evaluate, Create, or mixed items from the lesson text. The teacher can review, edit, and publish or close an assessment, and can control whether scores, answers, and feedback are released to students. This is the main validation mechanism of the study: AI drafts items; the teacher decides what the class sees.
 
 **Figure 23.** Teacher HOTS generation  
-*Insert: `docs/audit-screenshots/16-teacher-hots.png`*
+![Bloom screen: 16 teacher hots](audit-screenshots/16-teacher-hots.png)
 
 Monitor shows section progress (attempts and average scores) and links to student results. Announce lets the teacher post reminders for the subject.
 
 **Figure 24.** Teacher monitor  
-*Insert: `docs/audit-screenshots/17-teacher-monitor.png`*
+![Bloom screen: 17 teacher monitor](audit-screenshots/17-teacher-monitor.png)
 
 **Figure 25.** Teacher announcements  
-*Insert: `docs/audit-screenshots/18-teacher-announce.png`*
+![Bloom screen: 18 teacher announce](audit-screenshots/18-teacher-announce.png)
 
 **Figure 26.** Teacher messages  
-*Insert: `docs/audit-screenshots/21-teacher-messages.png`*
+![Bloom screen: 21 teacher messages](audit-screenshots/21-teacher-messages.png)
 
 ### Admin module
 
 The administrator home supports the Grade 7 pilot: user accounts, section view, reports snapshot, and settings such as upload limits. Bloom authenticates with school email, so admin enrollment is required before classroom UAT.
 
 **Figure 27.** Admin home  
-*Insert: `docs/audit-screenshots/22-admin-home.png`*
+![Bloom screen: 22 admin home](audit-screenshots/22-admin-home.png)
+
+The current screenshot set documents the main student and teacher workflows and the admin home. It does not yet show every current admin workflow, including section management, school-year setup, user management, and general settings. Add updated captures of those screens before describing the documentation as complete.
 
 ### Development outcome
 
@@ -231,6 +233,12 @@ User acceptance testing (UAT) evaluates whether teachers and students can use Bl
 | Students |  |  | Same formula |
 | Combined |  |  |  |
 
+### Interpreting the lowest ratings
+
+The panel comment sheet reports a weighted mean of **4.00** for functional suitability and performance efficiency. Under the study's interpretation scale, 4.00 falls in **Agree / Very satisfactory** (3.41–4.20). These are positive results that were lower relative to the other dimensions; they should not be described as poor or unsatisfactory.
+
+A numeric mean alone does not reveal why respondents chose their ratings. Use the open-ended responses, if collected, to support the explanation. If those comments point to a gap, functional suitability may be discussed in terms of how completely the available features support users' tasks and how easy it is to find or understand those features. Performance efficiency may be discussed in terms of perceived responsiveness during page loads and AI generation. Panel feedback raised internet connectivity and external AI service delays as possible concerns, but the survey does not establish that either caused the 4.00 rating. Present these as possible context, not proven causes, unless respondent comments or timing measurements confirm them.
+
 **How to finish this subsection after the pilot**
 
 1. Encode Likert answers in a spreadsheet.  
@@ -240,6 +248,8 @@ User acceptance testing (UAT) evaluates whether teachers and students can use Bl
 5. Do not add new tables in Chapter V.
 
 Until those means are collected, the tested claim of this chapter is limited to **functional correctness** (unit, integration, and system tests all passed). Acceptance by teachers and students is the remaining UAT result.
+
+The practice-generation limit is **three successful generations per student, per subject, per day**, resetting at midnight Philippine time. AI API charges depend on input and output token use rather than a flat amount per practice set. The cost assumptions, configured models, and provider references are documented in [`AI_USAGE_AND_LIMITS.md`](AI_USAGE_AND_LIMITS.md); recheck provider rates and model status before final submission because both can change.
 
 ---
 
