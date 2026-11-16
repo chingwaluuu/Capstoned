@@ -4943,3 +4943,356 @@ math {
   border-color: transparent;
   background: transparent;
 }
+
+/* Student results: give the next step and history their own clear surfaces. */
+.pro-body.student.home-editorial.student-refined .results-page {
+  --brand-primary: #1F2A5C;
+  --brand-primary-press: #172047;
+  --color-primary: #1F2A5C;
+  display: grid;
+  gap: 18px;
+  max-width: none;
+  margin: 0 0 32px;
+}
+
+.pro-body.student.home-editorial.student-refined .results-focus {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px 24px;
+  padding: 22px 24px;
+  border: 1px solid #D9DEEC;
+  border-left: 4px solid #1F2A5C;
+  border-radius: 16px;
+  background: linear-gradient(110deg, #F4F6FC, #FFFFFF 68%);
+  box-shadow: 0 4px 16px rgba(31, 42, 92, 0.06);
+}
+
+.pro-body.student.home-editorial.student-refined .results-focus .home-label {
+  grid-column: 1;
+  margin: 0;
+  color: #1F2A5C;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.pro-body.student.home-editorial.student-refined .results-focus .home-continue-title,
+.pro-body.student.home-editorial.student-refined .results-focus .home-continue-meta {
+  grid-column: 1;
+  margin: 0;
+}
+
+.pro-body.student.home-editorial.student-refined .results-focus .home-continue-actions {
+  grid-column: 2;
+  grid-row: 1 / span 3;
+  margin: 0;
+}
+
+.pro-body.student.home-editorial.student-refined .results-focus .home-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 20px;
+  border: 1px solid #1F2A5C;
+  border-radius: 10px;
+  background: #1F2A5C;
+  color: #FFFFFF;
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.pro-body.student.home-editorial.student-refined .results-library {
+  min-width: 0;
+  padding: 20px;
+  border: 1px solid #E2DED5;
+  border-radius: 16px;
+  background: #FFFFFF;
+  box-shadow: 0 4px 18px rgba(31, 42, 92, 0.045);
+}
+
+.pro-body.student.home-editorial.student-refined .results-library .results-head {
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.pro-body.student.home-editorial.student-refined .results-library .results-head .home-label {
+  color: #1A1A1A;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.pro-body.student.home-editorial.student-refined .results-library .home-card-mark {
+  color: #1F2A5C;
+}
+
+.pro-body.student.home-editorial.student-refined .results-library .filter-chips {
+  margin-bottom: 16px;
+}
+
+.pro-body.student.home-editorial.student-refined .results-history-group > .home-label {
+  margin: 18px 0 10px;
+  color: #59647D;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.pro-body.student.home-editorial.student-refined .results-library .work-item-card {
+  min-height: 78px;
+  padding: 14px 16px;
+  border: 1px solid #E6E3DC;
+  border-radius: 12px;
+  background: #FFFFFF;
+  box-shadow: 0 2px 7px rgba(31, 42, 92, 0.045) !important;
+}
+
+.pro-body.student.home-editorial.student-refined .results-library .work-item-card:hover {
+  border-color: #C8CEDF;
+  box-shadow: 0 5px 14px rgba(31, 42, 92, 0.08) !important;
+}
+
+.pro-body.student.home-editorial.student-refined .results-library .wic-btn-secondary {
+  border-color: #1F2A5C;
+  background: #FFFFFF;
+  color: #1F2A5C;
+}
+
+.pro-body.student.home-editorial.student-refined .results-library .wic-btn-secondary:hover {
+  background: #F1F3FA;
+}
+
+/* Student messages: contain the filters and make the contact list scannable. */
+.pro-body.student.student-refined:not(.teacher-workspace) .message-inbox {
+  --brand-primary: #1F2A5C;
+  --brand-primary-press: #172047;
+  --color-primary: #1F2A5C;
+  display: grid;
+  gap: 16px;
+  max-width: none;
+  margin: 0 0 32px;
+  padding: 20px;
+  border: 1px solid #E2DED5;
+  border-radius: 16px;
+  background: #FFFFFF;
+  box-shadow: 0 4px 18px rgba(31, 42, 92, 0.045);
+}
+
+.pro-body.student.student-refined:not(.teacher-workspace) .message-head {
+  align-items: center;
+  margin: 0;
+}
+
+.pro-body.student.student-refined:not(.teacher-workspace) .message-head .practice-head-title {
+  color: #1A1A1A;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.pro-body.student.student-refined:not(.teacher-workspace) .message-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 20px;
+  padding: 14px 0;
+  border-top: 1px solid #EEEAE1;
+  border-bottom: 1px solid #EEEAE1;
+}
+
+.pro-body.student.student-refined:not(.teacher-workspace) .message-search {
+  flex: 1 1 280px;
+  max-width: 420px;
+}
+
+.pro-body.student.student-refined:not(.teacher-workspace) .message-list {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 28rem), 1fr));
+  gap: 12px;
+}
+
+.pro-body.student.student-refined:not(.teacher-workspace) .message-row {
+  min-width: 0;
+  min-height: 76px;
+  padding: 14px 16px;
+  border: 1px solid #E6E3DC;
+  border-radius: 12px;
+  background: #FFFFFF;
+  box-shadow: 0 2px 7px rgba(31, 42, 92, 0.045);
+}
+
+.pro-body.student.student-refined:not(.teacher-workspace) .message-row:hover {
+  border-color: #C8CEDF;
+  background: #FBFCFE;
+  box-shadow: 0 5px 14px rgba(31, 42, 92, 0.08);
+  transform: translateY(-1px);
+}
+
+.pro-body.student.student-refined:not(.teacher-workspace) .message-row.is-unread {
+  border-left: 3px solid #1F2A5C;
+  background: #F7F8FC;
+}
+
+.pro-body.student.student-refined:not(.teacher-workspace) .message-row-snippet.is-empty-preview {
+  color: #68738A;
+  font-style: normal;
+}
+
+.pro-body.student.student-refined:not(.teacher-workspace) .message-row-name {
+  color: #17213D;
+}
+
+/* Student profile: balance the photo tool and remove nested panel framing. */
+.pro-body.student.profile-page.student-refined .profile-shell {
+  --brand-primary: #1F2A5C;
+  --brand-primary-press: #172047;
+  --color-primary: #1F2A5C;
+  width: 100%;
+  max-width: none;
+  grid-template-columns: minmax(0, 1.45fr) minmax(18rem, 0.8fr);
+  gap: 20px;
+  margin-top: 0.25rem;
+}
+
+.pro-body.student.profile-page.student-refined .profile-main-col,
+.pro-body.student.profile-page.student-refined .profile-aside-col {
+  gap: 16px;
+}
+
+.pro-body.student.profile-page.student-refined .profile-photo-edit {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px 24px;
+  padding: 20px 22px;
+  border: 1px solid #E2DED5;
+  border-radius: 16px;
+  background: #FFFFFF;
+  box-shadow: 0 4px 18px rgba(31, 42, 92, 0.045);
+}
+
+.pro-body.student.profile-page.student-refined .profile-photo-form {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: none;
+  margin: 0;
+}
+
+.pro-body.student.profile-page.student-refined .profile-photo-choose {
+  width: 190px;
+  height: 126px;
+  min-height: 126px;
+  gap: 10px;
+  padding: 12px;
+  border: 1.5px dashed #C8CEDF;
+  border-radius: 12px;
+  background: #F8F9FC;
+  color: #1F2A5C;
+  box-shadow: none;
+  font-size: 0.86rem;
+}
+
+.pro-body.student.profile-page.student-refined .profile-photo-choose-icon .fi {
+  font-size: 2rem;
+}
+
+.pro-body.student.profile-page.student-refined .profile-photo-actions {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.pro-body.student.profile-page.student-refined .profile-account,
+.pro-body.student.profile-page.student-refined .profile-security,
+.pro-body.student.profile-page.student-refined .profile-snapshot,
+.pro-body.student.profile-page.student-refined .profile-subjects,
+.pro-body.student.profile-page.student-refined .profile-activity {
+  padding: 20px 22px;
+  border: 1px solid #E2DED5;
+  border-radius: 16px;
+  background: #FFFFFF;
+  box-shadow: 0 4px 18px rgba(31, 42, 92, 0.045);
+}
+
+.pro-body.student.profile-page.student-refined .profile-aside-col {
+  position: static;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.pro-body.student.profile-page.student-refined .profile-account .profile-facts {
+  margin-top: 12px;
+}
+
+.pro-body.student.profile-page.student-refined .profile-facts > div {
+  grid-template-columns: minmax(6rem, 0.7fr) minmax(0, 1.3fr);
+  gap: 8px 14px;
+  padding: 12px 0;
+}
+
+.pro-body.student.profile-page.student-refined .profile-security {
+  padding-top: 20px;
+}
+
+.pro-body.student.profile-page.student-refined .profile-identity {
+  margin-top: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #D9D4C9;
+}
+
+.pro-body.student.profile-page.student-refined .profile-photo-save {
+  background: #1F2A5C;
+  color: #FFFFFF;
+}
+
+.pro-body.student.profile-page.student-refined .profile-password-card .btn-primary {
+  background: #1F2A5C;
+  color: #FFFFFF;
+}
+
+.pro-body.student.profile-page.student-refined .profile-security .today-action-soft {
+  border-color: #1F2A5C;
+  color: #1F2A5C;
+}
+
+@media (max-width: 900px) {
+  .pro-body.student.home-editorial.student-refined .results-focus {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .pro-body.student.home-editorial.student-refined .results-focus .home-continue-actions {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  .pro-body.student.student-refined:not(.teacher-workspace) .message-inbox {
+    padding: 16px;
+  }
+
+  .pro-body.student.profile-page.student-refined .profile-shell {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .pro-body.student.profile-page.student-refined .profile-photo-edit {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 520px) {
+  .pro-body.student.profile-page.student-refined .profile-photo-form {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .pro-body.student.profile-page.student-refined .profile-photo-choose {
+    width: auto;
+  }
+
+  .pro-body.student.profile-page.student-refined .profile-photo-actions {
+    flex-direction: row;
+  }
+}
