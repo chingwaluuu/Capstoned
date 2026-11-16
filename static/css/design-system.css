@@ -5451,14 +5451,20 @@ math {
 }
 
 .pro-body.student .student-message-avatar {
+  display: grid;
   width: 36px;
   height: 36px;
   flex: 0 0 36px;
+  place-items: center;
+  box-sizing: border-box;
+  overflow: hidden;
   border: 1px solid #E2DED5;
   border-radius: 50%;
   background: #F3F1EB;
   color: var(--message-navy);
   font-size: 0.7rem;
+  line-height: 1;
+  text-align: center;
 }
 
 .pro-body.student .student-message-contact-copy {
@@ -5466,6 +5472,7 @@ math {
   min-width: 0;
   flex: 1 1 auto;
   flex-direction: column;
+  justify-content: center;
   gap: 2px;
 }
 
