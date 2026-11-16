@@ -14,6 +14,8 @@ class User(db.Model):
     subject = db.Column(db.String(40))  # English | Mathematics | Science
     password_hash = db.Column(db.String(255), nullable=False)
     section = db.Column(db.String(80), default="Grade 7 · Pilot Section")
+    section_id = db.Column(db.Integer, db.ForeignKey("school_section.id", ondelete="SET NULL"))
+    school_section = db.relationship("SchoolSection", foreign_keys=[section_id])
     is_active = db.Column(db.Boolean, default=True, nullable=False)
     avatar_filename = db.Column(db.String(255))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -170,6 +172,22 @@ class SchoolSection(db.Model):
     school_year_id = db.Column(db.Integer, db.ForeignKey("school_year.id"), nullable=False)
     school_year = db.relationship("SchoolYear")
     __table_args__ = (db.UniqueConstraint("name", "grade", "school_year_id", name="uq_section_grade_year"),)
+
+
+class TeacherAssignment(db.Model):
+    """A teacher's preparation for one subject in one section."""
+    id = db.Column(db.Integer, primary_key=True)
+    teacher_id = db.Column(db.Integer, db.ForeignKey("user.id", ondelete="CASCADE"), nullable=False, index=True)
+    subject = db.Column(db.String(40), nullable=False)
+    section_id = db.Column(db.Integer, db.ForeignKey("school_section.id", ondelete="SET NULL"))
+    # Retained as a snapshot so older assignments remain readable if a section is removed.
+    section_label = db.Column(db.String(120), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    teacher = db.relationship("User", backref=db.backref("teaching_assignments", cascade="all, delete-orphan"))
+    section = db.relationship("SchoolSection")
+    __table_args__ = (
+        db.UniqueConstraint("teacher_id", "subject", "section_id", name="uq_teacher_subject_section"),
+    )
 
 
 class QuizDraft(db.Model):

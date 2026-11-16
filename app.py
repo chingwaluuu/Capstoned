@@ -13,6 +13,7 @@ from urllib.parse import urlencode
 
 from flask import Flask, abort, flash, jsonify, redirect, render_template, request, send_from_directory, session, url_for
 from sqlalchemy import inspect as sa_inspect, or_, text
+from sqlalchemy.exc import IntegrityError
 from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
 
@@ -34,6 +35,7 @@ from models import (
     Setting,
     SchoolYear,
     SchoolSection,
+    TeacherAssignment,
     Summary,
     User,
     db,
@@ -137,7 +139,8 @@ def can_view_attempt(user: dict, attempt: Attempt) -> bool:
         return True
     if user["role"] == "teacher":
         slug = teacher_subject_slug(user)
-        return bool(slug and attempt.subject_slug == slug)
+        student = db.session.get(User, attempt.user_id)
+        return bool(slug and attempt.subject_slug == slug and student and same_section(user, student))
     return False
 
 
@@ -322,6 +325,7 @@ def ensure_schema():
         ("assessment", "difficulty", "VARCHAR(20)"),
         ("user", "avatar_filename", "VARCHAR(255)"),
         ("user", "is_active", "BOOLEAN NOT NULL DEFAULT TRUE"),
+        ("user", "section_id", "INTEGER REFERENCES school_section(id) ON DELETE SET NULL"),
     )
     preparer = db.engine.dialect.identifier_preparer
     with db.engine.begin() as conn:
@@ -337,6 +341,122 @@ def ensure_schema():
                     )
                 )
     normalize_teacher_subjects()
+    migrate_student_sections()
+    migrate_teacher_assignments()
+    install_teacher_assignment_limit()
+
+
+def _legacy_section_match(label):
+    label = (label or "").strip()
+    if not label:
+        return None
+    sections = (
+        SchoolSection.query.join(SchoolYear)
+        .order_by(SchoolYear.active.desc(), SchoolYear.name.desc(), SchoolSection.id.desc())
+        .all()
+    )
+    exact = [section for section in sections if f"Grade {section.grade} · {section.name}" == label]
+    if exact:
+        return exact[0]
+    named = [section for section in sections if section.name == label]
+    if len(named) == 1:
+        return named[0]
+    active = [section for section in named if section.school_year and section.school_year.active]
+    return active[0] if len(active) == 1 else None
+
+
+def migrate_teacher_assignments():
+    """Add one equivalent assignment for each existing teacher without changing their account data."""
+    for teacher in User.query.filter_by(role="teacher").all():
+        subject = canonical_subject_name(teacher.subject)
+        if not subject:
+            continue
+        section_label = (teacher.section or "Unassigned section").strip()[:120]
+        section = _legacy_section_match(section_label)
+        existing = None
+        if section:
+            existing = TeacherAssignment.query.filter_by(
+                teacher_id=teacher.id, subject=subject, section_id=section.id
+            ).first()
+            if not existing:
+                existing = TeacherAssignment.query.filter_by(
+                    teacher_id=teacher.id,
+                    subject=subject,
+                    section_id=None,
+                    section_label=section_label,
+                ).first()
+                if existing:
+                    existing.section_id = section.id
+        else:
+            existing = TeacherAssignment.query.filter_by(
+                teacher_id=teacher.id,
+                subject=subject,
+                section_id=None,
+                section_label=section_label,
+            ).first()
+        if not existing:
+            db.session.add(TeacherAssignment(
+                teacher_id=teacher.id,
+                subject=subject,
+                section_id=section.id if section else None,
+                section_label=section_label,
+            ))
+    db.session.commit()
+
+
+def migrate_student_sections():
+    """Link existing students to matching sections, preferring the active school year."""
+    for student in User.query.filter_by(role="student").filter(User.section_id.is_(None)).all():
+        section = _legacy_section_match(student.section)
+        if section:
+            student.section_id = section.id
+    db.session.commit()
+
+
+def install_teacher_assignment_limit():
+    """Enforce the ten-assignment ceiling in the active SQL database."""
+    dialect = db.engine.dialect.name
+    with db.engine.begin() as conn:
+        if dialect == "sqlite":
+            conn.exec_driver_sql("""
+                CREATE TRIGGER IF NOT EXISTS trg_teacher_assignment_limit_insert
+                BEFORE INSERT ON teacher_assignment
+                WHEN (SELECT COUNT(*) FROM teacher_assignment WHERE teacher_id = NEW.teacher_id) >= 10
+                BEGIN SELECT RAISE(ABORT, 'teacher assignment limit of 10 exceeded'); END
+            """)
+            conn.exec_driver_sql("""
+                CREATE TRIGGER IF NOT EXISTS trg_teacher_assignment_limit_update
+                BEFORE UPDATE OF teacher_id ON teacher_assignment
+                WHEN (SELECT COUNT(*) FROM teacher_assignment WHERE teacher_id = NEW.teacher_id AND id <> OLD.id) >= 10
+                BEGIN SELECT RAISE(ABORT, 'teacher assignment limit of 10 exceeded'); END
+            """)
+        elif dialect == "postgresql":
+            conn.exec_driver_sql("""
+                CREATE OR REPLACE FUNCTION bloom_enforce_teacher_assignment_limit()
+                RETURNS trigger AS $$
+                DECLARE assignment_count INTEGER;
+                BEGIN
+                  PERFORM id FROM "user" WHERE id = NEW.teacher_id FOR UPDATE;
+                  IF TG_OP = 'UPDATE' THEN
+                    SELECT COUNT(*) INTO assignment_count FROM teacher_assignment
+                    WHERE teacher_id = NEW.teacher_id AND id <> OLD.id;
+                  ELSE
+                    SELECT COUNT(*) INTO assignment_count FROM teacher_assignment
+                    WHERE teacher_id = NEW.teacher_id;
+                  END IF;
+                  IF assignment_count >= 10 THEN
+                    RAISE EXCEPTION 'teacher assignment limit of 10 exceeded' USING ERRCODE = '23514';
+                  END IF;
+                  RETURN NEW;
+                END;
+                $$ LANGUAGE plpgsql
+            """)
+            conn.exec_driver_sql("DROP TRIGGER IF EXISTS trg_teacher_assignment_limit ON teacher_assignment")
+            conn.exec_driver_sql("""
+                CREATE TRIGGER trg_teacher_assignment_limit
+                BEFORE INSERT OR UPDATE ON teacher_assignment
+                FOR EACH ROW EXECUTE FUNCTION bloom_enforce_teacher_assignment_limit()
+            """)
 
 
 def normalize_teacher_subjects():
@@ -403,6 +523,19 @@ def require_role(*roles):
 def teacher_subject_slug(user) -> str:
     slug = subject_slug_from_name((user or {}).get("subject"))
     return slug if slug in SUBJECTS else "science"
+
+
+@app.route("/teacher/assignment", methods=["POST"])
+@require_role("teacher")
+def teacher_set_assignment(user):
+    assignment_id = request.form.get("assignment_id", type=int)
+    assignment = TeacherAssignment.query.filter_by(id=assignment_id, teacher_id=user["id"]).first()
+    if assignment:
+        session["teacher_assignment_id"] = assignment.id
+        flash(f"Switched to {assignment.subject} · {assignment.section_label}.", "success")
+    else:
+        flash("That teaching assignment is no longer available.", "danger")
+    return redirect(url_for("teacher_home"))
 
 
 def teacher_nav():
@@ -864,6 +997,14 @@ def conversation_preview(conversation: Conversation, user_id: int) -> dict:
 
 
 def same_section(user, other) -> bool:
+    left_id = user.get("section_id") if isinstance(user, dict) else getattr(user, "section_id", None)
+    right_id = other.get("section_id") if isinstance(other, dict) else getattr(other, "section_id", None)
+    roles = {
+        user.get("role") if isinstance(user, dict) else getattr(user, "role", None),
+        other.get("role") if isinstance(other, dict) else getattr(other, "role", None),
+    }
+    if roles == {"teacher", "student"} and (left_id is not None or right_id is not None):
+        return left_id is not None and right_id is not None and left_id == right_id
     left = (user.get("section") if isinstance(user, dict) else getattr(user, "section", None)) or ""
     right = (other.get("section") if isinstance(other, dict) else getattr(other, "section", None)) or ""
     if not left or not right:
@@ -872,6 +1013,10 @@ def same_section(user, other) -> bool:
 
 
 def same_chat_section(user, other) -> bool:
+    left_id = user.get("section_id") if isinstance(user, dict) else getattr(user, "section_id", None)
+    right_id = other.get("section_id") if isinstance(other, dict) else getattr(other, "section_id", None)
+    if left_id is not None or right_id is not None:
+        return left_id is not None and right_id is not None and left_id == right_id
     left = (user.get("section") if isinstance(user, dict) else getattr(user, "section", None)) or ""
     right = (other.get("section") if isinstance(other, dict) else getattr(other, "section", None)) or ""
     return bool(left and right and left.casefold() == right.casefold())
@@ -885,7 +1030,7 @@ def allowed_chat_partner(user, other) -> bool:
     if user_role not in eligible_roles or other.role not in eligible_roles or user["id"] == other.id:
         return False
     if user_role == "teacher" and other.role == "student":
-        return True
+        return same_section(user, other)
     return same_chat_section(user, other)
 
 
@@ -902,7 +1047,12 @@ def ask_teacher_context(user, subject_name: str, topic: str, draft: str | None =
     if not user or user["role"] != "student" or not subject_name:
         return None
     teachers = User.query.filter_by(role="teacher", subject=subject_name).order_by(User.name).all()
-    teacher = next((item for item in teachers if same_section(user, item)), None) or (teachers[0] if teachers else None)
+    section_assignments = TeacherAssignment.query.filter_by(
+        subject=canonical_subject_name(subject_name), section_id=user.get("section_id")
+    ).all() if user.get("section_id") else []
+    assigned_teacher_ids = {item.teacher_id for item in section_assignments}
+    teacher = next((item for item in teachers if item.id in assigned_teacher_ids), None)
+    teacher = teacher or next((item for item in teachers if same_section(user, item)), None) or (teachers[0] if teachers else None)
     if not teacher:
         return None
     message = draft or f"Hi, I have a question about {topic}."
@@ -941,16 +1091,54 @@ def nearest_approved_material(subject_slug: str, at_time: datetime | None) -> Ma
 
 
 def session_user_payload(user: User) -> dict:
-    return {
+    payload = {
         "id": user.id,
         "email": user.email,
         "name": user.name,
         "role": user.role,
         "subject": canonical_subject_name(user.subject) if user.role == "teacher" else user.subject,
         "section": user.section,
+        "section_id": user.section_id,
         "avatar_filename": user.avatar_filename,
         "avatar_url": photo_url_for(user),
     }
+    if user.role == "teacher":
+        assignments = (
+            TeacherAssignment.query.filter_by(teacher_id=user.id)
+            .order_by(TeacherAssignment.subject, TeacherAssignment.section_label, TeacherAssignment.id)
+            .all()
+        )
+        assignment_rows = []
+        for assignment in assignments:
+            section = assignment.section
+            year_name = section.school_year.name if section and section.school_year else ""
+            section_name = section.name if section else assignment.section_label
+            section_display = (
+                f"Grade {section.grade} · {section_name}" if section else section_name
+            )
+            if year_name:
+                section_display += f" · {year_name}"
+            assignment_rows.append({
+                "id": assignment.id,
+                "subject": assignment.subject,
+                "section": section_name,
+                "section_display": section_display,
+                "section_id": assignment.section_id,
+                "school_year": year_name,
+            })
+        active_id = session.get("teacher_assignment_id")
+        active = next((item for item in assignments if item.id == active_id), None)
+        if active is None and assignments:
+            active = assignments[0]
+            session["teacher_assignment_id"] = active.id
+        if active:
+            payload["subject"] = active.subject
+            payload["section"] = active.section.name if active.section else active.section_label
+            payload["section_id"] = active.section_id
+        payload["teacher_assignments"] = assignment_rows
+        payload["active_teacher_assignment_id"] = active.id if active else None
+        payload["teacher_assignment_count"] = len(assignments)
+    return payload
 
 
 def bloom_progress(user_id: int, subject_slug: str) -> tuple[int, str, bool]:
@@ -1905,6 +2093,8 @@ def seed():
     if not db.session.get(Setting, "max_upload_mb"):
         db.session.add(Setting(key="max_upload_mb", value="20"))
     db.session.commit()
+    migrate_student_sections()
+    migrate_teacher_assignments()
     seed_demo_content()
 
 
@@ -4061,10 +4251,46 @@ def admin_users(user):
             if not record:
                 flash("Account not found.", "danger")
                 return redirect(url_for("admin_users"))
-            if action == "update":
+            if action == "add_teacher_assignment":
+                subject = canonical_subject_name(request.form.get("subject"))
+                section = db.session.get(SchoolSection, request.form.get("section_id", type=int))
+                if record.role != "teacher":
+                    flash("Only teacher accounts can receive teaching assignments.", "danger")
+                elif not subject or not section:
+                    flash("Choose a valid subject and section.", "danger")
+                elif TeacherAssignment.query.filter_by(teacher_id=record.id).count() >= 10:
+                    flash("This teacher already has the maximum of 10 subject-section assignments.", "danger")
+                elif TeacherAssignment.query.filter_by(teacher_id=record.id, subject=subject, section_id=section.id).first():
+                    flash("That subject and section are already assigned to this teacher.", "danger")
+                else:
+                    label = f"Grade {section.grade} · {section.name} · {section.school_year.name}"[:120]
+                    db.session.add(TeacherAssignment(teacher_id=record.id, subject=subject, section_id=section.id, section_label=label))
+                    try:
+                        db.session.commit()
+                        flash("Teaching assignment added.", "success")
+                    except IntegrityError:
+                        db.session.rollback()
+                        flash("The database rejected this assignment. The teacher may already be at the 10-assignment limit.", "danger")
+            elif action == "remove_teacher_assignment":
+                assignment = TeacherAssignment.query.filter_by(
+                    id=request.form.get("assignment_id", type=int), teacher_id=record.id
+                ).first()
+                if record.role != "teacher" or not assignment:
+                    flash("That teaching assignment could not be found.", "danger")
+                elif TeacherAssignment.query.filter_by(teacher_id=record.id).count() <= 1:
+                    flash("Keep at least one assignment on each teacher account.", "danger")
+                else:
+                    db.session.delete(assignment)
+                    db.session.commit()
+                    flash("Teaching assignment removed.", "success")
+            elif action == "update":
                 name = request.form.get("name", "").strip()
                 role = request.form.get("role", "").strip().lower()
-                if not name or role not in {"student", "teacher", "admin"}:
+                teacher_subject = canonical_subject_name(request.form.get("teacher_subject")) if role == "teacher" else None
+                if role == "teacher" and not teacher_subject:
+                    existing_assignment = TeacherAssignment.query.filter_by(teacher_id=record.id).order_by(TeacherAssignment.id).first()
+                    teacher_subject = existing_assignment.subject if existing_assignment else canonical_subject_name(record.subject)
+                if not name or role not in {"student", "teacher", "admin"} or (role == "teacher" and not teacher_subject):
                     flash("Enter a name and choose a valid role.", "danger")
                 elif record.id == user["id"] and role != "admin":
                     flash("You cannot remove your own admin access here.", "danger")
@@ -4072,10 +4298,23 @@ def admin_users(user):
                     record.name = name[:120]
                     record.role = role
                     if role == "teacher":
+                        if request.form.get("teacher_subject") or not record.subject:
+                            record.subject = teacher_subject
                         record.section = request.form.get("section", "").strip() or record.section
+                        if TeacherAssignment.query.filter_by(teacher_id=record.id).count() == 0:
+                            section = _legacy_section_match(record.section)
+                            section_label = (section.name if section else record.section or "Unassigned section")[:120]
+                            db.session.add(TeacherAssignment(
+                                teacher_id=record.id,
+                                subject=teacher_subject,
+                                section_id=section.id if section else None,
+                                section_label=section_label,
+                            ))
                     elif role == "student":
                         record.subject = None
                         record.section = request.form.get("section", "").strip() or record.section
+                        section = _legacy_section_match(record.section)
+                        record.section_id = section.id if section else None
                     else:
                         record.subject = None
                     db.session.commit()
@@ -4120,15 +4359,27 @@ def admin_users(user):
                     continue
             else:
                 subject = None
-            db.session.add(
-                User(
+            new_record = User(
                     email=email,
                     name=name or email.split("@")[0],
                     role=role,
                     subject=subject,
                     password_hash=generate_password_hash(password),
                 )
-            )
+            db.session.add(new_record)
+            if role in {"teacher", "student"}:
+                db.session.flush()
+                section = _legacy_section_match(new_record.section)
+                if section:
+                    new_record.section_id = section.id
+                if role == "teacher":
+                    section_label = (section.name if section else new_record.section or "Unassigned section")[:120]
+                    db.session.add(TeacherAssignment(
+                        teacher_id=new_record.id,
+                        subject=subject,
+                        section_id=section.id if section else None,
+                        section_label=section_label,
+                    ))
             created += 1
         db.session.commit()
         if created:
@@ -4153,6 +4404,15 @@ def admin_users(user):
                 "kicker": record.role.title() + (f" · {record.subject}" if record.subject else ""),
                 "title": record.name,
                 "meta": record.email,
+                "assignments": [
+                    {
+                        "id": assignment.id,
+                        "subject": assignment.subject,
+                        "section_label": assignment.section_label,
+                    }
+                    for assignment in TeacherAssignment.query.filter_by(teacher_id=record.id)
+                    .order_by(TeacherAssignment.subject, TeacherAssignment.section_label).all()
+                ] if record.role == "teacher" else [],
                 "action": None,
                 "action_href": None,
                 "soft": True,
@@ -4169,10 +4429,11 @@ def admin_users(user):
         panels=panels,
         user_counts={role: sum(1 for record in records if record.role == role) for role in ("student", "teacher", "admin")},
         account_sections=sections,
+        account_subjects=[meta["name"] for meta in SUBJECTS.values()],
         form_blocks=[
             {
                 "title": "Bulk import",
-                "note": "CSV rows: email, full name, role, temporary password, subject (teachers). Passwords need 8+ characters, uppercase and lowercase letters, a number, and a symbol.",
+                "note": "CSV rows: email, full name, role, temporary password, subject (teachers). Teachers start with their current section; manage up to 10 subject-section assignments from each teacher account. Passwords need 8+ characters, uppercase and lowercase letters, a number, and a symbol.",
                 "action": url_for("admin_users"),
                 "submit": "Import users",
                 "loading": "Importing users…",
@@ -4240,6 +4501,7 @@ def admin_section(user):
             if section:
                 for student in User.query.filter(User.id.in_(selected_ids), User.role == "student").all():
                     student.section = section.name
+                    student.section_id = section.id
                     moved += 1
                 db.session.commit()
                 flash(f"Assigned {moved} student(s) to {section.name}.", "success")
@@ -4247,18 +4509,21 @@ def admin_section(user):
             section = db.session.get(SchoolSection, request.form.get("section_id", type=int))
             name = request.form.get("name", "").strip()
             if section and name:
-                old_name = section.name
                 section.name = name
-                for student in User.query.filter_by(role="student", section=old_name).all():
+                for student in User.query.filter_by(role="student", section_id=section.id).all():
                     student.section = name
+                label = f"Grade {section.grade} · {name} · {section.school_year.name}"[:120]
+                TeacherAssignment.query.filter_by(section_id=section.id).update(
+                    {TeacherAssignment.section_label: label}, synchronize_session=False
+                )
                 db.session.commit()
                 flash("Section updated; student records remain attached.", "success")
         return redirect(url_for("admin_section"))
     sections = SchoolSection.query.order_by(SchoolSection.school_year_id.desc(), SchoolSection.grade, SchoolSection.name).all()
     for section in sections:
-        section.student_count = User.query.filter_by(role="student", section=section.name).count()
+        section.student_count = User.query.filter_by(role="student", section_id=section.id).count()
     students = User.query.filter_by(role="student").order_by(User.name).all()
-    unassigned_count = sum(1 for student in students if not student.section or not SchoolSection.query.filter_by(name=student.section).first())
+    unassigned_count = sum(1 for student in students if not student.section_id)
     current_year = next((year for year in SchoolYear.query.filter_by(active=True).all()), None)
     return render_template("admin_sections.html", user=user, topbar_sub="Section management", role_nav=admin_nav(), active_nav="section", years=years, sections=sections, students=students, grades=range(7, 11), unassigned_count=unassigned_count, current_year=current_year)
 

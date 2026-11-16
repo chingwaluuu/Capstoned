@@ -32,6 +32,18 @@
 
   <div class="pro-top-actions">
     {% if user and user.role != 'student' %}
+      {% if user.role == 'teacher' and user.teacher_assignments|length > 1 %}
+        <form class="teacher-assignment-switch" method="post" action="{{ url_for('teacher_set_assignment') }}" aria-label="Choose teaching assignment">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <label class="sr-only" for="teacher-assignment-select">Current subject and section</label>
+          <select id="teacher-assignment-select" name="assignment_id">
+            {% for assignment in user.teacher_assignments %}
+              <option value="{{ assignment.id }}" {% if assignment.id == user.active_teacher_assignment_id %}selected{% endif %}>{{ assignment.subject }} · {{ assignment.section_display }}</option>
+            {% endfor %}
+          </select>
+          <button type="submit">Switch</button>
+        </form>
+      {% endif %}
       <p class="pro-top-user-name">{{ user.name }}</p>
     {% endif %}
     {% if user and user.role == 'student' %}

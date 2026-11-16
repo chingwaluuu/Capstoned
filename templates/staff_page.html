@@ -100,7 +100,47 @@
               <h3 class="hub-card-title">{{ panel.title }}</h3>
               <p class="hub-card-meta">{{ panel.meta }}</p>
             </div>
-            {% if active_nav == 'users' %}<details class="account-actions"><summary>Manage account</summary><div class="account-action-grid"><form method="post"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="account_action" value="update"><input type="hidden" name="user_id" value="{{ panel.id }}"><label>Name<input name="name" value="{{ panel.title }}" required></label><label>Role<select name="role">{% for role in ['student','teacher','admin'] %}<option value="{{ role }}" {% if panel.role == role %}selected{% endif %}>{{ role|title }}</option>{% endfor %}</select></label><label>Section<input name="section" value="{{ panel.section }}" placeholder="Grade 7 · Section A"></label><button type="submit">Save account</button></form><form method="post"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="account_action" value="reset_password"><input type="hidden" name="user_id" value="{{ panel.id }}"><label>Set temporary password<input type="password" name="new_password" minlength="8" pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9\s]).{8,}" title="At least 8 characters with uppercase and lowercase letters, a number, and a symbol." autocomplete="new-password" required></label><small>Use uppercase and lowercase letters, a number, and a symbol.</small><button type="submit">Reset password</button></form><form method="post" data-confirm="{{ 'Restore access to this account?' if not panel.active else 'Pause access to this account? Account history will be kept.' }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="account_action" value="toggle_active"><input type="hidden" name="user_id" value="{{ panel.id }}"><button class="today-action today-action-soft">{{ 'Reactivate account' if not panel.active else 'Pause account access' }}</button></form></div></details>{% endif %}
+            {% if active_nav == 'users' %}
+              <details class="account-actions">
+                <summary>Manage account</summary>
+                <div class="account-action-grid">
+                  <form method="post">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="account_action" value="update"><input type="hidden" name="user_id" value="{{ panel.id }}">
+                    <label>Name<input name="name" value="{{ panel.title }}" required></label>
+                    <label>Role<select name="role">{% for role in ['student','teacher','admin'] %}<option value="{{ role }}" {% if panel.role == role %}selected{% endif %}>{{ role|title }}</option>{% endfor %}</select></label>
+                    {% if panel.role != 'teacher' %}
+                      <label>Teacher subject if changing role<select name="teacher_subject">{% for subject in account_subjects %}<option value="{{ subject }}" {% if panel.subject == subject %}selected{% endif %}>{{ subject }}</option>{% endfor %}</select></label>
+                    {% endif %}
+                    {% if panel.role != 'teacher' %}<label>Section<input name="section" value="{{ panel.section }}" placeholder="Grade 7 · Section A"></label>{% endif %}
+                    <button type="submit">Save account</button>
+                  </form>
+                  {% if panel.role == 'teacher' %}
+                    <div class="teacher-assignment-admin">
+                      <div class="teacher-assignment-admin-heading"><strong>Teaching assignments</strong><span>{{ panel.assignments|length }}/10</span></div>
+                      <ul>
+                        {% for assignment in panel.assignments %}
+                          <li><span>{{ assignment.subject }} <small>{{ assignment.section_label }}</small></span>{% if panel.assignments|length > 1 %}<form method="post" data-confirm="Remove this subject and section from the teacher?"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="account_action" value="remove_teacher_assignment"><input type="hidden" name="user_id" value="{{ panel.id }}"><input type="hidden" name="assignment_id" value="{{ assignment.id }}"><button class="teacher-assignment-remove" type="submit" aria-label="Remove {{ assignment.subject }} {{ assignment.section_label }}">Remove</button></form>{% endif %}</li>
+                        {% endfor %}
+                      </ul>
+                      {% if panel.assignments|length < 10 %}
+                        <form method="post" class="teacher-assignment-add">
+                          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="account_action" value="add_teacher_assignment"><input type="hidden" name="user_id" value="{{ panel.id }}">
+                          <label>Subject<select name="subject" required>{% for subject in account_subjects %}<option value="{{ subject }}">{{ subject }}</option>{% endfor %}</select></label>
+                          <label>Section<select name="section_id" required><option value="">Choose a section</option>{% for section in account_sections %}<option value="{{ section.id }}">Grade {{ section.grade }} · {{ section.name }} · {{ section.school_year.name }}</option>{% endfor %}</select></label>
+                          <button type="submit" {% if not account_sections %}disabled{% endif %}>Add assignment</button>
+                          {% if not account_sections %}<small>Create a section first in Section Management.</small>{% endif %}
+                        </form>
+                      {% else %}<p class="teacher-assignment-limit">Maximum of 10 assignments reached.</p>{% endif %}
+                    </div>
+                  {% endif %}
+                  <form method="post">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="account_action" value="reset_password"><input type="hidden" name="user_id" value="{{ panel.id }}">
+                    <label>Set temporary password<input type="password" name="new_password" minlength="8" pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9\s]).{8,}" title="At least 8 characters with uppercase and lowercase letters, a number, and a symbol." autocomplete="new-password" required></label><small>Use uppercase and lowercase letters, a number, and a symbol.</small><button type="submit">Reset password</button>
+                  </form>
+                  <form method="post" data-confirm="{{ 'Restore access to this account?' if not panel.active else 'Pause access to this account? Account history will be kept.' }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="account_action" value="toggle_active"><input type="hidden" name="user_id" value="{{ panel.id }}"><button class="today-action today-action-soft">{{ 'Reactivate account' if not panel.active else 'Pause account access' }}</button></form>
+                </div>
+              </details>
+            {% endif %}
             {% if panel.form_action and panel.action %}
               <div class="hub-card-actions">
                 <form method="POST" action="{{ panel.form_action }}" data-confirm="Approve this upload? Students will be able to practice from it after summarization." data-loading="Approving and summarizing…">
