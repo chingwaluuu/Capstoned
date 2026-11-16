@@ -1,0 +1,58 @@
+<aside class="student-message-sidebar" aria-label="People in your section">
+  <header class="student-message-sidebar-head">
+    <div>
+      <p class="student-message-sidebar-kicker">MESSAGES</p>
+      <h2>People</h2>
+    </div>
+    <span class="student-message-contact-count" data-message-count data-count-unit="people">
+      {{ threads|length }} people
+    </span>
+  </header>
+
+  <form class="student-message-search" role="search" data-message-search onsubmit="return false;">
+    <label class="sr-only" for="message-q">Search people or messages</label>
+    <span class="search-icon" aria-hidden="true"><i class="fi fi-rr-search"></i></span>
+    <input id="message-q" type="search" placeholder="Search people or messages…" autocomplete="off" />
+  </form>
+
+  <div class="student-message-filters" role="group" aria-label="Conversation filters" data-message-filters>
+    <button type="button" class="chip-link active" data-message-filter="all" aria-pressed="true">All</button>
+    <button type="button" class="chip-link" data-message-filter="unread" aria-pressed="false">Unread</button>
+  </div>
+
+  <nav class="student-message-list" aria-label="People in your section" data-message-list>
+    {% for thread in threads %}
+      <a
+        class="student-message-contact-row{% if thread.unread %} is-unread{% endif %}{% if selected_other_id == thread.other_id %} is-selected{% endif %}"
+        href="{{ thread.href }}"
+        data-message-row
+        data-subject="{{ thread.subject_slug }}"
+        data-unread="{{ 1 if thread.unread else 0 }}"
+        data-search="{{ thread.search }}"
+        {% if selected_other_id == thread.other_id %}aria-current="page"{% endif %}
+      >
+        {% with class_name="student-message-avatar", initials=thread.initials, photo_url=thread.photo_url %}
+          {% include "partials/user_avatar.html" %}
+        {% endwith %}
+        <span class="student-message-contact-copy">
+          <span class="student-message-contact-topline">
+            <strong>{{ thread.name }}</strong>
+            {% if thread.when %}<time>{{ thread.when }}</time>{% endif %}
+          </span>
+          {% if thread.contact_role == 'teacher' %}
+            <small>{{ thread.meta }} teacher</small>
+          {% endif %}
+          <span class="student-message-contact-preview{% if not thread.started %} is-new{% endif %}">
+            {% if thread.started %}{{ thread.preview }}{% else %}Start a conversation{% endif %}
+          </span>
+        </span>
+        {% if thread.unread %}<span class="student-message-unread-dot" aria-label="Unread"></span>{% endif %}
+      </a>
+    {% endfor %}
+  </nav>
+
+  <div class="student-message-list-empty" data-message-empty {% if threads %}hidden{% endif %}>
+    <strong data-message-empty-title>No section contacts yet</strong>
+    <span data-message-empty-copy>People in your section will appear here.</span>
+  </div>
+</aside>

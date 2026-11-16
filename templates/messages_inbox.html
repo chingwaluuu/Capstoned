@@ -31,7 +31,7 @@
       </div>
     </dialog>
     <section class="teacher-inbox-grid" aria-label="Teacher messages">
-      <aside class="teacher-conversation-pane"><div class="teacher-conversation-top"><div><h2>People in your section</h2><span class="teacher-conversation-count" data-message-count>{{ threads|length }} people</span></div><label class="teacher-message-search"><span class="sr-only">Search people</span><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 4 4"/></svg><input type="search" placeholder="Search people" data-message-search-input></label></div>
+      <aside class="teacher-conversation-pane"><div class="teacher-conversation-top"><div><h2>People in your section</h2><span class="teacher-conversation-count" data-message-count data-count-unit="people">{{ threads|length }} people</span></div><label class="teacher-message-search"><span class="sr-only">Search people</span><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 4 4"/></svg><input type="search" placeholder="Search people" data-message-search-input></label></div>
         <div class="teacher-message-filters" role="group" aria-label="Conversation filters" data-message-filters><button type="button" class="is-active" data-message-filter="all" aria-pressed="true" {% if not threads %}disabled{% endif %}>All</button><button type="button" data-message-filter="unread" aria-pressed="false" {% if not threads %}disabled{% endif %}>Unread</button></div>
         <div class="teacher-conversation-list" data-message-list>{% for thread in threads %}<a class="teacher-conversation-row{% if thread.unread %} is-unread{% endif %}" href="{{ thread.href }}" data-message-row data-unread="{{ 1 if thread.unread else 0 }}" data-search="{{ thread.search }}"><span class="teacher-message-avatar tone-{{ loop.index0 % 4 }}">{{ thread.initials }}</span><span class="teacher-conversation-copy"><span class="teacher-conversation-topline"><strong>{{ thread.name }}</strong>{% if thread.when %}<time>{{ thread.when }}</time>{% endif %}</span><small>{{ thread.section or 'Grade 7 · Pilot Section' }}{% if thread.meta %} · {{ thread.meta }}{% endif %}</small><span class="teacher-conversation-preview">{{ thread.preview }}{% if thread.unread %}<i aria-label="Unread"></i>{% endif %}</span></span></a>{% endfor %}<div class="teacher-conversation-empty" data-message-empty {% if threads %}hidden{% endif %}>Conversations will be listed here.</div></div>
       </aside>
@@ -39,88 +39,17 @@
     </section>
   </div>
   {% else %}
-  <section class="message-inbox" aria-labelledby="conversation-title">
-    <header class="practice-head message-head">
-      <h2 class="practice-head-title" id="conversation-title">
-        {% if is_teacher %}People in your section{% else %}People in your section{% endif %}
-      </h2>
-      <p class="practice-count" data-message-count>
-        {{ threads|length }} conversation{% if threads|length != 1 %}s{% endif %}
-      </p>
-    </header>
-
-    {% if threads %}
-      <div class="message-toolbar">
-        <form class="announce-search message-search" role="search" data-message-search onsubmit="return false;">
-          <label class="sr-only" for="message-q">Search people or messages</label>
-          <span class="search-icon" aria-hidden="true"><i class="fi fi-rr-search"></i></span>
-          <input
-            id="message-q"
-            class="announce-q"
-            type="search"
-            placeholder="Search people or messages…"
-            autocomplete="off"
-          />
-        </form>
-        <div class="filter-chips message-filter-row subject-filter-row" role="group" aria-label="Message filters" data-message-filters>
-          <button type="button" class="chip-link active" data-message-filter="all" aria-pressed="true">All</button>
-          <button type="button" class="chip-link" data-message-filter="unread" aria-pressed="false">Unread</button>
-          {% for subject in message_subjects %}
-            <button
-              type="button"
-              class="chip-link"
-              data-message-filter="{{ subject.slug }}"
-              aria-pressed="false"
-            >
-              {{ subject.name }}
-            </button>
-          {% endfor %}
-        </div>
+  <div class="student-message-workspace" aria-label="Messages">
+    {% include "partials/student_message_sidebar.html" %}
+    <section class="student-message-panel student-message-panel-empty" aria-label="Conversation preview">
+      <div class="student-message-welcome">
+        <span class="student-message-welcome-icon" aria-hidden="true"><i class="fi fi-rr-comment-alt-dots"></i></span>
+        <p class="student-message-welcome-kicker">YOUR SECTION</p>
+        <h2>Messages, made simple</h2>
+        <p>Choose someone on the left to open a private conversation. Search by name to find a classmate or teacher.</p>
       </div>
-
-      <div class="message-list pro-stagger-in" data-message-list>
-        {% for thread in threads %}
-          <a
-            class="message-row card {% if thread.unread %}is-unread{% endif %} {% if not thread.started %}is-starter{% endif %}"
-            href="{{ thread.href }}"
-            data-subject="{{ thread.subject_slug }}"
-            data-unread="{{ 1 if thread.unread else 0 }}"
-            data-search="{{ thread.search }}"
-          >
-            {% with class_name="message-avatar", initials=thread.initials, photo_url=thread.photo_url %}
-              {% include "partials/user_avatar.html" %}
-            {% endwith %}
-            <div class="message-row-main">
-              <div class="message-row-top">
-                <span class="message-row-name">{{ thread.name }}</span>
-                {% if thread.unread %}
-                  <span class="message-unread-mark">New</span>
-                {% endif %}
-              </div>
-              {% if thread.meta and not is_teacher %}
-                <p class="message-row-subject"><span class="home-tag is-hue">{{ thread.meta }}</span></p>
-              {% endif %}
-              <p class="message-row-snippet {% if not thread.started %}is-empty-preview{% endif %}">{{ thread.preview }}</p>
-            </div>
-            <div class="message-row-aside">
-              {% if thread.when %}<time class="message-when">{{ thread.when }}</time>{% endif %}
-            </div>
-          </a>
-        {% endfor %}
-      </div>
-      <div class="message-empty message-filter-empty" data-message-empty hidden>
-        <h3 class="empty-title" data-message-empty-title>No conversations found</h3>
-        <p class="empty-copy" data-message-empty-copy>Try a different search or filter.</p>
-      </div>
-    {% else %}
-      <div class="message-empty">
-        <h3 class="empty-title">No section contacts yet</h3>
-        <p class="empty-copy">
-          Classmates and teachers assigned to your section will show up here.
-        </p>
-      </div>
-    {% endif %}
-  </section>
+    </section>
+  </div>
   {% endif %}
 {% endblock %}
 {% block scripts %}

@@ -4158,15 +4158,7 @@ def admin_settings(user):
     return render_template("admin_settings.html", user=user, topbar_sub="Settings", role_nav=admin_nav(), active_nav="settings", settings=vals, years=SchoolYear.query.order_by(SchoolYear.name.desc()).all())
 
 
-@app.route("/messages")
-def messages_inbox():
-    user = require_user()
-    if not user:
-        return redirect(url_for("login"))
-    if user["role"] == "admin":
-        flash("Messages are for students and teachers.", "danger")
-        return redirect(url_for("home"))
-
+def message_contacts(user):
     conversations = (
         Conversation.query.filter(
             or_(Conversation.student_id == user["id"], Conversation.teacher_id == user["id"])
@@ -4215,6 +4207,19 @@ def messages_inbox():
             }
         threads.append(thread)
     threads.sort(key=lambda item: (0 if item["unread"] else 1, item["when"] == ""))
+    return threads
+
+
+@app.route("/messages")
+def messages_inbox():
+    user = require_user()
+    if not user:
+        return redirect(url_for("login"))
+    if user["role"] == "admin":
+        flash("Messages are for students and teachers.", "danger")
+        return redirect(url_for("home"))
+
+    threads = message_contacts(user)
 
     subject_filters = [
         {"slug": meta["slug"], "name": meta["name"]}
@@ -4224,6 +4229,7 @@ def messages_inbox():
     context = {
         "user": user,
         "threads": threads,
+        "selected_other_id": None,
         "message_subjects": subject_filters,
         "is_teacher": user["role"] == "teacher",
         "topbar_sub": "Messages",
@@ -4283,6 +4289,7 @@ def messages_thread(user_id):
     # Mark-as-read is POST-only (see messages_mark_read + messages.js) so GET stays prefetch-safe.
     draft = (request.args.get("draft") or "").strip()[:2000]
     messages = [serialize_message(item, user["id"]) for item in (conversation.messages if conversation else [])]
+    threads = message_contacts(user) if user["role"] == "student" else []
     context = {
         "user": user,
         "other": {
@@ -4295,6 +4302,8 @@ def messages_thread(user_id):
             "photo_url": photo_url_for(other),
         },
         "messages": messages,
+        "threads": threads,
+        "selected_other_id": other.id if user["role"] == "student" else None,
         "needs_reply": bool(messages and user["role"] == "teacher" and not messages[-1]["mine"]),
         "draft": draft,
         "poll_url": url_for("messages_updates", user_id=other.id),

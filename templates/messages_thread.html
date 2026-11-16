@@ -2,69 +2,23 @@
 {% set active_tab = "messages" if user.role == "student" else "" %}
 {% set topbar_sub = "Messages" %}
 {% block title %}{{ other.name }} — Messages — Bloom{% endblock %}
-{% block body_class %}{% if user.role == 'student' %}student {% elif user.role == 'teacher' %}teacher-workspace teacher-messages-page {% endif %}student-refined{% endblock %}
+{% block body_class %}{% if user.role == 'student' %}student student-message-thread-page {% elif user.role == 'teacher' %}teacher-workspace teacher-messages-page {% endif %}student-refined{% endblock %}
 {% block page_header %}{% endblock %}
-{% block main_class %}chat-main{% endblock %}
-{% block content_class %}pro-content-plain chat-content{% endblock %}
+{% block main_class %}{% if user.role == 'student' %}student-message-main{% else %}chat-main{% endif %}{% endblock %}
+{% block content_class %}{% if user.role == 'student' %}pro-content-plain student-message-thread-content{% else %}pro-content-plain chat-content{% endif %}{% endblock %}
 {% block content %}
-    <section
-      class="chat-shell"
-      data-poll-url="{{ poll_url }}"
-      data-send-url="{{ send_url }}"
-      data-read-url="{{ url_for('messages_mark_read', user_id=other.id) }}"
-    >
-      <header class="chat-head">
-        <a class="hub-back chat-back" href="{{ url_for('messages_inbox') }}">Back to conversations</a>
-        <div class="chat-person">
-          {% with class_name="avatar avatar-lg chat-avatar", initials=other.initials, photo_url=other.photo_url %}
-            {% include "partials/user_avatar.html" %}
-          {% endwith %}
-          <div class="chat-person-copy">
-            <h1 class="chat-name">{{ other.name }}</h1>
-            <p class="chat-meta-line">{{ other.section or "Grade 7 · Pilot Section" }}{% if other.meta %} · {{ other.meta }}{% endif %}</p>
-          </div>
-        </div>
-        {% if user.role == 'teacher' and needs_reply %}<span class="teacher-needs-reply">Needs reply</span>{% endif %}
-      </header>
-
-      <div class="chat-thread pro-stagger-in" id="chat-thread">
-        {% if messages %}
-          {% set namespace = namespace(last_date='') %}
-          {% for item in messages %}
-            {% if item.date_key and item.date_key != namespace.last_date %}<div class="teacher-chat-date"><span>{{ item.date_label }}</span></div>{% set namespace.last_date = item.date_key %}{% endif %}
-            <article class="chat-bubble {% if item.mine %}is-mine{% else %}is-theirs{% endif %}" data-id="{{ item.id }}">
-              <p class="chat-text">{{ item.body }}</p>
-              <p class="chat-stamp">{{ item.created_label }}{% if item.mine %} · {{ "Read" if item.status == "read" else "Sent" }}{% endif %}</p>
-            </article>
-          {% endfor %}
-        {% else %}
-          <div class="chat-empty" id="chat-empty">
-            <h2 class="empty-title">Message {{ other.name.split(' ')[0] }}</h2>
-            <p class="empty-copy">Start a private conversation with someone in your section.</p>
-          </div>
-        {% endif %}
-      </div>
-
-      <form class="chat-composer" id="chat-form" method="POST" action="{{ send_url }}">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-        <div class="chat-composer-field">
-          <label class="sr-only" for="chat-body">Type a message</label>
-          <textarea id="chat-body" name="body" rows="2" maxlength="2000" placeholder="Write a clear question…" required>{{ draft }}</textarea>
-        </div>
-        <div class="chat-composer-meta">
-          <p class="chat-composer-hint">Enter to send · Shift + Enter for a new line</p>
-          <div class="chat-composer-actions">
-            <p class="chat-char-count" id="chat-char-count" aria-live="polite">0 / 2000</p>
-            <button type="submit" class="chat-send-btn" aria-label="Send message" id="chat-send">
-              <i class="fi fi-rr-paper-plane-top" aria-hidden="true"></i>
-              <span>Send</span>
-            </button>
-          </div>
-        </div>
-        <p class="chat-status" id="chat-status" hidden role="status" aria-live="polite"></p>
-      </form>
+  {% if user.role == 'student' %}
+  <div class="student-message-workspace student-message-thread-workspace" aria-label="Messages">
+    {% include "partials/student_message_sidebar.html" %}
+    <section class="student-message-panel student-message-panel-chat" aria-label="Conversation with {{ other.name }}">
+      {% include "partials/message_thread_panel.html" %}
     </section>
+  </div>
+  {% else %}
+    {% include "partials/message_thread_panel.html" %}
+  {% endif %}
 {% endblock %}
 {% block scripts %}
+  {% if user.role == 'student' %}<script src="{{ url_for('static', filename='js/messages_inbox.js') }}" defer></script>{% endif %}
   <script src="{{ url_for('static', filename='js/messages.js') }}" defer></script>
 {% endblock %}

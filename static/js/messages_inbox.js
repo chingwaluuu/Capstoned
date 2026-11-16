@@ -21,6 +21,12 @@
   let query = "";
 
   const emptyCopyFor = (filter) => {
+    if (rows.length === 0) {
+      return {
+        title: "No section contacts yet",
+        copy: "People in your section will appear here.",
+      };
+    }
     if (query) {
       return {
         title: "No conversations found",
@@ -47,7 +53,10 @@
 
   const updateCount = (visible) => {
     if (!countBadge) return;
-    const label = visible === 1 ? "1 conversation" : `${visible} conversations`;
+    const unit = countBadge.dataset.countUnit || "conversation";
+    const label = unit === "people"
+      ? `${visible} ${visible === 1 ? "person" : "people"}`
+      : `${visible} ${unit}${visible === 1 ? "" : "s"}`;
     countBadge.textContent = label;
     countBadge.classList.toggle("is-muted", visible === 0);
   };
