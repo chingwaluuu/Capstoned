@@ -27,13 +27,18 @@
               </div>
               <h3>{{ material.title }}</h3>
               <p class="admin-faculty-byline">{{ material.owner.name }} · {{ material.owner.email }}</p>
-              <p class="admin-faculty-file">{{ material.filename or 'Text lesson' }}{% if material.summary %} · Summary available{% else %} · No summary yet{% endif %}</p>
+              <p class="admin-faculty-file">{{ material.filename or 'Text lesson' }} · {{ (material.extracted_text or '')|length }} characters extracted</p>
+              {% if material.summary %}
+                <div class="admin-faculty-summary">
+                  <span>Student summary</span>
+                  <p>{{ material.summary.intro }}</p>
+                </div>
+              {% else %}
+                <p class="admin-faculty-no-summary">No student summary is available yet.</p>
+              {% endif %}
               <details>
-                <summary>View lesson content</summary>
-                <pre>{{ material.extracted_text or 'No extracted lesson text is available.' }}</pre>
-                {% if material.summary %}
-                  <div class="admin-faculty-summary"><strong>Student summary</strong><p>{{ material.summary.intro }}</p></div>
-                {% endif %}
+                <summary>View extracted lesson text</summary>
+                <div class="admin-faculty-source-text">{{ material.extracted_text or 'No extracted lesson text is available.' }}</div>
               </details>
             </article>
           {% endfor %}

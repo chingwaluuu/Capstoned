@@ -5780,7 +5780,7 @@ math {
 .admin-faculty-panel > header h2 { margin: 2px 0 0; color: #17213D; font: 600 22px/1.2 "Source Serif 4", serif; }
 .admin-faculty-panel > header > strong { display: grid; min-width: 32px; height: 32px; place-items: center; border-radius: 50%; background: #EEF0F8; color: #1F2A5C; font-size: 13px; }
 .admin-faculty-list { display: grid; gap: 12px; }
-.admin-faculty-item { min-width: 0; padding: 16px; border: 1px solid #E2DED5; border-radius: 12px; background: #FAF9F6; }
+.admin-faculty-item { min-width: 0; padding: 15px; border: 1px solid #E2DED5; border-radius: 12px; background: #FAF9F6; }
 .admin-faculty-item[hidden] { display: none; }
 .admin-faculty-item-heading, .admin-faculty-item-heading > div { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; }
 .admin-faculty-item-heading { justify-content: space-between; }
@@ -5790,15 +5790,22 @@ math {
 .admin-faculty-status.status-approved, .admin-faculty-status.status-published { background: #E3F1EA; color: #1D5A3E; }
 .admin-faculty-status.status-pending, .admin-faculty-status.status-draft { background: #FFF2D9; color: #865300; }
 .admin-faculty-status.status-rejected, .admin-faculty-status.status-closed { background: #FCE8E8; color: #9B3333; }
-.admin-faculty-item h3 { margin: 10px 0 4px; color: #17213D; font-size: 16px; }
-.admin-faculty-byline, .admin-faculty-file { margin: 3px 0; overflow-wrap: anywhere; }
+.admin-faculty-item h3 { margin: 9px 0 3px; color: #17213D; font-size: 16px; line-height: 1.35; }
+.admin-faculty-byline, .admin-faculty-file { margin: 3px 0; overflow-wrap: anywhere; line-height: 1.5; }
+.admin-faculty-byline { color: #374151; font-size: 13px; }
 .admin-faculty-item details { margin-top: 12px; border-top: 1px solid #E8E4DC; padding-top: 10px; }
-.admin-faculty-item details summary { color: #1F2A5C; cursor: pointer; font-size: 13px; font-weight: 600; }
-.admin-faculty-item details pre { max-height: 280px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; color: #323846; font: 12px/1.55 ui-monospace, monospace; }
+.admin-faculty-item details summary { display: flex; align-items: center; gap: 8px; color: #1F2A5C; cursor: pointer; font-size: 13px; font-weight: 600; list-style: none; }
+.admin-faculty-item details summary::-webkit-details-marker { display: none; }
+.admin-faculty-item details summary::before { content: "+"; display: grid; width: 20px; height: 20px; place-items: center; border: 1px solid #D9D4C9; border-radius: 50%; background: #fff; font-size: 15px; line-height: 1; }
+.admin-faculty-item details[open] summary::before { content: "−"; }
+.admin-faculty-source-text { margin-top: 11px; padding: 14px; border: 1px solid #E9E5DE; border-radius: 10px; background: #fff; color: #323846; white-space: pre-wrap; overflow-wrap: anywhere; font: 400 13px/1.7 Inter, sans-serif; }
 .admin-faculty-item details ol { padding-left: 22px; }
 .admin-faculty-item details li { padding: 9px 0; border-bottom: 1px solid #ECE9E2; }
 .admin-faculty-item details li p { margin: 5px 0 0; font-size: 13px; line-height: 1.5; }
-.admin-faculty-summary { padding: 12px; border-radius: 9px; background: #F0EDE6; font-size: 13px; }
+.admin-faculty-summary { margin-top: 11px; padding: 11px 13px; border-left: 3px solid #6173A7; border-radius: 0 9px 9px 0; background: #F0F2F8; }
+.admin-faculty-summary > span { display: block; margin-bottom: 4px; color: #44557F; font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+.admin-faculty-summary p { margin: 0; color: #30394F; font-size: 13px; line-height: 1.6; }
+.admin-faculty-no-summary { margin: 10px 0 0; color: #7A7468; font-size: 12px; font-style: italic; }
 .admin-faculty-empty { padding: 24px; border: 1px dashed #CFC9BC; border-radius: 12px; color: #687084; text-align: center; }
 
 @media (max-width: 760px) {
