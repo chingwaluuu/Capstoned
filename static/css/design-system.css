@@ -4919,3 +4919,27 @@ math {
 .pro-body.student.practice-setup-page a.practice-setup-review:focus-visible {
   color: #1F2A5C;
 }
+
+/* Keep one crisp selected tile on the student rail instead of a double glow. */
+.pro-body.student .pro-rail .pro-nav-link.is-active {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
+
+.pro-body.student .pro-rail .pro-nav-link.is-active .pro-nav-ico {
+  width: 2.65rem;
+  height: 2.65rem;
+  box-sizing: border-box;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: 12px;
+  background: #FFFFFF;
+  color: #1F2A5C;
+  box-shadow: 0 2px 6px rgba(8, 15, 42, 0.16);
+}
+
+.pro-body.student .pro-rail .pro-nav-link.is-active:hover,
+.pro-body.student .pro-rail .pro-nav-link.is-active:focus-visible {
+  border-color: transparent;
+  background: transparent;
+}
