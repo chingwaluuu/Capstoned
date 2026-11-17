@@ -28,6 +28,7 @@ from models import (
     Attempt,
     ChatMessage,
     Conversation,
+    Course,
     Material,
     PracticeGeneration,
     Question,
@@ -179,11 +180,47 @@ def inject_difficulty_helpers():
     return {"difficulty_label": difficulty_label}
 
 
-SUBJECTS = {
+DEFAULT_SUBJECTS = {
     "english": {"slug": "english", "name": "English", "announce": "English"},
     "mathematics": {"slug": "mathematics", "name": "Mathematics", "announce": "Math"},
     "science": {"slug": "science", "name": "Science", "announce": "Science"},
 }
+SUBJECTS = dict(DEFAULT_SUBJECTS)
+
+
+def refresh_subject_catalog():
+    """Load the persisted course catalog while preserving legacy course slugs."""
+    catalog = {}
+    for course in Course.query.order_by(Course.name).all():
+        catalog[course.slug] = {
+            "slug": course.slug,
+            "name": course.name,
+            "announce": course.announce_label,
+        }
+    if not catalog:
+        catalog = dict(DEFAULT_SUBJECTS)
+    SUBJECTS.clear()
+    SUBJECTS.update(catalog)
+
+
+def seed_default_courses():
+    """Persist the three original subjects so they remain manageable like new courses."""
+    try:
+        for slug, meta in DEFAULT_SUBJECTS.items():
+            if not Course.query.filter_by(slug=slug).first():
+                db.session.add(Course(slug=slug, name=meta["name"], announce_label=meta["announce"]))
+        db.session.commit()
+    except IntegrityError:
+        # Another app worker may have seeded a built-in course at the same time.
+        db.session.rollback()
+    refresh_subject_catalog()
+
+
+@app.before_request
+def load_current_subject_catalog():
+    # Re-read so course additions become visible to every web worker immediately.
+    if request.endpoint != "static":
+        refresh_subject_catalog()
 
 DIFFICULTIES = {
     "easy": {
@@ -227,7 +264,7 @@ def subject_slug_from_name(name: str | None) -> str:
 
 
 def canonical_subject_name(name: str | None) -> str | None:
-    """Map teacher subject labels (any case, Math, slug) to English | Mathematics | Science."""
+    """Map any configured course name, announcement label, or slug to its canonical name."""
     slug = subject_slug_from_name(name)
     if slug in SUBJECTS:
         return SUBJECTS[slug]["name"]
@@ -576,7 +613,7 @@ def admin_nav():
         {"label": "Home", "endpoint": "admin_home", "key": "home"},
         {"label": "Faculty posts", "endpoint": "admin_faculty_posts", "key": "faculty"},
         {"label": "Users", "endpoint": "admin_users", "key": "users"},
-        {"label": "Section", "endpoint": "admin_section", "key": "section"},
+        {"label": "Academic Setup", "endpoint": "admin_section", "key": "section"},
         {"label": "Settings", "endpoint": "admin_settings", "key": "settings"},
     ]
 
@@ -801,8 +838,13 @@ def serialize_announcement(note, read_ids, selected_id=None, filter_name="all", 
 def note_matches_filter(note, filter_name, read_ids):
     if filter_name == "unread":
         return note.id not in read_ids
-    if filter_name in {"English", "Math", "Science"}:
-        return note.subject == filter_name
+    valid_subject_filters = {
+        label
+        for meta in SUBJECTS.values()
+        for label in (meta["name"], meta["announce"])
+    }
+    if filter_name in valid_subject_filters:
+        return note.subject == filter_name or canonical_subject_name(note.subject) == canonical_subject_name(filter_name)
     return True
 
 
@@ -2248,6 +2290,7 @@ def scrub_demo_chat_messages():
 
 with app.app_context():
     db.create_all()
+    seed_default_courses()
     ensure_schema()
     if not os.environ.get("BLOOM_TEST_DB"):
         seed()
@@ -2349,9 +2392,16 @@ def home():
 def build_student_subjects(user_id: int) -> list[dict]:
     """Subject rows for student Home + Subjects index (name, progress, hub link data)."""
     subjects = []
+    student = db.session.get(User, user_id)
     for slug, meta in SUBJECTS.items():
         percent, insight, has_progress = bloom_progress(user_id, slug)
-        teacher = User.query.filter_by(role="teacher", subject=meta["name"]).first()
+        teacher_query = (
+            User.query.join(TeacherAssignment, TeacherAssignment.teacher_id == User.id)
+            .filter(User.role == "teacher", User.is_active.is_(True), TeacherAssignment.subject == meta["name"])
+        )
+        if student and student.section_id:
+            teacher_query = teacher_query.filter(TeacherAssignment.section_id == student.section_id)
+        teacher = teacher_query.order_by(User.name).first()
         next_action = "Next: Explore approved lessons"
         published = Assessment.query.filter_by(subject_slug=slug, status="published").all()
         open_hots = False
@@ -3453,7 +3503,10 @@ def announcements(announcement_id=None):
     if user["role"] != "student":
         return redirect(url_for("home"))
     filter_name = request.args.get("filter", "all")
-    if filter_name not in {"all", "unread", "English", "Math", "Science"}:
+    valid_filters = {"all", "unread"} | {
+        label for meta in SUBJECTS.values() for label in (meta["name"], meta["announce"])
+    }
+    if filter_name not in valid_filters:
         filter_name = "all"
     q = (request.args.get("q") or "").strip()
     selected = None
@@ -3555,7 +3608,10 @@ def announcement_mark_all_read():
         return redirect(url_for("home"))
     mark_all_announcements_read(user["id"])
     filter_name = request.form.get("filter") or request.args.get("filter") or "all"
-    if filter_name not in {"all", "unread", "English", "Math", "Science"}:
+    valid_filters = {"all", "unread"} | {
+        label for meta in SUBJECTS.values() for label in (meta["name"], meta["announce"])
+    }
+    if filter_name not in valid_filters:
         filter_name = "all"
     q = (request.form.get("q") or request.args.get("q") or "").strip()
     selected_id = request.form.get("selected_id", type=int) or session.get("announce_selected_id")
@@ -4461,7 +4517,53 @@ def admin_section(user):
     years = SchoolYear.query.order_by(SchoolYear.name.desc()).all()
     if request.method == "POST":
         action = request.form.get("action")
-        if action == "year":
+        if action == "course":
+            name = " ".join(request.form.get("course_name", "").split())
+            slug = slugify(name)[:40].strip("-")
+            existing_names = {course.name.casefold() for course in Course.query.all()}
+            if len(name) < 2 or len(name) > 40 or not slug:
+                flash("Enter a course name between 2 and 40 characters.", "danger")
+            elif name.casefold() in existing_names or Course.query.filter_by(slug=slug).first():
+                flash("A course with that name or URL key already exists.", "danger")
+            else:
+                db.session.add(Course(slug=slug, name=name, announce_label=name))
+                try:
+                    db.session.commit()
+                    refresh_subject_catalog()
+                    flash(f"{name} added to the course catalog.", "success")
+                except IntegrityError:
+                    db.session.rollback()
+                    flash("That course already exists. Check its name and try again.", "danger")
+        elif action == "course_assignment":
+            course = canonical_subject_name(request.form.get("course_name"))
+            teacher = db.session.get(User, request.form.get("teacher_id", type=int))
+            section = db.session.get(SchoolSection, request.form.get("section_id", type=int))
+            if not course or not teacher or teacher.role != "teacher" or not section:
+                flash("Choose a valid course, teacher, and section.", "danger")
+            elif TeacherAssignment.query.filter_by(teacher_id=teacher.id).count() >= 10:
+                flash("This teacher already has the maximum of 10 course-section assignments.", "danger")
+            elif TeacherAssignment.query.filter_by(teacher_id=teacher.id, subject=course, section_id=section.id).first():
+                flash("That course and section are already assigned to this teacher.", "danger")
+            else:
+                label = f"Grade {section.grade} · {section.name} · {section.school_year.name}"[:120]
+                db.session.add(TeacherAssignment(teacher_id=teacher.id, subject=course, section_id=section.id, section_label=label))
+                try:
+                    db.session.commit()
+                    flash(f"{course} assigned to {teacher.name} for {section.name}.", "success")
+                except IntegrityError:
+                    db.session.rollback()
+                    flash("The database rejected this assignment. Check the teacher limit and duplicate assignments.", "danger")
+        elif action == "remove_course_assignment":
+            assignment = db.session.get(TeacherAssignment, request.form.get("assignment_id", type=int))
+            if not assignment:
+                flash("That teaching assignment could not be found.", "danger")
+            elif TeacherAssignment.query.filter_by(teacher_id=assignment.teacher_id).count() <= 1:
+                flash("Keep at least one assignment on each teacher account.", "danger")
+            else:
+                db.session.delete(assignment)
+                db.session.commit()
+                flash("Teaching assignment removed.", "success")
+        elif action == "year":
             name = request.form.get("year", "").strip()
             if not re.fullmatch(r"\d{4}-\d{4}", name) or int(name[:4]) + 1 != int(name[-4:]):
                 flash("Enter a school year like 2026-2027.", "danger")
@@ -4525,7 +4627,38 @@ def admin_section(user):
     students = User.query.filter_by(role="student").order_by(User.name).all()
     unassigned_count = sum(1 for student in students if not student.section_id)
     current_year = next((year for year in SchoolYear.query.filter_by(active=True).all()), None)
-    return render_template("admin_sections.html", user=user, topbar_sub="Section management", role_nav=admin_nav(), active_nav="section", years=years, sections=sections, students=students, grades=range(7, 11), unassigned_count=unassigned_count, current_year=current_year)
+    course_rows = []
+    for course in Course.query.order_by(Course.name).all():
+        assignments = TeacherAssignment.query.filter_by(subject=course.name).order_by(TeacherAssignment.section_label).all()
+        linked_sections = {}
+        course_student_ids = set()
+        for assignment in assignments:
+            section = assignment.section
+            section_key = section.id if section else f"legacy:{assignment.section_label}"
+            row = linked_sections.setdefault(section_key, {
+                "label": assignment.section_label,
+                "assignments": [],
+                "students": [],
+                "student_ids": [],
+            })
+            row["assignments"].append({
+                "id": assignment.id,
+                "teacher_name": assignment.teacher.name if assignment.teacher else "Teacher",
+            })
+            if section and not row["student_ids"]:
+                section_students = User.query.filter_by(role="student", section_id=section.id).order_by(User.name).all()
+                row["students"] = [student.name for student in section_students]
+                row["student_ids"] = [student.id for student in section_students]
+                course_student_ids.update(row["student_ids"])
+        course_rows.append({
+            "name": course.name,
+            "slug": course.slug,
+            "sections": list(linked_sections.values()),
+            "teacher_count": len({item["teacher_name"] for row in linked_sections.values() for item in row["assignments"]}),
+            "student_count": len(course_student_ids),
+        })
+    teachers = User.query.filter_by(role="teacher", is_active=True).order_by(User.name).all()
+    return render_template("admin_sections.html", user=user, topbar_sub="Academic Setup", role_nav=admin_nav(), active_nav="section", years=years, sections=sections, students=students, grades=range(7, 11), unassigned_count=unassigned_count, current_year=current_year, courses=course_rows, teachers=teachers)
 
 
 @app.route("/admin/reports")

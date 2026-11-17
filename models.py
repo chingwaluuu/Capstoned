@@ -165,6 +165,15 @@ class SchoolYear(db.Model):
     active = db.Column(db.Boolean, default=False, nullable=False)
 
 
+class Course(db.Model):
+    """A school subject/course available throughout Bloom."""
+    id = db.Column(db.Integer, primary_key=True)
+    slug = db.Column(db.String(40), unique=True, nullable=False)
+    name = db.Column(db.String(40), unique=True, nullable=False)
+    announce_label = db.Column(db.String(40), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+
+
 class SchoolSection(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80), nullable=False)

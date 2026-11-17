@@ -21,6 +21,8 @@ from models import (  # noqa: E402
     Assessment,
     Attempt,
     Material,
+    SchoolSection,
+    SchoolYear,
     Question,
     Summary,
     User,
@@ -40,6 +42,7 @@ class BloomSmokeTest(unittest.TestCase):
         with bloom.app.app_context():
             db.drop_all()
             db.create_all()
+            bloom.seed_default_courses()
             student = User(
                 email="student@test.local",
                 name="Test Student",
@@ -59,7 +62,13 @@ class BloomSmokeTest(unittest.TestCase):
                 subject="Science",
                 password_hash=generate_password_hash("teacher123"),
             )
-            db.session.add_all([student, other, teacher])
+            admin = User(
+                email="admin@test.local",
+                name="Test Admin",
+                role="admin",
+                password_hash=generate_password_hash("admin123"),
+            )
+            db.session.add_all([student, other, teacher, admin])
             db.session.commit()
             material = Material(
                 slug="ecosystems",
@@ -124,6 +133,7 @@ class BloomSmokeTest(unittest.TestCase):
             cls.student_id = student.id
             cls.other_id = other.id
             cls.teacher_id = teacher.id
+            cls.admin_id = admin.id
             cls.other_attempt_id = attempt.id
             cls.announcement_id = announcement.id
             cls.question_id = question.id
@@ -224,6 +234,50 @@ class BloomSmokeTest(unittest.TestCase):
         response = self.client.get("/home")
         self.assertIn(b'aria-controls="pro-sidebar"', response.data)
         self.assertIn(b'id="pro-sidebar-backdrop"', response.data)
+
+    def test_admin_can_add_course_and_view_its_teacher_and_student_roster(self):
+        self._login("admin@test.local", "admin123")
+        token = self._csrf()
+        added = self.client.post("/admin/section", data={
+            "csrf_token": token,
+            "action": "course",
+            "course_name": "Civics",
+        })
+        self.assertEqual(added.status_code, 302)
+        with bloom.app.app_context():
+            year = SchoolYear(name="2098-2099", active=False)
+            db.session.add(year)
+            db.session.flush()
+            section = SchoolSection(name="Civics Test", grade=7, school_year_id=year.id)
+            teacher = User(email="civics.teacher@test.local", name="Civics Teacher", role="teacher", subject="Civics", password_hash=generate_password_hash("teacher123"))
+            student = User(email="civics.student@test.local", name="Civics Student", role="student", password_hash=generate_password_hash("student123"))
+            db.session.add_all([section, teacher, student])
+            db.session.flush()
+            student.section = section.name
+            student.section_id = section.id
+            teacher_id, section_id = teacher.id, section.id
+            db.session.commit()
+        assigned = self.client.post("/admin/section", data={
+            "csrf_token": self._csrf(),
+            "action": "course_assignment",
+            "course_name": "Civics",
+            "teacher_id": str(teacher_id),
+            "section_id": str(section_id),
+        })
+        self.assertEqual(assigned.status_code, 302)
+        page = self.client.get("/admin/section")
+        self.assertEqual(page.status_code, 200)
+        self.assertIn(b"Academic Setup", page.data)
+        self.assertIn(b"Civics", page.data)
+        self.assertIn(b"Civics Teacher", page.data)
+        self.assertIn(b"Civics Student", page.data)
+        self.client.post("/logout", data={"csrf_token": self._csrf()})
+        self._login("civics.student@test.local", "student123")
+        home = self.client.get("/home")
+        self.assertEqual(home.status_code, 200)
+        self.assertIn(b"Civics", home.data)
+        subject_page = self.client.get("/subjects/civics")
+        self.assertEqual(subject_page.status_code, 200)
 
     def test_announcement_get_is_read_only(self):
         self._login("student@test.local", "student123")

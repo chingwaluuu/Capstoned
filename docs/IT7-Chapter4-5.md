@@ -119,7 +119,7 @@ At the end of development, Bloom implements the four specific objectives at prot
 
 ## B. Testing Phase
 
-Testing followed four levels required by the handbook: **unit testing**, **integration testing**, **system testing**, and **user acceptance testing**. The automated Python suite contains 7 focused math-rendering unit tests and 20 application smoke and workflow tests; all **27 tests passed** on the development machine. A separate k6 stress run exercised the public login page with up to 200 virtual users. That run is supplementary performance evidence and does not replace UAT. User acceptance testing uses the ISO/IEC 25010:2023 product quality model, the ISO/IEC 25019:2023 quality-in-use model, ISO/IEC 25040:2024 as the evaluation process, and an adapted System Usability Scale (SUS).
+Testing followed four levels required by the handbook: **unit testing**, **integration testing**, **system testing**, and **user acceptance testing**. The automated Python suite contains 7 focused math-rendering unit tests and 21 application smoke and workflow tests; all **28 tests passed** on the development machine. A separate k6 stress run exercised the public login page with up to 200 virtual users. That run is supplementary performance evidence and does not replace UAT. User acceptance testing uses the ISO/IEC 25010:2023 product quality model, the ISO/IEC 25019:2023 quality-in-use model, ISO/IEC 25040:2024 as the evaluation process, and an adapted System Usability Scale (SUS).
 
 Legend for functional tables: **Passed** = actual result matched the expected result.
 
@@ -175,7 +175,7 @@ System testing checked Bloom as one application: shared student shell, core page
 | ST-01 | Student pages (home, subject, summary, practice, results, profile, announcements, messages, assessment lobby) | Each page returns 200 and includes main content, sidebar, and skip link | All listed paths returned 200 with those landmarks | Passed |
 | ST-02 | Student home composition | Home shows subjects and next actions; old duplicate progress panels are gone | “Subjects” and “Up next” present; “Subject pulse” / “Progress tracker” absent | Passed |
 | ST-03 | Mobile navigation | Menu controls the sidebar | `aria-controls="pro-sidebar"` and backdrop rendered | Passed |
-| ST-04 | Automated suite | All automated tests pass | 27 tests, 0 failures (6.82 s) | Passed |
+| ST-04 | Automated suite | All automated tests pass | 28 tests, 0 failures (6.86 s) | Passed |
 
 System testing confirms that the student learning loop and teacher support screens run together under one login model, one database, and one UI shell for students.
 
@@ -189,15 +189,15 @@ A bounded k6 run measured how the deployed application served its public login p
 | Measure | Result | Acceptance target | Outcome |
 |---|---:|---:|---|
 | Peak concurrent virtual users | 200 | 200 | Reached |
-| Total requests | 6,958 | — | — |
+| Total requests | 6,990 | — | — |
 | Failed requests | 0 (0%) | Less than 2% | Passed |
-| Checks | 13,916 passed | All checks pass | Passed |
-| Average response time | 234.19 ms | — | — |
-| 95th percentile response time | 285.32 ms | Below 2,500 ms | Passed |
-| Maximum response time | 1.11 s | — | — |
-| Throughput | 114.57 requests/second | — | — |
+| Checks | 13,980 passed | All checks pass | Passed |
+| Average response time | 228.56 ms | — | — |
+| 95th percentile response time | 243.58 ms | Below 2,500 ms | Passed |
+| Maximum response time | 1.71 s | — | — |
+| Throughput | 114.99 requests/second | — | — |
 
-The run completed on November 18, 2026 against the deployed login page. It reached 200 virtual users, returned HTTP 200 responses with the expected email field, and met both configured thresholds. The reusable scenario is in `tests/k6_login_stress.js`. To reproduce it, install k6 and run `k6 run --env BASE_URL=https://capstoned-production-0585.up.railway.app tests/k6_login_stress.js`. This is a read-only page-load test; add authenticated, database-backed scenarios before making claims about capacity for signed-in workflows or PostgreSQL writes.
+The manual run completed on November 18, 2026 against the deployed login page. It reached 200 virtual users, returned HTTP 200 responses with the expected email field, and met both configured thresholds. The reusable scenario is in `tests/k6_login_stress.js`. To reproduce it, install k6 and run `k6 run --env BASE_URL=https://capstoned-production-0585.up.railway.app tests/k6_login_stress.js`. This is a read-only page-load test; add authenticated, database-backed scenarios before making claims about capacity for signed-in workflows or PostgreSQL writes.
 
 ### 4. User acceptance testing
 
@@ -288,7 +288,7 @@ This chapter summarizes the significant findings of the study, states the conclu
 
 **Finding 4 (corollary question 4).** An AI study assistant can support teachers when it drafts items and summaries but does not replace professional judgment. Monitor, release flags for scores/answers/feedback, and subject-scoped access keep the teacher in control. **[after UAT]** Teachers’ beneficialness, acceptability, and SUS scores will state how far this help is accepted in the real Grade 7 context.
 
-Across automated testing, **27 of 27** cases passed: 7 isolated math-rendering unit tests and 20 application smoke and workflow tests covering login, CSRF, roles, assessment flow, material deployment, messages, announcements, profile photos, and monitoring. In the supplementary k6 run, the login page served 6,958 requests with no failures at up to 200 virtual users; the 95th percentile response time was 285.32 ms. These performance results cover only the public login page and do not establish authenticated or database-backed capacity. **[after UAT]** Insert one sentence on overall ISO product quality, quality in use, and SUS.
+Across automated testing, **28 of 28** cases passed: 7 isolated math-rendering unit tests and 21 application smoke and workflow tests covering login, CSRF, roles, assessment flow, material deployment, course creation and rosters, messages, announcements, profile photos, and monitoring. In the supplementary k6 run, the login page served 6,990 requests with no failures at up to 200 virtual users; the 95th percentile response time was 243.58 ms. These performance results cover only the public login page and do not establish authenticated or database-backed capacity. **[after UAT]** Insert one sentence on overall ISO product quality, quality in use, and SUS.
 
 ## Conclusions
 

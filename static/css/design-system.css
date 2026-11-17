@@ -6149,3 +6149,62 @@ math {
     grid-row: auto;
   }
 }
+
+/* Academic setup: keep course management consistent with the section workspace. */
+.admin-school-setup .setup-course-manager {
+  margin: 0 0 20px;
+  padding: clamp(18px, 2vw, 24px);
+  border: 1px solid #E2DED5;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 6px 20px rgba(31, 42, 92, .045);
+}
+.admin-school-setup .setup-course-heading {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) minmax(280px, 430px);
+  align-items: start;
+  gap: 24px;
+  margin-bottom: 18px;
+}
+.admin-school-setup .setup-course-heading h2,
+.admin-school-setup .setup-course-card h3 {
+  margin: 0;
+  color: #1F2A5C;
+}
+.admin-school-setup .setup-course-heading h2 { font-size: 1.2rem; }
+.admin-school-setup .setup-course-heading p:last-child { margin: 6px 0 0; color: #5A564E; }
+.admin-school-setup .setup-course-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+  gap: 14px;
+}
+.admin-school-setup .setup-course-card {
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid #E2DED5;
+  border-radius: 14px;
+  background: #FAF9F6;
+}
+.admin-school-setup .setup-course-card > header {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 12px;
+}
+.admin-school-setup .setup-course-card > header span { color: #68728B; font-size: .68rem; letter-spacing: .08em; }
+.admin-school-setup .setup-course-card > header strong { white-space: nowrap; color: #1F2A5C; font-size: .8rem; }
+.admin-school-setup .setup-course-rosters { list-style: none; margin: 14px 0; padding: 0; }
+.admin-school-setup .setup-course-rosters li { display: flex; justify-content: space-between; gap: 10px; padding: 10px 0; border-top: 1px solid #E2DED5; }
+.admin-school-setup .setup-course-rosters li > div { min-width: 0; display: grid; gap: 4px; }
+.admin-school-setup .setup-course-rosters small { color: #5A564E; line-height: 1.45; overflow-wrap: anywhere; }
+.admin-school-setup .setup-course-teacher { color: #1F2A5C; font-size: .82rem; }
+.admin-school-setup .setup-course-remove { padding: 5px 8px; border: 1px solid #D9D4C9; border-radius: 8px; background: white; color: #1F2A5C; cursor: pointer; font-size: .72rem; }
+.admin-school-setup .setup-course-assign { display: grid; grid-template-columns: 1fr 1fr auto; align-items: end; gap: 8px; padding-top: 12px; border-top: 1px solid #E2DED5; }
+.admin-school-setup .setup-course-assign label { display: grid; gap: 5px; color: #4A463F; font-size: .76rem; }
+.admin-school-setup .setup-course-assign select { width: 100%; min-width: 0; height: 38px; padding: 0 8px; border: 1px solid #D9D4C9; border-radius: 8px; background: #fff; }
+.admin-school-setup .setup-course-assign button { min-height: 38px; padding: 0 12px; border: 0; border-radius: 9px; background: #1F2A5C; color: #fff; font-weight: 600; cursor: pointer; }
+.admin-school-setup .setup-course-empty { margin: 12px 0; color: #68645d; font-size: .84rem; }
+@media (max-width: 760px) {
+  .admin-school-setup .setup-course-heading { grid-template-columns: 1fr; gap: 14px; }
+  .admin-school-setup .setup-course-assign { grid-template-columns: 1fr; }
+}

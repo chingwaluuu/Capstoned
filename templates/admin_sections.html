@@ -1,15 +1,48 @@
 {% extends "layouts/pro.html" %}
-{% block title %}Section Management — Bloom{% endblock %}
+{% block title %}Academic Setup — Bloom{% endblock %}
 {% block body_class %}admin-school-setup{% endblock %}
 {% block page_kicker %}Admin{% endblock %}
-{% block page_title %}Section Management{% endblock %}
-{% block page_subtitle %}Create sections and assign students to their current class.{% endblock %}
+{% block page_title %}Academic Setup{% endblock %}
+{% block page_subtitle %}Manage courses, school years, sections, student rosters, and teaching assignments.{% endblock %}
 {% block content %}
 <section class="setup-overview" aria-label="School overview">
   <article><span>School year</span><strong class="setup-stat-year">{{ current_year.name if current_year else 'Not set' }}</strong></article>
   <article><span>Sections</span><strong>{{ sections|length }}</strong></article>
   <article><span>Students enrolled</span><strong>{{ students|length - unassigned_count }}</strong></article>
   <article class="is-unassigned"><span>Unassigned students</span><div><strong>{{ unassigned_count }}</strong>{% if unassigned_count > 0 %}<small>Needs attention</small>{% endif %}</div></article>
+</section>
+<section class="setup-course-manager" aria-labelledby="courses-title">
+  <div class="setup-course-heading">
+    <div><p class="setup-year-kicker">CURRICULUM</p><h2 id="courses-title">Courses and subject rosters</h2><p>Add courses, assign them to teachers and sections, and see the students reached by each course.</p></div>
+    <form class="setup-year-add" method="post">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="action" value="course">
+      <label class="sr-only" for="new-course-name">Course name</label><input id="new-course-name" name="course_name" maxlength="40" placeholder="e.g. Araling Panlipunan" required>
+      <button type="submit">Add course</button><small>Course names can be up to 40 characters.</small>
+    </form>
+  </div>
+  <div class="setup-course-grid">
+    {% for course in courses %}
+      <article class="setup-course-card">
+        <header><div><span>COURSE</span><h3>{{ course.name }}</h3></div><strong>{{ course.student_count }} students</strong></header>
+        {% if course.sections %}
+          <ul class="setup-course-rosters">
+          {% for group in course.sections %}
+            <li><div><b>{{ group.label }}</b><small>{{ group.students|length }} student{{ 's' if group.students|length != 1 else '' }}{% if group.students %}: {{ group.students|join(', ') }}{% endif %}</small>
+              {% for assignment in group.assignments %}<span class="setup-course-teacher">{{ assignment.teacher_name }}</span>{% endfor %}
+            </div>{% for assignment in group.assignments %}<form method="post" data-confirm="Remove {{ course.name }} from this teacher and section?"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="action" value="remove_course_assignment"><input type="hidden" name="assignment_id" value="{{ assignment.id }}"><button class="setup-course-remove" type="submit">Remove assignment</button></form>{% endfor %}</li>
+          {% endfor %}
+          </ul>
+        {% else %}<p class="setup-course-empty">No teacher or section is assigned yet.</p>{% endif %}
+        {% if teachers and sections %}
+          <form class="setup-course-assign" method="post"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="action" value="course_assignment"><input type="hidden" name="course_name" value="{{ course.name }}">
+            <label>Teacher<select name="teacher_id" required><option value="">Choose teacher</option>{% for teacher in teachers %}<option value="{{ teacher.id }}">{{ teacher.name }}</option>{% endfor %}</select></label>
+            <label>Section<select name="section_id" required><option value="">Choose section</option>{% for section in sections %}<option value="{{ section.id }}">Grade {{ section.grade }} · {{ section.name }} · {{ section.school_year.name }}</option>{% endfor %}</select></label>
+            <button type="submit">Assign course</button>
+          </form>
+        {% else %}<p class="setup-course-empty">Add at least one active teacher and section to create a teaching assignment.</p>{% endif %}
+      </article>
+    {% endfor %}
+  </div>
 </section>
 <section class="setup-year-manager" aria-labelledby="school-years-title">
   <div class="setup-year-manager-heading">
