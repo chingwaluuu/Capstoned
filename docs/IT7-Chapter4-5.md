@@ -3,7 +3,7 @@
 
 This chapter presents the results of developing and testing **Bloom**, the AI-powered smart study assistant for HOTS-based assessment generation and learning support. Following the Handbook for Undergraduate Student Research Program, the discussion covers activities from the **development phase** through the **testing phase** of the software development life cycle (SDLC). The development phase describes the implemented system with screenshots. The testing phase reports unit testing, integration testing, system testing, and user acceptance testing.
 
-Bloom was implemented as a web application using Python, Flask, SQLite, and the Google Gemini API (with an optional OpenAI fallback). Teachers upload lesson materials, generate HOTS items at Analyze, Evaluate, and Create, and publish assessments. Students read grounded summaries, take guided practice, complete published assessments, and view feedback. An administrator manages users and pilot settings. All generated classroom items remain under teacher review before students use them.
+Bloom was implemented as a web application using Python, Flask with SQLAlchemy, PostgreSQL for deployment, SQLite for isolated automated tests, and the Google Gemini API (with an optional OpenAI fallback). Teachers upload lesson materials, generate HOTS items at Analyze, Evaluate, and Create, and publish assessments. Students read grounded summaries, take guided practice, complete published assessments, and view feedback. An administrator manages users and pilot settings. All generated classroom items remain under teacher review before students use them.
 
 ---
 
@@ -119,13 +119,13 @@ At the end of development, Bloom implements the four specific objectives at prot
 
 ## B. Testing Phase
 
-Testing followed four levels required by the handbook: **unit testing**, **integration testing**, **system testing**, and **user acceptance testing**. Automated cases live in `tests/test_smoke.py` and were executed on the development machine. All **20** automated cases **passed**. User acceptance testing uses the ISO/IEC 25010:2023 product quality model, the ISO/IEC 25019:2023 quality-in-use model, ISO/IEC 25040:2024 as the evaluation process, and an adapted System Usability Scale (SUS).
+Testing followed four levels required by the handbook: **unit testing**, **integration testing**, **system testing**, and **user acceptance testing**. The automated Python suite contains 7 focused math-rendering unit tests and 20 application smoke and workflow tests; all **27 tests passed** on the development machine. A separate k6 stress run exercised the public login page with up to 200 virtual users. That run is supplementary performance evidence and does not replace UAT. User acceptance testing uses the ISO/IEC 25010:2023 product quality model, the ISO/IEC 25019:2023 quality-in-use model, ISO/IEC 25040:2024 as the evaluation process, and an adapted System Usability Scale (SUS).
 
 Legend for functional tables: **Passed** = actual result matched the expected result.
 
 ### 1. Unit testing
 
-Unit tests checked single rules: authentication, session logout, CSRF on empty posts, and role or ownership gates.
+Unit tests checked isolated behavior. Seven standalone math-rendering tests cover fractions, mixed numbers, repeating decimals, equation runs, prose preservation, and safe escaping. The focused access-rule cases below check login, logout, CSRF, role, and result ownership behavior; module-to-module workflows are reported separately under integration testing.
 
 **Table 4.1**  
 *Unit test cases of Bloom*
@@ -140,7 +140,7 @@ Unit tests checked single rules: authentication, session logout, CSRF on empty p
 | UT-06 | Student opens `/teacher` | Access denied | 302 or 403 | Passed |
 | UT-07 | Student opens another student’s result | Access denied | Redirected to `/results` | Passed |
 
-These cases show that Bloom’s smallest access rules work before modules are joined. Invalid users cannot enter. Students cannot use teacher tools or other learners’ scores.
+All seven focused access-rule cases passed. The separate math-rendering unit tests also passed, including checks that ordinary prose remains unchanged and generated text is escaped before rendering. Together these tests show that the rules work before larger user workflows are considered.
 
 ### 2. Integration testing
 
@@ -173,11 +173,31 @@ System testing checked Bloom as one application: shared student shell, core page
 | Test ID | Scope | Expected result | Actual result | Status |
 |---|---|---|---|---|
 | ST-01 | Student pages (home, subject, summary, practice, results, profile, announcements, messages, assessment lobby) | Each page returns 200 and includes main content, sidebar, and skip link | All listed paths returned 200 with those landmarks | Passed |
-| ST-02 | Student home composition | Home shows subjects and next actions; old duplicate progress panels are gone | “My Subjects” and “Do this next” present; “Subject pulse” / “Progress tracker” absent | Passed |
+| ST-02 | Student home composition | Home shows subjects and next actions; old duplicate progress panels are gone | “Subjects” and “Up next” present; “Subject pulse” / “Progress tracker” absent | Passed |
 | ST-03 | Mobile navigation | Menu controls the sidebar | `aria-controls="pro-sidebar"` and backdrop rendered | Passed |
-| ST-04 | Automated suite | All smoke tests pass | 20 tests, 0 failures (3.94 s) | Passed |
+| ST-04 | Automated suite | All automated tests pass | 27 tests, 0 failures (6.82 s) | Passed |
 
 System testing confirms that the student learning loop and teacher support screens run together under one login model, one database, and one UI shell for students.
+
+### Supplementary performance and stress testing
+
+A bounded k6 run measured how the deployed application served its public login page under concurrent read-only traffic. The scenario ramped from no users to 50 and then 200 virtual users, held the peak briefly, and ramped down. It requested only `GET /login`; it did not authenticate users, submit forms, call AI providers, or write to PostgreSQL. Therefore, the results describe login-page response under this workload and should not be interpreted as a full database, authenticated-session, or whole-system capacity test.
+
+**Table 4.4**  
+*k6 login-page stress test results*
+
+| Measure | Result | Acceptance target | Outcome |
+|---|---:|---:|---|
+| Peak concurrent virtual users | 200 | 200 | Reached |
+| Total requests | 6,958 | — | — |
+| Failed requests | 0 (0%) | Less than 2% | Passed |
+| Checks | 13,916 passed | All checks pass | Passed |
+| Average response time | 234.19 ms | — | — |
+| 95th percentile response time | 285.32 ms | Below 2,500 ms | Passed |
+| Maximum response time | 1.11 s | — | — |
+| Throughput | 114.57 requests/second | — | — |
+
+The run completed on November 18, 2026 against the deployed login page. It reached 200 virtual users, returned HTTP 200 responses with the expected email field, and met both configured thresholds. The reusable scenario is in `tests/k6_login_stress.js`. To reproduce it, install k6 and run `k6 run --env BASE_URL=https://capstoned-production-0585.up.railway.app tests/k6_login_stress.js`. This is a read-only page-load test; add authenticated, database-backed scenarios before making claims about capacity for signed-in workflows or PostgreSQL writes.
 
 ### 4. User acceptance testing
 
@@ -197,7 +217,7 @@ User acceptance testing (UAT) evaluates whether teachers and students can use Bl
 | 1.81 – 2.60 | Disagree / Fair |
 | 1.00 – 1.80 | Strongly disagree / Poor |
 
-**Table 4.4**  
+**Table 4.5**  
 *ISO/IEC 25010:2023 product quality — UAT tally sheet*  
 *(Compute the mean per item after the pilot. Do not invent scores.)*
 
@@ -214,7 +234,7 @@ User acceptance testing (UAT) evaluates whether teachers and students can use Bl
 | 9 | Safety |  |  |  |
 | | **Overall product quality** |  |  |  |
 
-**Table 4.5**  
+**Table 4.6**  
 *ISO/IEC 25019:2023 quality in use — UAT tally sheet*
 
 | # | Characteristic | Teacher mean | Student mean | Interpretation |
@@ -224,7 +244,7 @@ User acceptance testing (UAT) evaluates whether teachers and students can use Bl
 | 12 | Acceptability |  |  |  |
 | | **Overall quality in use** |  |  |  |
 
-**Table 4.6**  
+**Table 4.7**  
 *Adapted SUS (0–100) — UAT tally sheet*
 
 | Group | n | SUS mean | Remarks |
@@ -242,12 +262,12 @@ A numeric mean alone does not reveal why respondents chose their ratings. Use th
 **How to finish this subsection after the pilot**
 
 1. Encode Likert answers in a spreadsheet.  
-2. Fill Tables 4.4–4.6.  
+2. Fill Tables 4.5–4.7.  
 3. Add one short paragraph under each table (what was strong, what to fix).  
 4. Quote two or three open-question themes (time saved, HOTS quality, confusing screens).  
 5. Do not add new tables in Chapter V.
 
-Until those means are collected, the tested claim of this chapter is limited to **functional correctness** (unit, integration, and system tests all passed). Acceptance by teachers and students is the remaining UAT result.
+Until those means are collected, acceptance by teachers and students remains the outstanding UAT result. The automated tests establish functional correctness for the tested paths, while the k6 result is limited to read-only login-page performance at the stated workload.
 
 The practice-generation limit is **three successful generations per student, per subject, per day**, resetting at midnight Philippine time. AI API charges depend on input and output token use rather than a flat amount per practice set. The cost assumptions, configured models, and provider references are documented in [`AI_USAGE_AND_LIMITS.md`](AI_USAGE_AND_LIMITS.md); recheck provider rates and model status before final submission because both can change.
 
@@ -256,7 +276,7 @@ The practice-generation limit is **three successful generations per student, per
 # CHAPTER V
 # SUMMARY, CONCLUSION, AND RECOMMENDATIONS
 
-This chapter summarizes the significant findings of the study, states the conclusions in relation to those findings, and offers recommendations for the school and for future researchers. In line with the handbook, this chapter does not present new tables or figures. Four corollary questions were stated in Chapter I; four findings are summarized below. After the Grade 7 UAT, replace any sentence marked **[after UAT]** with the actual verbal interpretation from Tables 4.4–4.6.
+This chapter summarizes the significant findings of the study, states the conclusions in relation to those findings, and offers recommendations for the school and for future researchers. In line with the handbook, this chapter does not present new tables or figures. Four corollary questions were stated in Chapter I; four findings are summarized below. After the Grade 7 UAT, replace any sentence marked **[after UAT]** with the actual verbal interpretation from Tables 4.5–4.7.
 
 ## Summary of Significant Findings
 
@@ -268,7 +288,7 @@ This chapter summarizes the significant findings of the study, states the conclu
 
 **Finding 4 (corollary question 4).** An AI study assistant can support teachers when it drafts items and summaries but does not replace professional judgment. Monitor, release flags for scores/answers/feedback, and subject-scoped access keep the teacher in control. **[after UAT]** Teachers’ beneficialness, acceptability, and SUS scores will state how far this help is accepted in the real Grade 7 context.
 
-Across testing, **20 of 20** automated cases passed (login, CSRF, roles, assessment flow, material deploy, messages, announcements, profile photo, and monitor). **[after UAT]** Insert one sentence on overall ISO product quality, quality in use, and SUS.
+Across automated testing, **27 of 27** cases passed: 7 isolated math-rendering unit tests and 20 application smoke and workflow tests covering login, CSRF, roles, assessment flow, material deployment, messages, announcements, profile photos, and monitoring. In the supplementary k6 run, the login page served 6,958 requests with no failures at up to 200 virtual users; the 95th percentile response time was 285.32 ms. These performance results cover only the public login page and do not establish authenticated or database-backed capacity. **[after UAT]** Insert one sentence on overall ISO product quality, quality in use, and SUS.
 
 ## Conclusions
 
@@ -292,7 +312,7 @@ Based on the conclusions, the researchers recommend the following.
 
 **For administrators of Bloom.** Keep role separation and teacher approval as default. Do not enable student-facing AI output that skipped review.
 
-**For improvement of the system.** (1) Finish Grade 7 UAT and encode Tables 4.4–4.6. (2) Capture assessment lobby and assessment-take screenshots for the final manuscript if they were missing in the first screenshot set. (3) Strengthen production configuration (secrets, seed accounts, API key handling). (4) Deepen admin reports if the school expands beyond one section. (5) Unify teacher and student visual shells so staff pages match the student interface.
+**For improvement of the system.** (1) Finish Grade 7 UAT and encode Tables 4.5–4.7. (2) Capture assessment lobby and assessment-take screenshots for the final manuscript if they were missing in the first screenshot set. (3) Strengthen production configuration (secrets, seed accounts, API key handling). (4) Deepen admin reports if the school expands beyond one section. (5) Unify teacher and student visual shells so staff pages match the student interface.
 
 **For future researchers.** Replicate the study in other grades or subjects; add a true pre-test/post-test of HOTS achievement if the research question is learning gain rather than system quality; or compare Bloom-generated items with teacher-written items using a HOTS quality rubric. Do not treat this prototype as evidence of long-term academic achievement.
 
@@ -304,4 +324,4 @@ Based on the conclusions, the researchers recommend the following.
 - Run UAT, then delete every **[after UAT]** marker.  
 - Chapter V must stay without tables or figures.  
 - Copy this chapter after Chapter III in the official thesis Word file.  
-- Appendices: evaluation forms, questionnaires, (optional) test printout of `python -m unittest tests.test_smoke -v`.
+- Appendices: evaluation forms, questionnaires, and an optional automated test report. Reproduce the Python suite with `python -m unittest discover -v`. Reproduce the read-only login stress test with `k6 run --env BASE_URL=https://capstoned-production-0585.up.railway.app tests/k6_login_stress.js`.

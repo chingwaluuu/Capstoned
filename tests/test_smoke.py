@@ -215,9 +215,9 @@ class BloomSmokeTest(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertNotIn(b"Subject pulse", response.data)
         self.assertNotIn(b"Progress tracker", response.data)
-        self.assertIn(b"My Subjects", response.data)
-        self.assertIn(b"Do this next", response.data)
-        self.assertIn(b"Practice avg", response.data)
+        self.assertIn(b'id="subjects-title">Subjects</h2>', response.data)
+        self.assertIn(b"Up next", response.data)
+        self.assertIn(b"Avg. score", response.data)
 
     def test_mobile_drawer_contract_is_rendered(self):
         self._login("student@test.local", "student123")
