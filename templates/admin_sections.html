@@ -27,9 +27,17 @@
         {% if course.sections %}
           <ul class="setup-course-rosters">
           {% for group in course.sections %}
-            <li><div><b>{{ group.label }}</b><small>{{ group.students|length }} student{{ 's' if group.students|length != 1 else '' }}{% if group.students %}: {{ group.students|join(', ') }}{% endif %}</small>
-              {% for assignment in group.assignments %}<span class="setup-course-teacher">{{ assignment.teacher_name }}</span>{% endfor %}
-            </div>{% for assignment in group.assignments %}<form method="post" data-confirm="Remove {{ course.name }} from this teacher and section?"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="action" value="remove_course_assignment"><input type="hidden" name="assignment_id" value="{{ assignment.id }}"><button class="setup-course-remove" type="submit">Remove assignment</button></form>{% endfor %}</li>
+            <li>
+              <div class="setup-course-roster-details">
+                <b>{{ group.label }}</b>
+                <small>{{ group.students|length }} student{{ 's' if group.students|length != 1 else '' }}{% if group.students %}: {{ group.students|join(', ') }}{% endif %}</small>
+                <ul class="setup-course-assignment-list">
+                  {% for assignment in group.assignments %}
+                    <li><span>{{ assignment.teacher_name }}</span><form method="post" data-confirm="Remove {{ course.name }} from this teacher and section?"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="action" value="remove_course_assignment"><input type="hidden" name="assignment_id" value="{{ assignment.id }}"><button class="setup-course-remove" type="submit">Remove</button></form></li>
+                  {% endfor %}
+                </ul>
+              </div>
+            </li>
           {% endfor %}
           </ul>
         {% else %}<p class="setup-course-empty">No teacher or section is assigned yet.</p>{% endif %}
