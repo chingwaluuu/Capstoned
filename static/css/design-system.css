@@ -5914,16 +5914,36 @@ math {
 }
 
 .pro-body.student.student-refined .review-support-btn {
-  border-color: var(--brand-primary, #1f2a5c);
-  background: var(--brand-primary, #1f2a5c);
-  color: var(--brand-on-primary, #fff);
+  border-color: #1f2a5c;
+  background: #1f2a5c;
+  color: #fff;
 }
 
 .pro-body.student.student-refined .review-support-btn:hover,
 .pro-body.student.student-refined .review-support-btn:focus-visible {
-  border-color: var(--brand-primary-hover, #172149);
-  background: var(--brand-primary-hover, #172149);
-  color: var(--brand-on-primary, #fff);
+  border-color: #172149;
+  background: #172149;
+  color: #fff;
+}
+
+.pro-body.student.student-refined .review-page :is(.review-next-action, .review-support-btn) {
+  border-color: #1f2a5c;
+  background: #1f2a5c;
+  color: #fff;
+}
+
+.pro-body.student.student-refined .review-page :is(.review-next-action, .review-support-btn):is(:hover, :focus-visible) {
+  border-color: #172149;
+  background: #172149;
+  color: #fff;
+}
+
+.pro-body.student.student-refined .review-page :is(.review-next-row .editorial-text-link, .review-exit .editorial-text-link) {
+  color: #1f2a5c;
+}
+
+.pro-body.student.student-refined .review-page :is(.review-next-row .editorial-text-link, .review-exit .editorial-text-link):is(:hover, :focus-visible) {
+  color: #172149;
 }
 
 .pro-body.student.student-refined .review-support-help + .review-exit {
