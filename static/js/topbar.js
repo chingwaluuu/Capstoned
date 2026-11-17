@@ -186,6 +186,7 @@
       const cancel = dialog.querySelector("[data-dialog-cancel]");
       const confirm = dialog.querySelector("[data-dialog-confirm]");
       const previousFocus = document.activeElement;
+      dialog.dataset.variant = options.variant || "";
       messageNode.textContent = message;
       titleNode.textContent = options.title || "Please confirm";
       setBlobButtonLabel(confirm, options.confirmLabel || "Continue");

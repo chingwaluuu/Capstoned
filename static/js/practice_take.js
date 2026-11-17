@@ -121,9 +121,10 @@
 
   nextBtn.addEventListener("click", async () => {
     if (!answered(cards[index])) {
-      const skip = await window.BloomUi.confirm("This question is still empty. Skip it for now?", {
-        title: "Skip this question?",
-        confirmLabel: "Skip for now",
+      const skip = await window.BloomUi.confirm("You haven't answered this question. You can return to it before submitting.", {
+        title: "Leave this question blank?",
+        confirmLabel: "Continue without answering",
+        variant: "assessment",
       });
       if (!skip) return;
     }
