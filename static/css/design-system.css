@@ -6039,3 +6039,113 @@ math {
     align-items: stretch;
   }
 }
+
+/* Assessment/practice taking: give the focused question a little more room. */
+.pro-body.student.student-refined.pro-focus .pro-content {
+  width: min(calc(100% - 2rem), 56rem);
+}
+
+.pro-body.student.student-refined.pro-focus .practice-take-shell .take-window-head {
+  gap: 0.85rem;
+}
+
+.pro-body.student.student-refined.pro-focus .practice-take-shell .take-window-title-row {
+  column-gap: clamp(1rem, 3vw, 2.25rem);
+  row-gap: 0.45rem;
+}
+
+.pro-body.student.student-refined.pro-focus .practice-take-shell .take-title {
+  font-size: clamp(1.55rem, 2.4vw, 1.85rem);
+  letter-spacing: -0.025em;
+}
+
+.pro-body.student.student-refined.pro-focus .practice-take-shell .take-progress-block {
+  margin-block: 0.15rem 0.25rem;
+}
+
+.pro-body.student.student-refined.pro-focus .practice-take-shell .take-progress {
+  height: 0.35rem;
+  overflow: hidden;
+  border-radius: 999px;
+}
+
+.pro-body.student.student-refined.pro-focus .practice-take-shell .take-progress span {
+  border-radius: inherit;
+  transition: width 220ms ease;
+}
+
+.pro-body.student.student-refined.pro-focus .practice-take-shell .take-card {
+  gap: 1rem;
+  padding: clamp(1.25rem, 2.4vw, 1.75rem);
+  border-radius: 1rem;
+}
+
+.pro-body.student.student-refined.pro-focus .practice-take-shell .take-question {
+  max-width: 68ch;
+  font-size: clamp(1.15rem, 1.55vw, 1.35rem);
+  line-height: 1.6;
+}
+
+.pro-body.student.student-refined.pro-focus .practice-take-shell .take-options {
+  gap: 0.7rem;
+  margin-top: 0.3rem;
+}
+
+.pro-body.student.student-refined.pro-focus .practice-take-shell .take-option {
+  min-height: 3.5rem;
+  padding: 0.9rem 1.1rem;
+  border-radius: 0.8rem;
+  line-height: 1.55;
+  transition: border-color 140ms ease, background-color 140ms ease, box-shadow 140ms ease;
+}
+
+.pro-body.student.student-refined.pro-focus .practice-take-shell .take-option input {
+  accent-color: #5746c2;
+}
+
+.pro-body.student.student-refined.pro-focus .practice-take-shell .take-option:has(input:checked) {
+  border-color: #5746c2;
+  background: #f5f3ff;
+  box-shadow: inset 0 0 0 1px #5746c2;
+}
+
+.pro-body.student.student-refined.pro-focus .practice-take-shell .take-nav {
+  margin-top: -0.25rem;
+}
+
+.pro-body.student.student-refined.pro-focus .practice-take-shell .take-nav #next-btn,
+.pro-body.student.student-refined.pro-focus .practice-take-shell .take-nav #submit-btn {
+  min-height: 2.75rem;
+  border: 1px solid #171717;
+  border-radius: 0.75rem;
+  background: #171717;
+  color: #fff;
+  font-weight: 650;
+  transition: background-color 140ms ease, border-color 140ms ease, transform 140ms ease;
+}
+
+.pro-body.student.student-refined.pro-focus .practice-take-shell .take-nav #next-btn:hover,
+.pro-body.student.student-refined.pro-focus .practice-take-shell .take-nav #submit-btn:hover {
+  border-color: #343434;
+  background: #343434;
+  transform: translateY(-1px);
+}
+
+.pro-body.student.student-refined.pro-focus .practice-take-shell .take-nav #prev-btn:disabled {
+  border-color: #e4e1dc;
+  background: #f7f6f3;
+  color: #98938b;
+  cursor: not-allowed;
+  opacity: 1;
+}
+
+@media (max-width: 720px) {
+  .pro-body.student.student-refined.pro-focus .practice-take-shell .take-window-title-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .pro-body.student.student-refined.pro-focus .practice-take-shell .take-progress-label {
+    grid-column: 1;
+    grid-row: auto;
+  }
+}
