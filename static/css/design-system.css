@@ -5854,3 +5854,87 @@ math {
     gap: 8px;
   }
 }
+/* Student results: align the follow-up actions as one deliberate section. */
+.pro-body.student.student-refined .review-after {
+  grid-template-columns: minmax(0, 1.55fr) minmax(17rem, 0.85fr);
+  align-items: start;
+  gap: clamp(1rem, 2.4vw, 2rem);
+  margin-top: clamp(1.5rem, 3vw, 2.25rem);
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border, #ded8cc);
+}
+
+.pro-body.student.student-refined .review-next,
+.pro-body.student.student-refined .review-support {
+  min-width: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+
+.pro-body.student.student-refined .review-next .practice-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin: 0 0 0.85rem;
+}
+
+.pro-body.student.student-refined .review-next-primary {
+  gap: 0.25rem;
+  margin: 0;
+  padding: clamp(1rem, 2vw, 1.35rem);
+  border: 1px solid var(--border, #ded8cc);
+  border-radius: var(--radius-card, 14px);
+  background: var(--surface, #fff);
+}
+
+.pro-body.student.student-refined .review-next-primary + .review-next-primary {
+  margin-top: 0.75rem;
+}
+
+.pro-body.student.student-refined .review-next-list {
+  margin-top: 0.75rem;
+}
+
+.pro-body.student.student-refined .review-next-row {
+  gap: 0.75rem 1rem;
+  padding: 0.85rem 0;
+}
+
+.pro-body.student.student-refined .review-support {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.pro-body.student.student-refined .review-support-help {
+  padding: clamp(1rem, 2vw, 1.35rem);
+  border: 1px solid var(--border, #ded8cc);
+  border-radius: var(--radius-card, 14px);
+  background: var(--surface, #fff);
+}
+
+.pro-body.student.student-refined .review-support-btn {
+  border-color: var(--brand-primary, #1f2a5c);
+  background: var(--brand-primary, #1f2a5c);
+  color: var(--brand-on-primary, #fff);
+}
+
+.pro-body.student.student-refined .review-support-btn:hover,
+.pro-body.student.student-refined .review-support-btn:focus-visible {
+  border-color: var(--brand-primary-hover, #172149);
+  background: var(--brand-primary-hover, #172149);
+  color: var(--brand-on-primary, #fff);
+}
+
+.pro-body.student.student-refined .review-support-help + .review-exit {
+  gap: 0.5rem 1rem;
+  margin-top: 0;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--border, #ded8cc);
+}
+
+@media (max-width: 900px) {
+  .pro-body.student.student-refined .review-after {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
