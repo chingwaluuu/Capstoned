@@ -4485,6 +4485,7 @@ def admin_faculty_posts(user):
         materials=materials,
         assessments=assessments,
         teachers_by_id=teachers_by_id,
+        term_labels=academic_term_labels(),
     )
 
 

@@ -26,14 +26,14 @@
       {% if materials %}
         <div class="admin-faculty-list">
           {% for material in materials %}
-            <article class="admin-faculty-item" data-faculty-post data-search="{{ (material.title ~ ' ' ~ material.owner.name ~ ' ' ~ material.subject_slug ~ ' ' ~ material.status)|lower }}">
+            <article class="admin-faculty-item" data-faculty-post data-search="{{ (material.title ~ ' ' ~ material.owner.name ~ ' ' ~ material.subject_slug ~ ' ' ~ material.status ~ ' ' ~ term_labels.get(material.term, 'Unassigned'))|lower }}">
               <div class="admin-faculty-item-heading">
                 <div><span class="admin-faculty-subject">{{ material.subject_slug|title }}</span><span class="admin-faculty-status status-{{ material.status }}">{{ material.status|title }}</span></div>
                 <time>{{ material.created_at.strftime('%b %d, %Y') if material.created_at else '' }}</time>
               </div>
               <h3>{{ material.title }}</h3>
               <p class="admin-faculty-byline">{{ material.owner.name }} · {{ material.owner.email }}</p>
-              <p class="admin-faculty-file">{{ material.filename or 'Text lesson' }} · {{ (material.extracted_text or '')|length }} characters extracted</p>
+              <p class="admin-faculty-file">Term: {{ term_labels.get(material.term, 'Unassigned') }}</p>
               {% if material.summary %}
                 <div class="admin-faculty-summary">
                   <span>Student summary</span>
