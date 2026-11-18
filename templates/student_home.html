@@ -32,8 +32,9 @@
       </section>
     {% endif %}
 
-    <div class="home-kanban" aria-label="Home board">
-      <section class="home-col" aria-labelledby="today-board-title">
+    <div class="home-dashboard" aria-label="Home board">
+      <div class="home-dashboard-main">
+      <section class="home-col home-col-next" aria-labelledby="today-board-title">
         <header class="home-col-head">
           <div class="home-col-ident">
             <h2 class="home-col-title" id="today-board-title">Up next</h2>
@@ -77,7 +78,7 @@
         </div>
       </section>
 
-      <section class="home-col" aria-labelledby="subjects-title">
+      <section class="home-col home-col-subjects" aria-labelledby="subjects-title">
         <header class="home-col-head">
           <div class="home-col-ident">
             <h2 class="home-col-title" id="subjects-title">Subjects</h2>
@@ -91,7 +92,9 @@
         </div>
       </section>
 
-      <section class="home-col" aria-labelledby="teacher-updates-title">
+      </div>
+
+      <section class="home-col home-col-updates" aria-labelledby="teacher-updates-title">
         <header class="home-col-head">
           <div class="home-col-ident">
             <h2 class="home-col-title" id="teacher-updates-title">From teachers</h2>
@@ -104,8 +107,6 @@
             {% for note in teacher_updates %}
               {% set note_slug = (note.subject or 'general')|lower %}
               {% if note_slug == 'math' %}{% set note_slug = 'mathematics' %}{% endif %}
-              {% set teacher_parts = (note.teacher or "T").split(" ") %}
-              {% set teacher_initials = (teacher_parts[0][:1] ~ (teacher_parts[-1][:1] if teacher_parts|length > 1 else ""))|upper %}
               <a class="home-ticket card has-thumb hue-{{ note_slug }}{% if note.unread %} is-unread{% endif %}" href="{{ note.href }}" role="listitem">
                 <span class="home-ticket-lead">
                   <span class="home-ticket-thumb" aria-hidden="true">
@@ -120,7 +121,7 @@
                 <span class="home-ticket-foot">
                   {% if note.teacher %}
                     <span class="home-who">
-                      <span class="home-avatar" aria-hidden="true">{{ teacher_initials }}</span>
+                      <span class="home-who-name">{{ note.teacher }}</span>
                     </span>
                   {% endif %}
                   {% if note.when_display or note.when_short or note.when %}
