@@ -4498,7 +4498,62 @@ def admin_users(user):
             if not record:
                 flash("Account not found.", "danger")
                 return redirect(url_for("admin_users"))
-            if action == "add_teacher_assignment":
+            if action == "delete_account":
+                if record.id == user["id"]:
+                    flash("You cannot delete your own admin account.", "danger")
+                elif record.role == "admin" and record.is_active and User.query.filter_by(role="admin", is_active=True).count() <= 1:
+                    flash("At least one active admin account must remain.", "danger")
+                else:
+                    avatar_path = avatar_file_path(record.avatar_filename)
+                    materials = Material.query.filter_by(owner_id=record.id).all()
+                    material_ids = [material.id for material in materials]
+                    material_paths = []
+                    for material in materials:
+                        if material.filename:
+                            filename = os.path.basename(material.filename)
+                            if filename == material.filename and ".." not in filename:
+                                material_paths.append(os.path.join(app.config["UPLOAD_FOLDER"], filename))
+                    if material_ids:
+                        Assessment.query.filter(Assessment.material_id.in_(material_ids)).update(
+                            {"material_id": None}, synchronize_session=False
+                        )
+                    Attempt.query.filter_by(user_id=record.id).delete(synchronize_session=False)
+                    for assessment in Assessment.query.filter_by(created_by=record.id).all():
+                        db.session.delete(assessment)
+                    QuizDraft.query.filter_by(user_id=record.id).delete(synchronize_session=False)
+                    PracticeGeneration.query.filter_by(user_id=record.id).delete(synchronize_session=False)
+                    for conversation in Conversation.query.filter(
+                        or_(Conversation.student_id == record.id, Conversation.teacher_id == record.id)
+                    ).all():
+                        db.session.delete(conversation)
+                    announcements = Announcement.query.filter_by(teacher_id=record.id).all()
+                    announcement_ids = [announcement.id for announcement in announcements]
+                    AnnouncementRead.query.filter_by(user_id=record.id).delete(synchronize_session=False)
+                    if announcement_ids:
+                        AnnouncementRead.query.filter(AnnouncementRead.announcement_id.in_(announcement_ids)).delete(
+                            synchronize_session=False
+                        )
+                    for announcement in announcements:
+                        db.session.delete(announcement)
+                    TeacherAssignment.query.filter_by(teacher_id=record.id).delete(synchronize_session=False)
+                    for material in materials:
+                        db.session.delete(material)
+                    db.session.delete(record)
+                    db.session.commit()
+                    for path in material_paths:
+                        try:
+                            if not Material.query.filter_by(filename=os.path.basename(path)).first() and os.path.isfile(path):
+                                os.remove(path)
+                        except OSError:
+                            logger.exception("Could not remove an uploaded file after deleting an account")
+                    if avatar_path:
+                        try:
+                            if os.path.isfile(avatar_path):
+                                os.remove(avatar_path)
+                        except OSError:
+                            logger.exception("Could not remove the profile photo after deleting an account")
+                    flash("Account and connected records permanently deleted.", "success")
+            elif action == "add_teacher_assignment":
                 subject = canonical_subject_name(request.form.get("subject"))
                 section = db.session.get(SchoolSection, request.form.get("section_id", type=int))
                 if record.role != "teacher":
