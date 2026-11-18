@@ -1,0 +1,26 @@
+/* Keep the active destination equally clear for students, teachers, and admins. */
+.pro-body:is(.student, .teacher-workspace, .staff-workspace) .pro-rail .pro-nav-link.is-active {
+  min-width: 2.65rem;
+  min-height: 2.65rem;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  box-shadow: 0 3px 10px rgba(8, 15, 42, 0.18);
+}
+
+.pro-body:is(.student, .teacher-workspace, .staff-workspace) .pro-rail .pro-nav-link.is-active .pro-nav-ico {
+  border: 1px solid rgba(255, 255, 255, 0.42);
+  border-radius: 10px;
+  background: #fff;
+  color: #1f2a5c;
+  box-shadow: 0 2px 7px rgba(8, 15, 42, 0.2);
+}
+
+.pro-body:is(.student, .teacher-workspace, .staff-workspace) .pro-rail .pro-nav-link.is-active:hover,
+.pro-body:is(.student, .teacher-workspace, .staff-workspace) .pro-rail .pro-nav-link.is-active:focus-visible {
+  border-color: rgba(255, 255, 255, 0.42);
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
+}
