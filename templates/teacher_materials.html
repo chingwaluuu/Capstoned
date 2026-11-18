@@ -24,15 +24,15 @@
       </div>
 
       <div class="field">
-        <label for="material-term">School term</label>
+        <label for="material-term">Exam period</label>
         <select id="material-term" name="term" required>
-          <option value="" selected disabled>Choose a term</option>
-          {% for number in range(1, 5) %}
-            <option value="{{ number }}">Term {{ number }}</option>
+          <option value="" selected disabled>Choose an exam period</option>
+          {% for number, term_label in term_labels.items() %}
+            <option value="{{ number }}">{{ term_label }}</option>
           {% endfor %}
         </select>
         <small>
-          {% if active_school_year %}For {{ active_school_year.name }}. Term reviews combine approved lessons assigned to the same term.{% else %}An administrator must set the active school year before lessons can be grouped into term reviews.{% endif %}
+          {% if active_school_year %}For {{ active_school_year.name }}. Practice exams combine approved lessons assigned to the same period.{% else %}An administrator must set the active school year before lessons can be grouped into practice exams.{% endif %}
         </small>
       </div>
 

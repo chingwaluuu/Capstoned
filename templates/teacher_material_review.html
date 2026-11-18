@@ -42,14 +42,14 @@
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
         <input type="hidden" name="action" value="set_term" />
         <div class="field">
-          <label for="review-material-term">School term</label>
+          <label for="review-material-term">Exam period</label>
           <select id="review-material-term" name="term">
             <option value="">Unassigned</option>
-            {% for number in range(1, 5) %}
-              <option value="{{ number }}" {% if material.term == number %}selected{% endif %}>Term {{ number }}</option>
+            {% for number, term_label in term_labels.items() %}
+              <option value="{{ number }}" {% if material.term == number %}selected{% endif %}>{{ term_label }}</option>
             {% endfor %}
           </select>
-          <small>Lessons in the same term are combined in a student term practice exam.</small>
+          <small>Approved lessons in the same period are combined in a student practice exam.</small>
         </div>
         <button class="today-action today-action-soft" type="submit">Save term</button>
       </form>
@@ -109,11 +109,11 @@
                   <form method="POST" action="{{ url_for('teacher_material_review', material_id=material.id) }}" data-confirm="Deploy this summary to students? They will be able to read it and practice from it." data-loading="Deploying…">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                     <input type="hidden" name="action" value="approve" />
-                    <label class="teacher-review-term-label" for="deploy-material-term">Term for this lesson</label>
+                    <label class="teacher-review-term-label" for="deploy-material-term">Exam period</label>
                     <select class="teacher-review-term-select" id="deploy-material-term" name="term" required>
-                      <option value="" disabled {% if not material.term %}selected{% endif %}>Choose a term</option>
-                      {% for number in range(1, 5) %}
-                        <option value="{{ number }}" {% if material.term == number %}selected{% endif %}>Term {{ number }}</option>
+                      <option value="" disabled {% if not material.term %}selected{% endif %}>Choose an exam period</option>
+                      {% for number, term_label in term_labels.items() %}
+                        <option value="{{ number }}" {% if material.term == number %}selected{% endif %}>{{ term_label }}</option>
                       {% endfor %}
                     </select>
                     <button class="btn-primary teacher-review-publish" type="submit" {% if not material.has_summary %}disabled{% endif %}>Deploy to students <span aria-hidden="true">→</span></button>

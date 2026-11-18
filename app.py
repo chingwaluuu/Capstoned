@@ -353,7 +353,7 @@ def practice_setup_url(subject_slug, material_slug, difficulty="medium", focus="
     return f"{base}?{urlencode(pairs)}"
 
 
-TERM_LABELS = {1: "Term 1", 2: "Term 2", 3: "Term 3", 4: "Term 4"}
+TERM_LABELS = {1: "Prelim", 2: "Midterm", 3: "Finals"}
 TERM_REVIEW_PREFIX = "__term_review_"
 
 
@@ -362,7 +362,7 @@ def active_school_year():
 
 
 def practice_term_from_key(material_slug):
-    match = re.fullmatch(r"__term_review_([1-4])", material_slug or "")
+    match = re.fullmatch(r"__term_review_([1-3])", material_slug or "")
     return int(match.group(1)) if match else None
 
 
@@ -427,6 +427,9 @@ def ensure_schema():
                         f"ADD COLUMN {preparer.quote(column)} {ddl}"
                     )
                 )
+        if "material" in tables:
+            # The first rollout used four generic terms; the school calendar uses three exam periods.
+            conn.execute(text("UPDATE material SET term = 3 WHERE term = 4"))
     normalize_teacher_subjects()
     migrate_student_sections()
     migrate_teacher_assignments()
@@ -2628,7 +2631,7 @@ def subject_hub(slug):
             practice_items.insert(
                 0,
                 {
-                    "kicker": "Multi-topic term review",
+                    "kicker": "Multi-topic exam review",
                     "title": f"{term_label} practice exam",
                     "meta": (
                         f"Combines {len(term_materials)} approved lessons in {meta['name']} · "
@@ -4049,6 +4052,7 @@ def teacher_materials(user):
         subject_name=SUBJECTS[slug]["name"],
         subject_slug=slug,
         active_school_year=active_school_year(),
+        term_labels=TERM_LABELS,
         pending=pending,
         deployed=deployed,
         rejected=rejected,
@@ -4130,6 +4134,7 @@ def teacher_material_review(user, material_id):
         active_nav="materials",
         subject_name=SUBJECTS[slug]["name"],
         material=material_review_payload(material),
+        term_labels=TERM_LABELS,
     )
 
 
