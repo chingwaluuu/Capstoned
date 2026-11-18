@@ -7,14 +7,38 @@
 {% block content %}
   <section class="admin-ai-usage" aria-label="Practice generation usage report">
     <form class="admin-ai-usage-filter" method="get" action="{{ url_for('admin_reports') }}">
-      <label for="usage-subject">Subject</label>
-      <select id="usage-subject" name="subject">
-        <option value="">All subjects</option>
-        {% for slug, subject in subjects.items() %}
-          <option value="{{ slug }}" {% if selected_subject == slug %}selected{% endif %}>{{ subject.name }}</option>
-        {% endfor %}
-      </select>
-      <button class="btn-primary" type="submit">Filter</button>
+      <label class="admin-ai-usage-field" for="usage-subject">Subject
+        <select id="usage-subject" name="subject">
+          <option value="">All subjects</option>
+          {% for slug, subject in subjects.items() %}
+            <option value="{{ slug }}" {% if selected_subject == slug %}selected{% endif %}>{{ subject.name }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label class="admin-ai-usage-field" for="usage-provider">Provider
+        <select id="usage-provider" name="provider">
+          <option value="all" {% if selected_provider == 'all' %}selected{% endif %}>All providers</option>
+          <option value="gemini" {% if selected_provider == 'gemini' %}selected{% endif %}>Gemini</option>
+          <option value="openai" {% if selected_provider == 'openai' %}selected{% endif %}>OpenAI</option>
+          <option value="local" {% if selected_provider == 'local' %}selected{% endif %}>Local fallback</option>
+        </select>
+      </label>
+      <label class="admin-ai-usage-field" for="usage-period">Date range
+        <select id="usage-period" name="period">
+          <option value="all" {% if selected_period == 'all' %}selected{% endif %}>All time</option>
+          <option value="7d" {% if selected_period == '7d' %}selected{% endif %}>Last 7 days</option>
+          <option value="30d" {% if selected_period == '30d' %}selected{% endif %}>Last 30 days</option>
+        </select>
+      </label>
+      <label class="admin-ai-usage-field" for="usage-questions">Question count
+        <select id="usage-questions" name="questions">
+          <option value="all" {% if selected_questions == 'all' %}selected{% endif %}>Any count</option>
+          <option value="1-5" {% if selected_questions == '1-5' %}selected{% endif %}>1–5 questions</option>
+          <option value="6-10" {% if selected_questions == '6-10' %}selected{% endif %}>6–10 questions</option>
+          <option value="11-15" {% if selected_questions == '11-15' %}selected{% endif %}>11–15 questions</option>
+        </select>
+      </label>
+      <button class="admin-ai-usage-apply" type="submit"><i class="fi fi-rr-filter" aria-hidden="true"></i><span>Apply filters</span></button>
     </form>
 
     <section class="admin-ai-usage-stats" aria-label="Usage totals">

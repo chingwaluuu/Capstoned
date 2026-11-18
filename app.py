@@ -4939,9 +4939,28 @@ def admin_section(user):
 @require_role("admin")
 def admin_reports(user):
     selected_subject = request.args.get("subject", "").strip()
+    selected_provider = request.args.get("provider", "all").strip().lower()
+    selected_period = request.args.get("period", "all").strip().lower()
+    selected_questions = request.args.get("questions", "all").strip().lower()
     query = PracticeUsage.query
     if selected_subject in SUBJECTS:
         query = query.filter_by(subject_slug=selected_subject)
+    if selected_provider == "local":
+        query = query.filter(PracticeUsage.used_local_fallback.is_(True))
+    elif selected_provider in {"gemini", "openai"}:
+        query = query.filter(
+            PracticeUsage.used_local_fallback.is_(False),
+            PracticeUsage.provider.ilike(selected_provider),
+        )
+    if selected_period in {"7d", "30d"}:
+        days = 7 if selected_period == "7d" else 30
+        query = query.filter(PracticeUsage.created_at >= datetime.utcnow() - timedelta(days=days))
+    if selected_questions == "1-5":
+        query = query.filter(PracticeUsage.question_count.between(1, 5))
+    elif selected_questions == "6-10":
+        query = query.filter(PracticeUsage.question_count.between(6, 10))
+    elif selected_questions == "11-15":
+        query = query.filter(PracticeUsage.question_count.between(11, 15))
     totals = query.with_entities(
         db.func.count(PracticeUsage.id),
         db.func.coalesce(db.func.sum(PracticeUsage.input_tokens), 0),
@@ -4965,6 +4984,9 @@ def admin_reports(user):
         role_nav=admin_nav(),
         active_nav="reports",
         selected_subject=selected_subject,
+        selected_provider=selected_provider,
+        selected_period=selected_period,
+        selected_questions=selected_questions,
         subjects=SUBJECTS,
         usage_rows=rows,
         usage_totals={
