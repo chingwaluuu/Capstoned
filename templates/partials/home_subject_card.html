@@ -3,8 +3,7 @@
   {% set teacher_parts = (subject.teacher or "T").split(" ") %}
   {% set teacher_initials = (teacher_parts[0][:1] ~ (teacher_parts[-1][:1] if teacher_parts|length > 1 else ""))|upper %}
   {% set line_text = (subject.context_line or "")
-    | replace("Currently on: ", "", 1)
-    | replace("Last activity: ", "", 1) %}
+    | replace("Currently on: ", "", 1) %}
   {% set pct = subject.progress_percent if subject.has_progress else 0 %}
   <article class="home-ticket card has-thumb hue-{{ subject.slug }}">
     <a class="home-ticket-open" href="{{ url_for('subject_hub', slug=subject.slug) }}">

@@ -1005,11 +1005,6 @@ def relative_time(when) -> str:
     return when.strftime("%b %d")
 
 
-def activity_date(when) -> str:
-    """Show the saved calendar date in progress tables instead of relative time."""
-    return when.strftime("%b %d") if when else ""
-
-
 def unread_message_count(user_id: int) -> int:
     return (
         ChatMessage.query.join(Conversation)
@@ -1412,7 +1407,6 @@ def build_admin_class_monitor(section_name: str | None = None) -> dict:
         else:
             status = "on_track"
             status_label = "On track"
-        last = user_attempts[0] if user_attempts else None
         student_rows.append(
             {
                 "id": student.id,
@@ -1425,8 +1419,6 @@ def build_admin_class_monitor(section_name: str | None = None) -> dict:
                 "strongest_bloom": strongest,
                 "status": status,
                 "status_label": status_label,
-                "last_title": last.title if last else "—",
-                "last_when": activity_date(last.submitted_at) if last and last.submitted_at else "No activity yet",
                 "photo_url": url_for("user_photo", user_id=student.id) if student.avatar_filename else None,
                 "initials": "".join(part[:1] for part in (student.name or "S").split()[:2]).upper(),
             }
@@ -2157,7 +2149,6 @@ def teacher_student_progress(user, subject_slug: str) -> list[dict]:
             .order_by(Attempt.submitted_at.desc())
             .all()
         )
-        last = attempts[0] if attempts else None
         rows.append(
             {
                 "id": student.id,
@@ -2171,9 +2162,6 @@ def teacher_student_progress(user, subject_slug: str) -> list[dict]:
                 "progress_label": progress_display_label(percent, has_progress, insight if has_progress else ""),
                 "practice_n": sum(1 for item in attempts if item.kind == "practice"),
                 "assessment_n": sum(1 for item in attempts if item.kind == "assessment"),
-                "last_title": last.title if last else "No attempts yet",
-                "last_when": activity_date(last.submitted_at) if last else "",
-                "last_href": url_for("attempt_review", attempt_id=last.id) if last else None,
                 "message_href": url_for("messages_thread", user_id=student.id),
             }
         )
@@ -2509,14 +2497,6 @@ def build_student_subjects(user_id: int) -> list[dict]:
         )
         if latest_material and latest_material.title:
             context_line = f"Currently on: {latest_material.title}"
-        else:
-            latest_attempt = (
-                Attempt.query.filter_by(user_id=user_id, subject_slug=slug)
-                .order_by(Attempt.submitted_at.desc())
-                .first()
-            )
-            if latest_attempt and latest_attempt.title:
-                context_line = f"Last activity: {latest_attempt.title}"
 
         subjects.append(
             {

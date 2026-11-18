@@ -188,7 +188,6 @@
               <th scope="col">Avg score</th>
               <th scope="col">Attempts</th>
               <th scope="col">Strongest HOTS</th>
-              <th scope="col">Last activity</th>
             </tr>
           </thead>
           <tbody>
@@ -209,10 +208,6 @@
                 <td>{% if row.avg_score is not none %}{{ row.avg_score }}%{% else %}—{% endif %}</td>
                 <td>{{ row.attempt_count }} <span class="admin-muted">(P {{ row.practice_count }} · A {{ row.assessment_count }})</span></td>
                 <td>{% if row.strongest_bloom %}{{ row.strongest_bloom }}{% else %}—{% endif %}</td>
-                <td>
-                  <p class="admin-student-last">{{ row.last_title }}</p>
-                  <p class="admin-muted">{{ row.last_when }}</p>
-                </td>
               </tr>
             {% endfor %}
           </tbody>

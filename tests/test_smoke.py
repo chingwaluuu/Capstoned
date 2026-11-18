@@ -180,11 +180,6 @@ class BloomSmokeTest(unittest.TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertIn("/home", response.headers["Location"])
 
-    def test_activity_date_uses_saved_calendar_date(self):
-        from datetime import datetime
-
-        self.assertEqual(bloom.activity_date(datetime(2026, 10, 12, 23, 30)), "Oct 12")
-
     def test_admin_can_manage_exam_periods_and_removal_keeps_lessons(self):
         self._login("admin@test.local", "admin123")
         token = self._csrf()
