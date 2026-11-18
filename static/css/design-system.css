@@ -6286,3 +6286,5 @@ math {
 .pro-body.admin-users-page .account-delete-form{grid-column:1/-1}.pro-body.admin-users-page .account-delete-button{width:100%;min-height:40px;border:1px solid #B42332;border-radius:10px;background:#FFF1F2;color:#B42332;font:600 12px Inter,sans-serif;cursor:pointer}.pro-body.admin-users-page .account-delete-button:hover{border-color:#941B28;background:#B42332;color:#fff}
 
 .pro-body.admin-users-page .hub-list{align-items:start;align-content:start}.pro-body.admin-users-page .hub-list>[data-admin-user-card]{align-self:start}
+
+.pro-body.admin-users-page .admin-users-layout [data-admin-user-card][hidden]{display:none!important}
