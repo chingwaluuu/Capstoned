@@ -22,6 +22,7 @@ from csrf import init_csrf
 from extract import ExtractError, extract_text
 from math_render import render_math
 from models import (
+    AcademicTerm,
     Announcement,
     AnnouncementRead,
     Assessment,
@@ -353,8 +354,22 @@ def practice_setup_url(subject_slug, material_slug, difficulty="medium", focus="
     return f"{base}?{urlencode(pairs)}"
 
 
-TERM_LABELS = {1: "Prelim", 2: "Midterm", 3: "Finals"}
 TERM_REVIEW_PREFIX = "__term_review_"
+
+
+def academic_term_labels():
+    return {term.id: term.name for term in AcademicTerm.query.order_by(AcademicTerm.sort_order, AcademicTerm.id).all()}
+
+
+def seed_default_terms():
+    marker = db.session.get(Setting, "academic_terms_seeded_v1")
+    if marker:
+        return
+    if not AcademicTerm.query.count():
+        for order, name in enumerate(("Prelim", "Midterm", "Finals"), start=1):
+            db.session.add(AcademicTerm(name=name, sort_order=order))
+    db.session.add(Setting(key="academic_terms_seeded_v1", value="1"))
+    db.session.commit()
 
 
 def active_school_year():
@@ -362,7 +377,7 @@ def active_school_year():
 
 
 def practice_term_from_key(material_slug):
-    match = re.fullmatch(r"__term_review_([1-3])", material_slug or "")
+    match = re.fullmatch(r"__term_review_(\d+)", material_slug or "")
     return int(match.group(1)) if match else None
 
 
@@ -382,7 +397,8 @@ def practice_source(subject_slug, material_slug):
         )
         if len(materials) < 2:
             return None, []
-        title = f"{TERM_LABELS[term]} practice exam"
+        term_name = academic_term_labels().get(term, "Exam period")
+        title = f"{term_name} practice exam"
         # Reserve space for every topic before the AI helper's 12k source limit.
         per_topic = max(1, 10000 // len(materials))
         text = "\n\n".join(
@@ -427,9 +443,11 @@ def ensure_schema():
                         f"ADD COLUMN {preparer.quote(column)} {ddl}"
                     )
                 )
-        if "material" in tables:
-            # The first rollout used four generic terms; the school calendar uses three exam periods.
-            conn.execute(text("UPDATE material SET term = 3 WHERE term = 4"))
+    # Run this one-time compatibility mapping before administrators can create a custom term with id 4.
+    if "material" in tables and not db.session.get(Setting, "academic_terms_legacy_fourth_migrated"):
+        db.session.execute(text("UPDATE material SET term = 3 WHERE term = 4"))
+        db.session.add(Setting(key="academic_terms_legacy_fourth_migrated", value="1"))
+        db.session.commit()
     normalize_teacher_subjects()
     migrate_student_sections()
     migrate_teacher_assignments()
@@ -2347,6 +2365,7 @@ with app.app_context():
     db.create_all()
     seed_default_courses()
     ensure_schema()
+    seed_default_terms()
     if not os.environ.get("BLOOM_TEST_DB"):
         seed()
 
@@ -2589,6 +2608,7 @@ def subject_hub(slug):
             open_items.append(entry)
 
     approved = Material.query.filter_by(subject_slug=slug, status="approved").order_by(Material.created_at.desc()).all()
+    term_labels = academic_term_labels()
     materials = []
     practice_items = []
     for material in approved:
@@ -2598,9 +2618,9 @@ def subject_hub(slug):
                 "title": material.title,
                 "meta": (
                     (
-                        f"{TERM_LABELS[material.term]} · {material.school_year.name} · "
-                        if material.term in TERM_LABELS and material.school_year
-                        else "Term not set · "
+                        f"{term_labels[material.term]} · {material.school_year.name} · "
+                        if material.term in term_labels and material.school_year
+                        else "Exam period not set · "
                     )
                     + ("Summary ready · Citations included" if has_student_ready_summary(material) else "Approved for study")
                 ),
@@ -2621,7 +2641,7 @@ def subject_hub(slug):
         )
 
     current_year = active_school_year()
-    for term_number, term_label in TERM_LABELS.items():
+    for term_number, term_label in term_labels.items():
         term_materials = [
             item
             for item in approved
@@ -2637,7 +2657,7 @@ def subject_hub(slug):
                         f"Combines {len(term_materials)} approved lessons in {meta['name']} · "
                         f"{current_year.name}"
                     ),
-                    "action": "Start term review",
+                    "action": "Start exam review",
                     "href": url_for(
                         "practice_setup", subject_slug=slug,
                         material_slug=f"{TERM_REVIEW_PREFIX}{term_number}"
@@ -2770,7 +2790,7 @@ def practice_setup(subject_slug, material_slug):
         "material_slug": material_slug,
         "material_title": source["title"],
         "is_term_review": bool(source["term"]),
-        "term_label": TERM_LABELS.get(source["term"]),
+        "term_label": academic_term_labels().get(source["term"]),
         "term_topics": [item.title for item in source_materials],
         "difficulties": list(DIFFICULTIES.values()),
         "selected_difficulty": selected_difficulty,
@@ -2884,7 +2904,7 @@ def practice_take(subject_slug, material_slug):
         "material_slug": material_slug,
         "material_title": source["title"],
         "is_term_review": bool(source["term"]),
-        "term_label": TERM_LABELS.get(source["term"]),
+        "term_label": academic_term_labels().get(source["term"]),
         "term_topics": [item.title for item in source_materials],
         "questions": questions,
         "bloom_label": draft.bloom_label or "Mixed HOTS",
@@ -3270,8 +3290,9 @@ def practice():
     locked = []
     approved = Material.query.filter_by(status="approved").order_by(Material.created_at.desc()).all()
     current_year = active_school_year()
+    term_labels = academic_term_labels()
     for subject_slug, subject_meta in SUBJECTS.items():
-        for term_number, term_label in TERM_LABELS.items():
+        for term_number, term_label in term_labels.items():
             term_materials = [
                 material
                 for material in approved
@@ -3938,7 +3959,8 @@ def teacher_home(user):
     )
 
 
-def material_review_payload(material: Material) -> dict:
+def material_review_payload(material: Material, term_labels=None) -> dict:
+    term_labels = term_labels if term_labels is not None else academic_term_labels()
     owner = material.owner
     has_file = bool(material_file_path(material))
     summary_sections = material.summary.sections() if has_student_ready_summary(material) else []
@@ -3957,9 +3979,9 @@ def material_review_payload(material: Material) -> dict:
         "subject_slug": material.subject_slug,
         "term": material.term,
         "term_label": (
-            f"{TERM_LABELS[material.term]} · {material.school_year.name}"
-            if material.term in TERM_LABELS and material.school_year
-            else "Term not set"
+            f"{term_labels[material.term]} · {material.school_year.name}"
+            if material.term in term_labels and material.school_year
+            else "Exam period not set"
         ),
         "status": material.status,
         "source": material.source,
@@ -3991,6 +4013,7 @@ def material_review_payload(material: Material) -> dict:
 @require_role("teacher")
 def teacher_materials(user):
     slug = teacher_subject_slug(user)
+    term_labels = academic_term_labels()
     if request.method == "POST":
         action = request.form.get("action", "upload")
         if action in {"approve", "reject"}:
@@ -4003,8 +4026,8 @@ def teacher_materials(user):
                 db.session.commit()
                 flash("Upload rejected.", "success")
                 return redirect(url_for("teacher_materials"))
-            if (material.term not in TERM_LABELS or not material.school_year_id) and material.source != "student":
-                flash("Choose a term for this lesson before deploying it.", "danger")
+            if (material.term not in term_labels or not material.school_year_id) and material.source != "student":
+                flash("Choose an exam period for this lesson before deploying it.", "danger")
                 return redirect(url_for("teacher_material_review", material_id=material.id))
             try:
                 deploy_material(material)
@@ -4019,8 +4042,8 @@ def teacher_materials(user):
         year = active_school_year()
         file = request.files.get("file")
         try:
-            if term not in TERM_LABELS:
-                raise ExtractError("Choose the term this lesson belongs to.")
+            if term not in term_labels:
+                raise ExtractError("Choose the exam period this lesson belongs to.")
             if not year:
                 raise ExtractError("Ask your administrator to set the active school year first.")
             if file and file.filename:
@@ -4039,7 +4062,7 @@ def teacher_materials(user):
             flash(str(exc), "danger")
         return redirect(url_for("teacher_materials"))
 
-    items = [material_review_payload(item) for item in Material.query.filter_by(subject_slug=slug).order_by(Material.created_at.desc())]
+    items = [material_review_payload(item, term_labels) for item in Material.query.filter_by(subject_slug=slug).order_by(Material.created_at.desc())]
     pending = [item for item in items if item["status"] == "pending"]
     deployed = [item for item in items if item["status"] == "approved"]
     rejected = [item for item in items if item["status"] == "rejected"]
@@ -4052,7 +4075,7 @@ def teacher_materials(user):
         subject_name=SUBJECTS[slug]["name"],
         subject_slug=slug,
         active_school_year=active_school_year(),
-        term_labels=TERM_LABELS,
+        term_labels=term_labels,
         pending=pending,
         deployed=deployed,
         rejected=rejected,
@@ -4066,11 +4089,12 @@ def teacher_material_review(user, material_id):
     if not material:
         flash("That material is not available.", "danger")
         return redirect(url_for("teacher_materials"))
+    term_labels = academic_term_labels()
     if request.method == "POST":
         action = request.form.get("action")
         if action == "set_term":
             term_value = request.form.get("term", "").strip()
-            term = int(term_value) if term_value.isdigit() and int(term_value) in TERM_LABELS else None
+            term = int(term_value) if term_value.isdigit() and int(term_value) in term_labels else None
             year = active_school_year() if term else None
             if term and not year:
                 flash("Ask your administrator to set the active school year first.", "danger")
@@ -4079,7 +4103,7 @@ def teacher_material_review(user, material_id):
             material.school_year_id = year.id if year else None
             db.session.commit()
             flash(
-                f"{material.title} assigned to {TERM_LABELS[term]}." if term else "Term assignment cleared.",
+                f"{material.title} assigned to {term_labels[term]}." if term else "Exam period assignment cleared.",
                 "success",
             )
             return redirect(url_for("teacher_material_review", material_id=material.id))
@@ -4099,13 +4123,13 @@ def teacher_material_review(user, material_id):
         if action == "approve":
             term_value = request.form.get("term", "").strip()
             year = active_school_year()
-            if term_value.isdigit() and int(term_value) in TERM_LABELS:
+            if term_value.isdigit() and int(term_value) in term_labels:
                 material.term = int(term_value)
                 material.school_year_id = year.id if year else None
-            if material.term not in TERM_LABELS and material.source != "student":
-                flash("Choose a term for this lesson before deploying it.", "danger")
+            if material.term not in term_labels and material.source != "student":
+                flash("Choose an exam period for this lesson before deploying it.", "danger")
                 return redirect(url_for("teacher_material_review", material_id=material.id))
-            if material.term in TERM_LABELS and not material.school_year_id:
+            if material.term in term_labels and not material.school_year_id:
                 if not year:
                     flash("Ask your administrator to set the active school year first.", "danger")
                     return redirect(url_for("teacher_material_review", material_id=material.id))
@@ -4133,8 +4157,8 @@ def teacher_material_review(user, material_id):
         role_nav=teacher_nav(),
         active_nav="materials",
         subject_name=SUBJECTS[slug]["name"],
-        material=material_review_payload(material),
-        term_labels=TERM_LABELS,
+        material=material_review_payload(material, term_labels),
+        term_labels=term_labels,
     )
 
 
@@ -4853,15 +4877,59 @@ def admin_reports(user):
 @require_role("admin")
 def admin_settings(user):
     if request.method == "POST":
-        for key in ("school_name", "default_school_year"):
-            record = db.session.get(Setting, key) or Setting(key=key)
-            record.value = request.form.get(key, "").strip()[:255]
-            db.session.add(record)
-        db.session.commit()
-        flash("School settings saved.", "success")
+        action = request.form.get("action", "save_settings")
+        if action == "save_settings":
+            for key in ("school_name", "default_school_year"):
+                record = db.session.get(Setting, key) or Setting(key=key)
+                record.value = request.form.get(key, "").strip()[:255]
+                db.session.add(record)
+            db.session.commit()
+            flash("School settings saved.", "success")
+        elif action == "add_term":
+            name = request.form.get("name", "").strip()[:80]
+            if not name:
+                flash("Enter a name for the exam period.", "danger")
+            elif AcademicTerm.query.filter(AcademicTerm.name.ilike(name)).first():
+                flash("That exam period already exists.", "danger")
+            else:
+                order = db.session.query(db.func.max(AcademicTerm.sort_order)).scalar() or 0
+                db.session.add(AcademicTerm(name=name, sort_order=order + 1))
+                db.session.commit()
+                flash(f"{name} added.", "success")
+        elif action == "rename_term":
+            term = db.session.get(AcademicTerm, request.form.get("term_id", type=int))
+            name = request.form.get("name", "").strip()[:80]
+            duplicate = AcademicTerm.query.filter(AcademicTerm.name.ilike(name), AcademicTerm.id != (term.id if term else -1)).first() if name else None
+            if not term:
+                flash("That exam period could not be found.", "danger")
+            elif not name:
+                flash("Enter a name for the exam period.", "danger")
+            elif duplicate:
+                flash("That exam period already exists.", "danger")
+            else:
+                term.name = name
+                db.session.commit()
+                flash(f"Exam period renamed to {name}.", "success")
+        elif action == "delete_term":
+            term = db.session.get(AcademicTerm, request.form.get("term_id", type=int))
+            if not term:
+                flash("That exam period could not be found.", "danger")
+            else:
+                Material.query.filter_by(term=term.id).update(
+                    {Material.term: None, Material.school_year_id: None},
+                    synchronize_session=False,
+                )
+                name = term.name
+                db.session.delete(term)
+                db.session.commit()
+                flash(f"{name} removed. Its lessons were kept and unassigned.", "success")
+        else:
+            abort(400)
         return redirect(url_for("admin_settings"))
     vals = {item.key: item.value for item in Setting.query.filter(Setting.key.in_(["school_name", "default_school_year"])).all()}
-    return render_template("admin_settings.html", user=user, topbar_sub="Settings", role_nav=admin_nav(), active_nav="settings", settings=vals, years=SchoolYear.query.order_by(SchoolYear.name.desc()).all())
+    terms = AcademicTerm.query.order_by(AcademicTerm.sort_order, AcademicTerm.id).all()
+    term_rows = [{"term": term, "material_count": Material.query.filter_by(term=term.id).count()} for term in terms]
+    return render_template("admin_settings.html", user=user, topbar_sub="Settings", role_nav=admin_nav(), active_nav="settings", settings=vals, years=SchoolYear.query.order_by(SchoolYear.name.desc()).all(), terms=term_rows)
 
 
 def message_contacts(user):

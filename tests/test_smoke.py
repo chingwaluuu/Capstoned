@@ -18,6 +18,7 @@ import app as bloom  # noqa: E402
 from models import (  # noqa: E402
     Announcement,
     AnnouncementRead,
+    AcademicTerm,
     Assessment,
     Attempt,
     Material,
@@ -43,6 +44,7 @@ class BloomSmokeTest(unittest.TestCase):
             db.drop_all()
             db.create_all()
             bloom.seed_default_courses()
+            bloom.seed_default_terms()
             student = User(
                 email="student@test.local",
                 name="Test Student",
@@ -177,6 +179,40 @@ class BloomSmokeTest(unittest.TestCase):
         response = self._login("student@test.local", "student123")
         self.assertEqual(response.status_code, 302)
         self.assertIn("/home", response.headers["Location"])
+
+    def test_admin_can_manage_exam_periods_and_removal_keeps_lessons(self):
+        self._login("admin@test.local", "admin123")
+        token = self._csrf()
+        response = self.client.post(
+            "/admin/settings",
+            data={"csrf_token": token, "action": "add_term", "name": "Summer"},
+        )
+        self.assertEqual(response.status_code, 302)
+        with bloom.app.app_context():
+            term = AcademicTerm.query.filter_by(name="Summer").one()
+            material = db.session.get(Material, 1)
+            material.term = term.id
+            db.session.commit()
+            term_id = term.id
+
+        response = self.client.post(
+            "/admin/settings",
+            data={"csrf_token": token, "action": "rename_term", "term_id": term_id, "name": "Summer Session"},
+        )
+        self.assertEqual(response.status_code, 302)
+        with bloom.app.app_context():
+            self.assertEqual(db.session.get(AcademicTerm, term_id).name, "Summer Session")
+
+        response = self.client.post(
+            "/admin/settings",
+            data={"csrf_token": token, "action": "delete_term", "term_id": term_id},
+        )
+        self.assertEqual(response.status_code, 302)
+        with bloom.app.app_context():
+            self.assertIsNone(db.session.get(AcademicTerm, term_id))
+            lesson = db.session.get(Material, 1)
+            self.assertEqual(lesson.title, "Ecosystems")
+            self.assertIsNone(lesson.term)
 
     def test_student_pages_render_in_shared_shell(self):
         self._login("student@test.local", "student123")

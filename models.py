@@ -26,7 +26,7 @@ class Material(db.Model):
     slug = db.Column(db.String(160), unique=True, nullable=False)
     title = db.Column(db.String(200), nullable=False)
     subject_slug = db.Column(db.String(40), nullable=False)
-    # 1-4 school term/quarter; null means older or not yet classified material.
+    # AcademicTerm id; null means unassigned or older material.
     term = db.Column(db.Integer)
     school_year_id = db.Column(db.Integer, db.ForeignKey("school_year.id", ondelete="SET NULL"))
     school_year = db.relationship("SchoolYear")
@@ -167,6 +167,14 @@ class SchoolYear(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(20), unique=True, nullable=False)
     active = db.Column(db.Boolean, default=False, nullable=False)
+
+
+class AcademicTerm(db.Model):
+    """Configurable exam period labels used to group lessons for practice."""
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(80), unique=True, nullable=False)
+    sort_order = db.Column(db.Integer, nullable=False, default=0)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
 
 class Course(db.Model):
