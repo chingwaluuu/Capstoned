@@ -355,12 +355,15 @@ def _openai(prompt: str, key: str) -> tuple[str, dict]:
     with urllib.request.urlopen(req, timeout=60) as resp:
         payload = json.loads(resp.read().decode("utf-8"))
     usage = payload.get("usage") or {}
+    def token_value(name):
+        value = usage.get(name)
+        return int(value) if value is not None else None
     return payload["choices"][0]["message"]["content"], {
         "provider": "OpenAI",
         "model": payload.get("model") or os.environ.get("OPENAI_MODEL", "gpt-4o-mini"),
-        "input_tokens": int(usage.get("prompt_tokens") or 0),
-        "output_tokens": int(usage.get("completion_tokens") or 0),
-        "total_tokens": int(usage.get("total_tokens") or 0),
+        "input_tokens": token_value("prompt_tokens"),
+        "output_tokens": token_value("completion_tokens"),
+        "total_tokens": token_value("total_tokens"),
     }
 
 
@@ -408,12 +411,15 @@ def _gemini(prompt: str, key: str) -> tuple[str, dict]:
             if not text:
                 raise RuntimeError(f"{model} returned empty text: {payload}")
             usage = payload.get("usageMetadata") or {}
+            def token_value(name):
+                value = usage.get(name)
+                return int(value) if value is not None else None
             return text, {
                 "provider": "Gemini",
                 "model": payload.get("modelVersion") or model,
-                "input_tokens": int(usage.get("promptTokenCount") or 0),
-                "output_tokens": int(usage.get("candidatesTokenCount") or 0),
-                "total_tokens": int(usage.get("totalTokenCount") or 0),
+                "input_tokens": token_value("promptTokenCount"),
+                "output_tokens": token_value("candidatesTokenCount"),
+                "total_tokens": token_value("totalTokenCount"),
             }
         except Exception as exc:
             last_error = exc

@@ -1,0 +1,59 @@
+{% extends "layouts/pro.html" %}
+{% block title %}AI usage — Bloom{% endblock %}
+{% block body_class %}admin-monitor-body admin-ai-usage-page student-refined{% endblock %}
+{% block page_kicker %}ADMIN REPORTS{% endblock %}
+{% block page_title %}AI usage{% endblock %}
+{% block page_subtitle %}Word and provider-token counts for newly generated practice sets.{% endblock %}
+{% block content %}
+  <section class="admin-ai-usage" aria-label="Practice generation usage report">
+    <form class="admin-ai-usage-filter" method="get" action="{{ url_for('admin_reports') }}">
+      <label for="usage-subject">Subject</label>
+      <select id="usage-subject" name="subject">
+        <option value="">All subjects</option>
+        {% for slug, subject in subjects.items() %}
+          <option value="{{ slug }}" {% if selected_subject == slug %}selected{% endif %}>{{ subject.name }}</option>
+        {% endfor %}
+      </select>
+      <button class="btn-primary" type="submit">Filter</button>
+    </form>
+
+    <section class="admin-ai-usage-stats" aria-label="Usage totals">
+      <article class="admin-ai-usage-stat"><span>Practice generations</span><strong>{{ usage_totals.generations }}</strong></article>
+      <article class="admin-ai-usage-stat"><span>Total provider tokens</span><strong>{{ "{:,}".format(usage_totals.total_tokens) }}</strong><small>Only where reported by the provider</small></article>
+      <article class="admin-ai-usage-stat"><span>Input · output tokens</span><strong>{{ "{:,}".format(usage_totals.input_tokens) }} · {{ "{:,}".format(usage_totals.output_tokens) }}</strong></article>
+      <article class="admin-ai-usage-stat"><span>Local fallback sets</span><strong>{{ usage_totals.local_fallbacks }}</strong><small>No provider token count for these sets</small></article>
+    </section>
+
+    <section class="admin-ai-usage-table-card" aria-labelledby="usage-history-title">
+      <div class="admin-ai-usage-table-head">
+        <div><h2 id="usage-history-title">Recent practice generations</h2><p>Word counts are estimates based on Bloom’s word counter. Token counts come from the provider response.</p></div>
+        <span>Showing up to 100 records</span>
+      </div>
+      {% if usage_rows %}
+        <div class="admin-ai-usage-table-wrap">
+          <table class="admin-ai-usage-table">
+            <thead><tr><th>Date</th><th>Account</th><th>Subject / practice</th><th>Questions</th><th>Words<br><small>lesson / prompt / questions</small></th><th>Tokens<br><small>input / output / total</small></th><th>Tokens per word<br><small>input / output · approximate</small></th><th>Provider</th></tr></thead>
+            <tbody>
+              {% for row in usage_rows %}
+                {% set usage = row[0] %}
+                <tr>
+                  <td>{{ usage.created_at.strftime("%b %d, %Y · %I:%M %p") }}</td>
+                  <td>{{ row[1] }}</td>
+                  <td><span class="admin-ai-usage-subject">{{ subjects.get(usage.subject_slug, {}).get('name', usage.subject_slug|title) }}</span><strong>{{ usage.material_title }}</strong></td>
+                  <td>{{ usage.question_count }}</td>
+                  <td>{{ "{:,}".format(usage.source_words) }} / {{ "{:,}".format(usage.prompt_words) }} / {{ "{:,}".format(usage.generated_words) }}</td>
+                  <td>{% if usage.total_tokens is not none %}{{ "{:,}".format(usage.input_tokens or 0) }} / {{ "{:,}".format(usage.output_tokens or 0) }} / {{ "{:,}".format(usage.total_tokens) }}{% else %}<span class="admin-ai-usage-muted">Not reported</span>{% endif %}</td>
+                  <td>{% if usage.input_tokens is not none and usage.prompt_words %}{{ (usage.input_tokens / usage.prompt_words)|round(2) }}{% else %}—{% endif %} / {% if not usage.used_local_fallback and usage.output_tokens is not none and usage.generated_words %}{{ (usage.output_tokens / usage.generated_words)|round(2) }}{% else %}—{% endif %}</td>
+                  <td>{% if usage.used_local_fallback %}<span class="admin-ai-usage-fallback">Local fallback</span>{% else %}{{ usage.provider or "Unknown" }}{% if usage.model %}<small>{{ usage.model }}</small>{% endif %}{% endif %}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="admin-ai-usage-empty"><strong>No practice usage records yet</strong><p>Counts will appear here after the next practice set is generated.</p></div>
+      {% endif %}
+      <p class="admin-ai-usage-retention">This report stores counts and model names only. It does not store API keys, lesson text, or generated questions. Older practice sets are not included.</p>
+    </section>
+  </section>
+{% endblock %}

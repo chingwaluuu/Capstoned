@@ -238,6 +238,26 @@ class PracticeGeneration(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False, index=True)
 
 
+class PracticeUsage(db.Model):
+    """Aggregate word and provider-token counts for one generated practice set; never stores prompt text."""
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id", ondelete="CASCADE"), nullable=False, index=True)
+    subject_slug = db.Column(db.String(40), nullable=False, index=True)
+    material_title = db.Column(db.String(200), nullable=False)
+    question_count = db.Column(db.Integer, nullable=False)
+    source_words = db.Column(db.Integer, nullable=False, default=0)
+    prompt_words = db.Column(db.Integer, nullable=False, default=0)
+    generated_words = db.Column(db.Integer, nullable=False, default=0)
+    provider = db.Column(db.String(40))
+    model = db.Column(db.String(100))
+    input_tokens = db.Column(db.Integer)
+    output_tokens = db.Column(db.Integer)
+    total_tokens = db.Column(db.Integer)
+    used_local_fallback = db.Column(db.Boolean, nullable=False, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False, index=True)
+    user = db.relationship("User")
+
+
 class Conversation(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     student_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)

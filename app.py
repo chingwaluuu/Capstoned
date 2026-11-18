@@ -12,7 +12,7 @@ from zoneinfo import ZoneInfo
 from urllib.parse import urlencode
 
 from flask import Flask, abort, flash, jsonify, redirect, render_template, request, send_from_directory, session, url_for
-from sqlalchemy import inspect as sa_inspect, or_, text
+from sqlalchemy import case, inspect as sa_inspect, or_, text
 from sqlalchemy.exc import IntegrityError
 from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
@@ -32,6 +32,7 @@ from models import (
     Course,
     Material,
     PracticeGeneration,
+    PracticeUsage,
     Question,
     QuizDraft,
     Setting,
@@ -684,6 +685,7 @@ def admin_nav():
         {"label": "Home", "endpoint": "admin_home", "key": "home"},
         {"label": "Faculty posts", "endpoint": "admin_faculty_posts", "key": "faculty"},
         {"label": "Users", "endpoint": "admin_users", "key": "users"},
+        {"label": "AI usage", "endpoint": "admin_reports", "key": "reports"},
         {"label": "Academic Setup", "endpoint": "admin_section", "key": "section"},
         {"label": "Settings", "endpoint": "admin_settings", "key": "settings"},
     ]
@@ -2866,6 +2868,23 @@ def practice_take(subject_slug, material_slug):
             questions_json=json.dumps(questions),
         )
         db.session.add(draft)
+        db.session.add(
+            PracticeUsage(
+                user_id=user["id"],
+                subject_slug=subject_slug,
+                material_title=source["title"],
+                question_count=len(questions),
+                source_words=usage["source_words"],
+                prompt_words=usage["prompt_words"],
+                generated_words=usage["generated_words"],
+                provider=usage.get("provider"),
+                model=usage.get("model"),
+                input_tokens=usage.get("input_tokens"),
+                output_tokens=usage.get("output_tokens"),
+                total_tokens=usage.get("total_tokens"),
+                used_local_fallback=usage["used_local_fallback"],
+            )
+        )
         db.session.commit()
         session["practice_draft_id"] = draft.id
         session["practice_usage"] = {"draft_id": draft.id, **usage}
@@ -4512,6 +4531,7 @@ def admin_users(user):
                 elif record.role == "admin" and record.is_active and User.query.filter_by(role="admin", is_active=True).count() <= 1:
                     flash("At least one active admin account must remain.", "danger")
                 else:
+                    PracticeUsage.query.filter_by(user_id=record.id).delete(synchronize_session=False)
                     avatar_path = avatar_file_path(record.avatar_filename)
                     materials = Material.query.filter_by(owner_id=record.id).all()
                     material_ids = [material.id for material in materials]
@@ -4918,7 +4938,43 @@ def admin_section(user):
 @app.route("/admin/reports")
 @require_role("admin")
 def admin_reports(user):
-    return redirect(url_for("admin_home"))
+    selected_subject = request.args.get("subject", "").strip()
+    query = PracticeUsage.query
+    if selected_subject in SUBJECTS:
+        query = query.filter_by(subject_slug=selected_subject)
+    totals = query.with_entities(
+        db.func.count(PracticeUsage.id),
+        db.func.coalesce(db.func.sum(PracticeUsage.input_tokens), 0),
+        db.func.coalesce(db.func.sum(PracticeUsage.output_tokens), 0),
+        db.func.coalesce(db.func.sum(PracticeUsage.total_tokens), 0),
+        db.func.coalesce(
+            db.func.sum(case((PracticeUsage.used_local_fallback.is_(True), 1), else_=0)), 0
+        ),
+    ).one()
+    rows = (
+        query.join(User, PracticeUsage.user_id == User.id)
+        .add_columns(User.name, User.email)
+        .order_by(PracticeUsage.created_at.desc(), PracticeUsage.id.desc())
+        .limit(100)
+        .all()
+    )
+    return render_template(
+        "admin_ai_usage.html",
+        user=user,
+        topbar_sub="AI usage",
+        role_nav=admin_nav(),
+        active_nav="reports",
+        selected_subject=selected_subject,
+        subjects=SUBJECTS,
+        usage_rows=rows,
+        usage_totals={
+            "generations": totals[0],
+            "input_tokens": totals[1],
+            "output_tokens": totals[2],
+            "total_tokens": totals[3],
+            "local_fallbacks": totals[4],
+        },
+    )
 
 
 @app.route("/admin/settings", methods=["GET", "POST"])
