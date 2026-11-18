@@ -26,6 +26,10 @@ class Material(db.Model):
     slug = db.Column(db.String(160), unique=True, nullable=False)
     title = db.Column(db.String(200), nullable=False)
     subject_slug = db.Column(db.String(40), nullable=False)
+    # 1-4 school term/quarter; null means older or not yet classified material.
+    term = db.Column(db.Integer)
+    school_year_id = db.Column(db.Integer, db.ForeignKey("school_year.id", ondelete="SET NULL"))
+    school_year = db.relationship("SchoolYear")
     owner_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
     source = db.Column(db.String(20), default="teacher")  # teacher | student
     status = db.Column(db.String(20), default="pending")  # pending | approved | rejected

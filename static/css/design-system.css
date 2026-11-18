@@ -2180,6 +2180,7 @@
 }
 
 .pro-body.teacher-workspace .materials-upload-form input[type="text"],
+.pro-body.teacher-workspace .materials-upload-form select,
 .pro-body.teacher-workspace .materials-upload-form textarea {
   box-sizing: border-box;
   width: 100%;
@@ -2199,6 +2200,15 @@
   min-height: 40px;
   padding: 0 14px;
   font-weight: 400;
+}
+
+.pro-body.teacher-workspace .materials-upload-form select {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 40px;
+  padding: 0 14px;
+  font-family: var(--font-sans);
+  font-size: 14px;
 }
 
 .pro-body.teacher-workspace .materials-upload-form textarea {
@@ -4510,6 +4520,17 @@ math {
 .pro-body.teacher-review-page .teacher-review-tool-actions form,
 .pro-body.teacher-review-page .teacher-review-decision-actions form {
   margin: 0;
+}
+
+.pro-body.teacher-review-page .teacher-review-decision-actions form:has(.teacher-review-term-select) {
+  display: grid;
+  gap: 6px;
+  width: min(100%, 290px);
+}
+
+.pro-body.teacher-review-page .teacher-review-term-select {
+  box-sizing: border-box;
+  width: 100%;
 }
 
 .pro-body.teacher-review-page .teacher-review-regenerate,

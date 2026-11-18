@@ -24,6 +24,19 @@
       </div>
 
       <div class="field">
+        <label for="material-term">School term</label>
+        <select id="material-term" name="term" required>
+          <option value="" selected disabled>Choose a term</option>
+          {% for number in range(1, 5) %}
+            <option value="{{ number }}">Term {{ number }}</option>
+          {% endfor %}
+        </select>
+        <small>
+          {% if active_school_year %}For {{ active_school_year.name }}. Term reviews combine approved lessons assigned to the same term.{% else %}An administrator must set the active school year before lessons can be grouped into term reviews.{% endif %}
+        </small>
+      </div>
+
+      <div class="field">
         <span class="sr-only" id="file-label">File</span>
         <div class="materials-dropzone" data-dropzone>
           <input id="file" class="materials-drop-input" name="file" type="file" accept=".pdf,.docx,.pptx,.txt" aria-labelledby="file-label" />
@@ -68,7 +81,7 @@
                 <span class="hub-card-meta">{{ item.source_label }} · {{ item.owner_name }}</span>
               </div>
               <h3 class="hub-card-title">{{ item.title }}</h3>
-              <p class="hub-card-meta">{{ item.filename }} · {{ item.char_count }} characters{% if item.has_summary %} · Summary ready{% else %} · Summary missing{% endif %}</p>
+              <p class="hub-card-meta">{{ item.filename }} · {{ item.term_label }} · {{ item.char_count }} characters{% if item.has_summary %} · Summary ready{% else %} · Summary missing{% endif %}</p>
             </div>
             <a class="today-action" href="{{ item.review_href }}">Review</a>
           </article>
@@ -102,7 +115,7 @@
                 <span class="hub-card-meta">{{ item.source_label }}</span>
               </div>
               <h3 class="hub-card-title">{{ item.title }}</h3>
-              <p class="hub-card-meta">{{ item.filename }} · {{ item.owner_name }} · {{ item.created_at }}</p>
+              <p class="hub-card-meta">{{ item.filename }} · {{ item.term_label }} · {{ item.owner_name }} · {{ item.created_at }}</p>
             </div>
             <a class="today-action today-action-soft" href="{{ item.review_href }}">View file &amp; summary</a>
           </article>

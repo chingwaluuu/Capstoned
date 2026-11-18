@@ -132,11 +132,21 @@ Write math in plain linear notation for the app to typeset: 19/90, 1 3/9, 0.111.
 Uploaded slides or PDFs may position numerator and denominator on separate lines. Convert a fraction to standard notation only when the relationship is clear from the extracted lesson text. Never combine scattered digits into a guessed equation; if a source detail is ambiguous, avoid testing that detail and stay with the lesson concepts that are clear.
 """
     allowed = types or ["mcq", "essay", "problem"]
+    topic_names = re.findall(r"(?m)^TOPIC:\s*(.+?)\s*$", text or "")
+    topic_balance_line = ""
+    if len(topic_names) > 1:
+        topic_balance_line = (
+            "This is a multi-topic term review. Distribute questions as evenly as possible across these topics: "
+            + "; ".join(topic_names)
+            + ". Include every topic when the question count permits, focus each question on a specific topic, "
+            "and name that topic in its citation. Do not let the first topic dominate."
+        )
     prompt = f"""You generate HOTS questions for Grade 7 {subject}.
 Use ONLY the uploaded lesson text. No outside facts.
 {bloom_line}
 {difficulty_line}
 {math_notation_line}
+{topic_balance_line}
 Difficulty must NOT change the Bloom's taxonomy level. An Easy Analyze question is still Analyze; a Hard Analyze question is still Analyze.
 Allowed types: {", ".join(allowed)}.
 Create exactly {count} questions.
@@ -386,6 +396,16 @@ def _fallback_summary(title: str, text: str) -> dict:
 
 
 def _fallback_questions(title: str, text: str, count: int, allowed: list[str], difficulty: str = "medium") -> list[dict]:
+    topic_names = re.findall(r"(?m)^TOPIC:\s*(.+?)\s*$", text or "")
+    topic_sentences = []
+    if len(topic_names) > 1:
+        parts = re.split(r"(?m)^TOPIC:\s*(.+?)\s*$", text or "")
+        for offset in range(1, len(parts), 2):
+            topic = parts[offset].strip()
+            source_text = parts[offset + 1] if offset + 1 < len(parts) else ""
+            sentences_for_topic = _sentences(source_text)
+            if sentences_for_topic:
+                topic_sentences.append((topic, sentences_for_topic))
     sentences = _sentences(text) or [f"{title} is the focus of this lesson."]
     blooms = ["Analyze", "Evaluate", "Create"]
     types_cycle = [t for t in ["mcq", "essay", "problem"] if t in allowed] or ["mcq"]
@@ -409,10 +429,15 @@ def _fallback_questions(title: str, text: str, count: int, allowed: list[str], d
     bank = stems.get(difficulty) or stems["medium"]
     questions = []
     for index in range(count):
-        snippet = sentences[index % len(sentences)][:180]
+        topic = None
+        if topic_sentences:
+            topic, topic_bank = topic_sentences[index % len(topic_sentences)]
+            snippet = topic_bank[(index // len(topic_sentences)) % len(topic_bank)][:180]
+        else:
+            snippet = sentences[index % len(sentences)][:180]
         qtype = types_cycle[index % len(types_cycle)]
         bloom = blooms[index % 3]
-        prompt = bank[qtype].format(title=title, snippet=snippet)
+        prompt = bank[qtype].format(title=f"{title} — {topic}" if topic else title, snippet=snippet)
         if qtype == "mcq":
             if difficulty == "easy":
                 options = [
@@ -442,7 +467,7 @@ def _fallback_questions(title: str, text: str, count: int, allowed: list[str], d
                     "type_label": "Multiple choice",
                     "bloom": bloom,
                     "prompt": prompt,
-                    "citation": f"p. {index + 1}",
+                    "citation": topic or f"p. {index + 1}",
                     "options": options,
                     "answer": "b",
                     "explanation": "The best choice stays grounded in the uploaded lesson instead of outside ideas.",
@@ -457,7 +482,7 @@ def _fallback_questions(title: str, text: str, count: int, allowed: list[str], d
                     "type_label": "Essay",
                     "bloom": bloom,
                     "prompt": prompt,
-                    "citation": f"p. {index + 1}",
+                    "citation": topic or f"p. {index + 1}",
                     "options": [],
                     "answer": None,
                     "explanation": "A strong answer makes a clear claim and supports it with details from the uploaded text.",
@@ -472,7 +497,7 @@ def _fallback_questions(title: str, text: str, count: int, allowed: list[str], d
                     "type_label": "Problem-solving",
                     "bloom": bloom,
                     "prompt": prompt,
-                    "citation": f"p. {index + 1}",
+                    "citation": topic or f"p. {index + 1}",
                     "options": [],
                     "answer": None,
                     "explanation": "A solid response invents a new example and clearly connects it to the lesson idea.",

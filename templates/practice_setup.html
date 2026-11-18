@@ -14,6 +14,12 @@
       <p class="practice-setup-context-label" id="practice-setup-context">You’re practicing</p>
       <h2 class="practice-setup-material">{{ material_title }}</h2>
       <p class="practice-setup-meta">{{ subject.name }} · Self-paced practice check</p>
+      {% if is_term_review %}
+        <p class="practice-setup-hint">Questions draw from every approved lesson assigned to {{ term_label }}:</p>
+        <ul class="practice-term-topic-list">
+          {% for topic in term_topics %}<li>{{ topic }}</li>{% endfor %}
+        </ul>
+      {% endif %}
     </header>
 
     <form

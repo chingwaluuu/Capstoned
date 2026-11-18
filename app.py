@@ -353,10 +353,60 @@ def practice_setup_url(subject_slug, material_slug, difficulty="medium", focus="
     return f"{base}?{urlencode(pairs)}"
 
 
+TERM_LABELS = {1: "Term 1", 2: "Term 2", 3: "Term 3", 4: "Term 4"}
+TERM_REVIEW_PREFIX = "__term_review_"
+
+
+def active_school_year():
+    return SchoolYear.query.filter_by(active=True).order_by(SchoolYear.id.desc()).first()
+
+
+def practice_term_from_key(material_slug):
+    match = re.fullmatch(r"__term_review_([1-4])", material_slug or "")
+    return int(match.group(1)) if match else None
+
+
+def practice_source(subject_slug, material_slug):
+    """Return a lesson or a combined term source, restricted to approved materials."""
+    term = practice_term_from_key(material_slug)
+    if term:
+        year = active_school_year()
+        if not year:
+            return None, []
+        materials = (
+            Material.query.filter_by(
+                subject_slug=subject_slug, status="approved", term=term, school_year_id=year.id
+            )
+            .order_by(Material.title.asc())
+            .all()
+        )
+        if len(materials) < 2:
+            return None, []
+        title = f"{TERM_LABELS[term]} practice exam"
+        # Reserve space for every topic before the AI helper's 12k source limit.
+        per_topic = max(1, 10000 // len(materials))
+        text = "\n\n".join(
+            f"TOPIC: {item.title}\n{(item.extracted_text or '')[:per_topic]}"
+            for item in materials
+        )
+        return {"title": title, "text": text, "term": term, "materials": materials}, materials
+    material = Material.query.filter_by(
+        slug=material_slug, subject_slug=subject_slug, status="approved"
+    ).first()
+    if not material:
+        return None, []
+    return (
+        {"title": material.title, "text": material.extracted_text or "", "term": None, "materials": [material]},
+        [material],
+    )
+
+
 def ensure_schema():
     inspector = sa_inspect(db.engine)
     tables = set(inspector.get_table_names())
     additions = (
+        ("material", "term", "INTEGER"),
+        ("material", "school_year_id", "INTEGER REFERENCES school_year(id) ON DELETE SET NULL"),
         ("quiz_draft", "difficulty", "VARCHAR(20) DEFAULT 'medium'"),
         ("attempt", "difficulty", "VARCHAR(20)"),
         ("assessment", "difficulty", "VARCHAR(20)"),
@@ -1872,7 +1922,7 @@ def save_file(file_storage) -> tuple[str, bytes]:
     return filename, data
 
 
-def create_material(title, subject_slug, owner_id, source, filename, data) -> Material:
+def create_material(title, subject_slug, owner_id, source, filename, data, term=None, school_year_id=None) -> Material:
     text = extract_text(filename, data)
     stored = f"{datetime.utcnow().strftime('%Y%m%d%H%M%S')}_{filename}"
     path = os.path.join(app.config["UPLOAD_FOLDER"], stored)
@@ -1882,6 +1932,8 @@ def create_material(title, subject_slug, owner_id, source, filename, data) -> Ma
         slug=unique_slug(title or filename, Material),
         title=(title or "").strip() or path_stem(filename),
         subject_slug=subject_slug,
+        term=term,
+        school_year_id=school_year_id,
         owner_id=owner_id,
         source=source,
         status="pending",
@@ -2541,7 +2593,14 @@ def subject_hub(slug):
             {
                 "kicker": "Approved material",
                 "title": material.title,
-                "meta": "Summary ready · Citations included" if has_student_ready_summary(material) else "Approved for study",
+                "meta": (
+                    (
+                        f"{TERM_LABELS[material.term]} · {material.school_year.name} · "
+                        if material.term in TERM_LABELS and material.school_year
+                        else "Term not set · "
+                    )
+                    + ("Summary ready · Citations included" if has_student_ready_summary(material) else "Approved for study")
+                ),
                 "summary_href": url_for("summary_reader", slug=slug, material_slug=material.slug),
                 "practice_href": url_for("practice_setup", subject_slug=slug, material_slug=material.slug),
             }
@@ -2557,6 +2616,33 @@ def subject_hub(slug):
                 "locked": False,
             }
         )
+
+    current_year = active_school_year()
+    for term_number, term_label in TERM_LABELS.items():
+        term_materials = [
+            item
+            for item in approved
+            if current_year and item.term == term_number and item.school_year_id == current_year.id
+        ]
+        if len(term_materials) >= 2:
+            practice_items.insert(
+                0,
+                {
+                    "kicker": "Multi-topic term review",
+                    "title": f"{term_label} practice exam",
+                    "meta": (
+                        f"Combines {len(term_materials)} approved lessons in {meta['name']} · "
+                        f"{current_year.name}"
+                    ),
+                    "action": "Start term review",
+                    "href": url_for(
+                        "practice_setup", subject_slug=slug,
+                        material_slug=f"{TERM_REVIEW_PREFIX}{term_number}"
+                    ),
+                    "review_href": None,
+                    "locked": False,
+                },
+            )
 
     if requested_tab in {"assessments", "study", "practice", "results"}:
         tab = requested_tab
@@ -2662,8 +2748,8 @@ def practice_setup(subject_slug, material_slug):
     if not user:
         return redirect(url_for("login"))
     meta = SUBJECTS.get(subject_slug)
-    material = Material.query.filter_by(slug=material_slug, subject_slug=subject_slug, status="approved").first()
-    if not meta or not material:
+    source, source_materials = practice_source(subject_slug, material_slug)
+    if not meta or not source:
         flash("That practice setup is not available.", "danger")
         return redirect(url_for("home"))
     selected_focus = request.args.get("focus", "mixed")
@@ -2678,8 +2764,11 @@ def practice_setup(subject_slug, material_slug):
     context = {
         "user": user,
         "subject": {"slug": subject_slug, "name": meta["name"]},
-        "material_slug": material.slug,
-        "material_title": material.title,
+        "material_slug": material_slug,
+        "material_title": source["title"],
+        "is_term_review": bool(source["term"]),
+        "term_label": TERM_LABELS.get(source["term"]),
+        "term_topics": [item.title for item in source_materials],
         "difficulties": list(DIFFICULTIES.values()),
         "selected_difficulty": selected_difficulty,
         "selected_focus": selected_focus,
@@ -2689,9 +2778,13 @@ def practice_setup(subject_slug, material_slug):
         "practice_generations_used": practice_generations_used_today(user["id"], subject_slug)
         if user["role"] == "student" else 0,
         "practice_generations_limit": PRACTICE_GENERATIONS_PER_SUBJECT_DAILY,
-        "back_href": url_for("summary_reader", slug=subject_slug, material_slug=material.slug)
-        if material.summary
-        else url_for("subject_hub", slug=subject_slug, tab="study"),
+        "back_href": (
+            url_for("subject_hub", slug=subject_slug, tab="practice")
+            if source["term"]
+            else url_for("summary_reader", slug=subject_slug, material_slug=source_materials[0].slug)
+            if source_materials[0].summary
+            else url_for("subject_hub", slug=subject_slug, tab="study")
+        ),
     }
     context.update(announcements_context(user))
     return render_template("practice_setup.html", **context)
@@ -2703,8 +2796,8 @@ def practice_take(subject_slug, material_slug):
     if not user:
         return redirect(url_for("login"))
     meta = SUBJECTS.get(subject_slug)
-    material = Material.query.filter_by(slug=material_slug, subject_slug=subject_slug, status="approved").first()
-    if not meta or not material:
+    source, source_materials = practice_source(subject_slug, material_slug)
+    if not meta or not source:
         flash("That practice check is not available.", "danger")
         return redirect(url_for("home"))
 
@@ -2725,7 +2818,7 @@ def practice_take(subject_slug, material_slug):
                 return redirect(practice_setup_url(subject_slug, material_slug, difficulty, focus, count, types))
         try:
             questions = generate_hots_questions(
-                material.title, material.extracted_text, meta["name"], focus, count, types, difficulty
+                source["title"], source["text"], meta["name"], focus, count, types, difficulty
             )
         except Exception:
             release_practice_generation(reservation_id)
@@ -2758,7 +2851,7 @@ def practice_take(subject_slug, material_slug):
             kind="practice",
             subject_slug=subject_slug,
             material_slug=material_slug,
-            title=material.title,
+            title=source["title"],
             bloom_label=bloom_label,
             difficulty=difficulty,
             questions_json=json.dumps(questions),
@@ -2786,7 +2879,10 @@ def practice_take(subject_slug, material_slug):
         "user": user,
         "subject": {"slug": subject_slug, "name": meta["name"]},
         "material_slug": material_slug,
-        "material_title": material.title,
+        "material_title": source["title"],
+        "is_term_review": bool(source["term"]),
+        "term_label": TERM_LABELS.get(source["term"]),
+        "term_topics": [item.title for item in source_materials],
         "questions": questions,
         "bloom_label": draft.bloom_label or "Mixed HOTS",
         "difficulty_key": draft.difficulty or "medium",
@@ -2812,7 +2908,11 @@ def practice_submit(subject_slug, material_slug):
         user_id=user["id"],
         kind="practice",
         subject_slug=subject_slug,
-        title=f"{draft.title} Practice Check",
+        title=(
+            draft.title
+            if practice_term_from_key(draft.material_slug)
+            else f"{draft.title} Practice Check"
+        ),
         score_auto=earned,
         score_total_auto=auto_total,
         review_json=json.dumps(review_items),
@@ -3165,7 +3265,37 @@ def practice():
         return redirect(url_for("home"))
     ready = []
     locked = []
-    for material in Material.query.filter_by(status="approved").order_by(Material.created_at.desc()):
+    approved = Material.query.filter_by(status="approved").order_by(Material.created_at.desc()).all()
+    current_year = active_school_year()
+    for subject_slug, subject_meta in SUBJECTS.items():
+        for term_number, term_label in TERM_LABELS.items():
+            term_materials = [
+                material
+                for material in approved
+                if current_year
+                and material.subject_slug == subject_slug
+                and material.term == term_number
+                and material.school_year_id == current_year.id
+            ]
+            if len(term_materials) >= 2:
+                ready.append(
+                    {
+                        "subject": subject_meta["name"],
+                        "subject_slug": subject_slug,
+                        "title": f"{term_label} practice exam",
+                        "meta": f"{current_year.name} · Combines {len(term_materials)} approved lessons",
+                        "unlock_reason": None,
+                        "unlock_date": None,
+                        "href": url_for(
+                            "practice_setup",
+                            subject_slug=subject_slug,
+                            material_slug=f"{TERM_REVIEW_PREFIX}{term_number}",
+                        ),
+                        "review_href": None,
+                        "locked": False,
+                    }
+                )
+    for material in approved:
         ready.append(
             {
                 "subject": SUBJECTS[material.subject_slug]["name"],
@@ -3822,6 +3952,12 @@ def material_review_payload(material: Material) -> dict:
         "id": material.id,
         "title": material.title,
         "subject_slug": material.subject_slug,
+        "term": material.term,
+        "term_label": (
+            f"{TERM_LABELS[material.term]} · {material.school_year.name}"
+            if material.term in TERM_LABELS and material.school_year
+            else "Term not set"
+        ),
         "status": material.status,
         "source": material.source,
         "source_label": "Student backup" if material.source == "student" else "Teacher upload",
@@ -3864,6 +4000,9 @@ def teacher_materials(user):
                 db.session.commit()
                 flash("Upload rejected.", "success")
                 return redirect(url_for("teacher_materials"))
+            if (material.term not in TERM_LABELS or not material.school_year_id) and material.source != "student":
+                flash("Choose a term for this lesson before deploying it.", "danger")
+                return redirect(url_for("teacher_material_review", material_id=material.id))
             try:
                 deploy_material(material)
                 db.session.commit()
@@ -3873,15 +4012,24 @@ def teacher_materials(user):
             return redirect(url_for("teacher_materials"))
         title = request.form.get("title", "").strip()
         notes = request.form.get("notes", "").strip()
+        term = request.form.get("term", type=int)
+        year = active_school_year()
         file = request.files.get("file")
         try:
+            if term not in TERM_LABELS:
+                raise ExtractError("Choose the term this lesson belongs to.")
+            if not year:
+                raise ExtractError("Ask your administrator to set the active school year first.")
             if file and file.filename:
                 filename, data = save_file(file)
             elif notes:
                 filename, data = "pasted-lesson.txt", notes.encode("utf-8")
             else:
                 raise ExtractError("Upload a file or paste lesson text.")
-            material = create_material(title or path_stem(filename), slug, user["id"], "teacher", filename, data)
+            material = create_material(
+                title or path_stem(filename), slug, user["id"], "teacher", filename, data,
+                term=term, school_year_id=year.id,
+            )
             flash("Material uploaded. Review the summary before deploying it to students.", "success")
             return redirect(url_for("teacher_material_review", material_id=material.id))
         except ExtractError as exc:
@@ -3900,6 +4048,7 @@ def teacher_materials(user):
         active_nav="materials",
         subject_name=SUBJECTS[slug]["name"],
         subject_slug=slug,
+        active_school_year=active_school_year(),
         pending=pending,
         deployed=deployed,
         rejected=rejected,
@@ -3915,6 +4064,21 @@ def teacher_material_review(user, material_id):
         return redirect(url_for("teacher_materials"))
     if request.method == "POST":
         action = request.form.get("action")
+        if action == "set_term":
+            term_value = request.form.get("term", "").strip()
+            term = int(term_value) if term_value.isdigit() and int(term_value) in TERM_LABELS else None
+            year = active_school_year() if term else None
+            if term and not year:
+                flash("Ask your administrator to set the active school year first.", "danger")
+                return redirect(url_for("teacher_material_review", material_id=material.id))
+            material.term = term
+            material.school_year_id = year.id if year else None
+            db.session.commit()
+            flash(
+                f"{material.title} assigned to {TERM_LABELS[term]}." if term else "Term assignment cleared.",
+                "success",
+            )
+            return redirect(url_for("teacher_material_review", material_id=material.id))
         if action == "summarize":
             try:
                 attach_summary(material)
@@ -3929,6 +4093,19 @@ def teacher_material_review(user, material_id):
                 flash("Could not generate the summary. Check the AI provider settings and try again.", "danger")
             return redirect(url_for("teacher_material_review", material_id=material.id))
         if action == "approve":
+            term_value = request.form.get("term", "").strip()
+            year = active_school_year()
+            if term_value.isdigit() and int(term_value) in TERM_LABELS:
+                material.term = int(term_value)
+                material.school_year_id = year.id if year else None
+            if material.term not in TERM_LABELS and material.source != "student":
+                flash("Choose a term for this lesson before deploying it.", "danger")
+                return redirect(url_for("teacher_material_review", material_id=material.id))
+            if material.term in TERM_LABELS and not material.school_year_id:
+                if not year:
+                    flash("Ask your administrator to set the active school year first.", "danger")
+                    return redirect(url_for("teacher_material_review", material_id=material.id))
+                material.school_year_id = year.id
             try:
                 deploy_material(material)
                 db.session.commit()

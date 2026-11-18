@@ -2303,6 +2303,73 @@ html.pref-reduce-motion .pro-body #notify-dropdown.notify-panel {
   margin: 0.85rem 0;
 }
 
+.teacher-material-term-form {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.65rem;
+  margin: 0.9rem 0 1.15rem;
+  padding: 0.85rem;
+  border: 1px solid var(--pro-line);
+  border-radius: 0.8rem;
+  background: var(--pro-card-soft);
+}
+
+.teacher-material-term-form .field {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+}
+
+.teacher-material-term-form select {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 2.5rem;
+  padding: 0.5rem 0.7rem;
+  border: 1px solid var(--pro-line);
+  border-radius: 0.6rem;
+  background: var(--bloom-surface);
+  color: var(--pro-ink);
+  font: inherit;
+}
+
+.teacher-review-term-label {
+  display: block;
+  margin: 0 0 0.3rem;
+  color: var(--pro-muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.teacher-review-term-select {
+  min-height: 2.45rem;
+  margin: 0 0 0.65rem;
+  padding: 0.45rem 0.7rem;
+  border: 1px solid var(--pro-line);
+  border-radius: 0.6rem;
+  background: var(--bloom-surface);
+  color: var(--pro-ink);
+  font: inherit;
+}
+
+.practice-term-topic-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0.45rem 0 0.9rem;
+  padding: 0;
+  list-style: none;
+}
+
+.practice-term-topic-list li {
+  padding: 0.3rem 0.6rem;
+  border: 1px solid var(--pro-line);
+  border-radius: 999px;
+  background: var(--pro-card-soft);
+  color: var(--pro-ink);
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
 .teacher-review-deploy {
   padding-top: 0.35rem;
   border-top: 1px solid var(--pro-line);

@@ -16,6 +16,7 @@
           </p>
           <h1 id="take-title" class="take-title">{{ material_title }}</h1>
           <p class="take-window-note">{{ questions|length }} question{% if questions|length != 1 %}s{% endif %} · Answers save on this device. This does not affect school grades.</p>
+          {% if is_term_review %}<p class="take-window-note">Term topics: {{ term_topics|join(' · ') }}</p>{% endif %}
         </div>
       </header>
 
