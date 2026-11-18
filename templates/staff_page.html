@@ -20,12 +20,19 @@
   {% if form_blocks %}
     {% if announce_split %}<div class="announce-compose-split">{% endif %}
     {% for block in form_blocks %}
-      <section class="home-section staff-compose-page{% if announce_split %} announce-compose-form-col{% endif %}" {% if block.id %}id="{{ block.id }}"{% endif %} aria-labelledby="staff-form-{{ loop.index }}">
+      <section class="home-section staff-compose-page{% if announce_split %} announce-compose-form-col{% endif %}{% if active_nav == 'users' and block.title == 'Bulk import' %} admin-bulk-import-card{% endif %}" {% if block.id %}id="{{ block.id }}"{% endif %} aria-labelledby="staff-form-{{ loop.index }}">
         <form class="login-form staff-compose-form" method="POST" action="{{ block.action }}" {% if block.enctype %}enctype="{{ block.enctype }}"{% endif %} {% if block.loading %}data-loading="{{ block.loading }}"{% endif %} {% if block.confirm %}data-confirm="{{ block.confirm }}"{% endif %}>
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
               <p class="staff-compose-kicker">{% if active_nav == 'users' %}ACCOUNT SETUP{% else %}Form{% endif %}</p>
             <h2 class="staff-compose-title" id="staff-form-{{ loop.index }}">{{ block.title }}</h2>
-            {% if block.note %}
+            {% if active_nav == 'users' and block.title == 'Bulk import' %}
+              <p class="staff-compose-note">Create student and teacher accounts in one import.</p>
+              <div class="admin-import-guide" aria-label="Import requirements">
+                <p><strong>CSV columns</strong><span>Email · Full name · Role · Temporary password · Subject for teachers</span></p>
+                <p><strong>Teacher assignments</strong><span>Teachers start with their current section and can have up to 10 subject-section assignments.</span></p>
+                <p><strong>Password rules</strong><span>Use at least 8 characters with uppercase and lowercase letters, a number, and a symbol.</span></p>
+              </div>
+            {% elif block.note %}
               <p class="staff-compose-note">{{ block.note }}</p>
             {% endif %}
             {% for field in block.fields %}
