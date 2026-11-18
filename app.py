@@ -2825,8 +2825,9 @@ def practice_take(subject_slug, material_slug):
                 )
                 return redirect(practice_setup_url(subject_slug, material_slug, difficulty, focus, count, types))
         try:
-            questions = generate_hots_questions(
-                source["title"], source["text"], meta["name"], focus, count, types, difficulty
+            questions, usage = generate_hots_questions(
+                source["title"], source["text"], meta["name"], focus, count, types, difficulty,
+                include_usage=True,
             )
         except Exception:
             release_practice_generation(reservation_id)
@@ -2867,6 +2868,7 @@ def practice_take(subject_slug, material_slug):
         db.session.add(draft)
         db.session.commit()
         session["practice_draft_id"] = draft.id
+        session["practice_usage"] = {"draft_id": draft.id, **usage}
         return redirect(url_for("practice_take", subject_slug=subject_slug, material_slug=material_slug))
 
     draft = db.session.get(QuizDraft, session.get("practice_draft_id"))
@@ -2896,6 +2898,11 @@ def practice_take(subject_slug, material_slug):
         "difficulty_key": draft.difficulty or "medium",
         "difficulty_name": difficulty_label(draft.difficulty),
         "draft_id": draft.id,
+        "generation_usage": (
+            session.get("practice_usage")
+            if (session.get("practice_usage") or {}).get("draft_id") == draft.id
+            else None
+        ),
     }
     context.update(announcements_context(user))
     return render_template("practice_take.html", **context)

@@ -3,6 +3,10 @@ import os
 import re
 import urllib.error
 import urllib.request
+from contextvars import ContextVar
+
+
+_LAST_AI_USAGE = ContextVar("last_ai_usage", default=None)
 
 
 class SummaryGenerationError(RuntimeError):
@@ -97,8 +101,16 @@ def _summary_failure_message() -> str:
 
 
 def generate_hots_questions(
-    title: str, text: str, subject: str, bloom: str, count: int, types: list[str], difficulty: str = "medium"
-) -> list[dict]:
+    title: str,
+    text: str,
+    subject: str,
+    bloom: str,
+    count: int,
+    types: list[str],
+    difficulty: str = "medium",
+    *,
+    include_usage: bool = False,
+):
     bloom_line = {
         "mixed": "Mix Analyze (C4), Evaluate (C5), and Create (C6).",
         "c4": "All questions must target Analyze (C4).",
@@ -172,9 +184,46 @@ Lesson text:
 """
     data = _complete_json(prompt)
     questions = data.get("questions") or []
+    used_local_fallback = not bool(questions)
     if not questions:
-        return _fallback_questions(title, text, count, allowed, difficulty_key)
-    return [_normalize_question(item, index) for index, item in enumerate(questions[:count], start=1)]
+        generated = _fallback_questions(title, text, count, allowed, difficulty_key)
+    else:
+        generated = [_normalize_question(item, index) for index, item in enumerate(questions[:count], start=1)]
+    if not include_usage:
+        return generated
+    usage = last_ai_usage()
+    usage = {
+        **(usage or {}),
+        "source_words": _word_count(text),
+        "prompt_words": _word_count(prompt),
+        "generated_words": _question_word_count(generated),
+        "used_local_fallback": used_local_fallback,
+    }
+    return generated, usage
+
+
+def _word_count(value: str) -> int:
+    pattern = r"\d+(?:[.,/]\d+)*(?:\.{3}|…)?[A-Za-z]*|[^\W\d_]+(?:[’'-][^\W\d_]+)*"
+    return len(re.findall(pattern, value or "", flags=re.UNICODE))
+
+
+def _question_word_count(questions: list[dict]) -> int:
+    visible_text = []
+    for question in questions:
+        for key in ("prompt", "explanation", "answer", "rubric", "citation"):
+            value = question.get(key)
+            if isinstance(value, str):
+                visible_text.append(value)
+        for option in question.get("options") or []:
+            if isinstance(option, dict):
+                visible_text.append(str(option.get("text") or ""))
+    return _word_count(" ".join(visible_text))
+
+
+def last_ai_usage() -> dict | None:
+    """Usage counts for the most recent provider call in this execution context."""
+    usage = _LAST_AI_USAGE.get()
+    return dict(usage) if usage else None
 
 
 def _normalize_question(item: dict, index: int) -> dict:
@@ -232,6 +281,7 @@ def _complete_json(prompt: str) -> dict:
 def _complete(prompt: str) -> str:
     global _LAST_AI_ERROR
     _LAST_AI_ERROR = ""
+    _LAST_AI_USAGE.set(None)
     openai_key = os.environ.get("OPENAI_API_KEY", "").strip()
     gemini_key = os.environ.get("GEMINI_API_KEY", "").strip()
     provider = os.environ.get("AI_PROVIDER", "").strip().lower()
@@ -251,13 +301,17 @@ def _complete(prompt: str) -> str:
     for name in order:
         if name == "openai" and openai_key:
             try:
-                return _openai(prompt, openai_key)
+                raw, usage = _openai(prompt, openai_key)
+                _LAST_AI_USAGE.set(usage)
+                return raw
             except Exception as exc:
                 detail = _http_error_text(exc)
                 errors.append(f"OpenAI: {detail}")
         if name == "gemini" and gemini_key:
             try:
-                return _gemini(prompt, gemini_key)
+                raw, usage = _gemini(prompt, gemini_key)
+                _LAST_AI_USAGE.set(usage)
+                return raw
             except Exception as exc:
                 detail = _http_error_text(exc)
                 errors.append(f"Gemini: {detail}")
@@ -278,7 +332,7 @@ def _http_error_text(exc: Exception) -> str:
     return f"{type(exc).__name__}: {exc}"
 
 
-def _openai(prompt: str, key: str) -> str:
+def _openai(prompt: str, key: str) -> tuple[str, dict]:
     body = json.dumps(
         {
             "model": os.environ.get("OPENAI_MODEL", "gpt-4o-mini"),
@@ -300,10 +354,17 @@ def _openai(prompt: str, key: str) -> str:
     )
     with urllib.request.urlopen(req, timeout=60) as resp:
         payload = json.loads(resp.read().decode("utf-8"))
-    return payload["choices"][0]["message"]["content"]
+    usage = payload.get("usage") or {}
+    return payload["choices"][0]["message"]["content"], {
+        "provider": "OpenAI",
+        "model": payload.get("model") or os.environ.get("OPENAI_MODEL", "gpt-4o-mini"),
+        "input_tokens": int(usage.get("prompt_tokens") or 0),
+        "output_tokens": int(usage.get("completion_tokens") or 0),
+        "total_tokens": int(usage.get("total_tokens") or 0),
+    }
 
 
-def _gemini(prompt: str, key: str) -> str:
+def _gemini(prompt: str, key: str) -> tuple[str, dict]:
     configured = os.environ.get("GEMINI_MODEL", "gemini-3.8-flash").strip()
     models = []
     for model in (configured, "gemini-3.8-flash", "gemini-3.7-flash", "gemini-3.6-flash", "gemini-2.5-flash"):
@@ -346,7 +407,14 @@ def _gemini(prompt: str, key: str) -> str:
             text = "".join(part.get("text", "") for part in parts).strip()
             if not text:
                 raise RuntimeError(f"{model} returned empty text: {payload}")
-            return text
+            usage = payload.get("usageMetadata") or {}
+            return text, {
+                "provider": "Gemini",
+                "model": payload.get("modelVersion") or model,
+                "input_tokens": int(usage.get("promptTokenCount") or 0),
+                "output_tokens": int(usage.get("candidatesTokenCount") or 0),
+                "total_tokens": int(usage.get("totalTokenCount") or 0),
+            }
         except Exception as exc:
             last_error = exc
             continue

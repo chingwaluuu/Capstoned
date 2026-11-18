@@ -17,6 +17,33 @@
           <h1 id="take-title" class="take-title">{{ material_title }}</h1>
           <p class="take-window-note">{{ questions|length }} question{% if questions|length != 1 %}s{% endif %} · Answers save on this device. This does not affect school grades.</p>
           {% if is_term_review %}<p class="take-window-note">Term topics: {{ term_topics|join(' · ') }}</p>{% endif %}
+          {% if generation_usage %}
+            <details class="practice-usage">
+              <summary>Generation counts</summary>
+              <div class="practice-usage-grid">
+                <span>Lesson text <strong>{{ generation_usage.source_words }}</strong> words</span>
+                <span>Prompt sent <strong>{{ generation_usage.prompt_words }}</strong> words</span>
+                <span>Generated practice <strong>{{ generation_usage.generated_words }}</strong> words</span>
+              </div>
+              {% if generation_usage.total_tokens %}
+                <p class="practice-usage-tokens">
+                  {{ generation_usage.provider }}{% if generation_usage.model %} · {{ generation_usage.model }}{% endif %}:
+                  <strong>{{ generation_usage.input_tokens }}</strong> input tokens ·
+                  <strong>{{ generation_usage.output_tokens }}</strong> output tokens ·
+                  <strong>{{ generation_usage.total_tokens }}</strong> total
+                </p>
+                {% if generation_usage.prompt_words and not generation_usage.used_local_fallback %}
+                  <p class="practice-usage-ratio">Approximate averages: {{ (generation_usage.input_tokens / generation_usage.prompt_words)|round(2) }} input tokens per prompt word{% if generation_usage.generated_words %} · {{ (generation_usage.output_tokens / generation_usage.generated_words)|round(2) }} output tokens per generated word{% endif %}.</p>
+                {% elif generation_usage.used_local_fallback %}
+                  <p class="practice-usage-ratio">The provider usage above includes its request, but the questions shown were created by Bloom’s local fallback.</p>
+                {% endif %}
+              {% elif not generation_usage.provider %}
+                <p class="practice-usage-tokens">No API token usage was recorded; this practice used the local fallback.</p>
+              {% else %}
+                <p class="practice-usage-tokens">{{ generation_usage.provider }} did not return token counts for this request.</p>
+              {% endif %}
+            </details>
+          {% endif %}
         </div>
       </header>
 
