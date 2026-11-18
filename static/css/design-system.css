@@ -5794,8 +5794,12 @@ math {
 
 .admin-faculty-toolbar label { font-size: 13px; font-weight: 600; }
 .admin-faculty-toolbar input { width: min(100%, 460px); height: 42px; box-sizing: border-box; padding: 0 13px; border: 1px solid #CFC9BC; border-radius: 10px; background: #FAF9F6; font: 400 14px Inter, sans-serif; }
+.admin-faculty-toolbar select { min-width: 190px; height: 42px; box-sizing: border-box; padding: 0 34px 0 12px; border: 1px solid #CFC9BC; border-radius: 10px; background: #fff; color: #17213D; font: 500 14px Inter, sans-serif; }
+.admin-faculty-toolbar select:focus { outline: 2px solid #1F2A5C66; outline-offset: 1px; }
 .admin-faculty-toolbar > span { margin-left: auto; color: #5A564E; font-size: 13px; }
 .admin-faculty-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: 18px; }
+.admin-faculty-grid[data-view="lessons"], .admin-faculty-grid[data-view="assessments"] { grid-template-columns: minmax(0, 1fr); }
+.admin-faculty-panel[hidden] { display: none; }
 .admin-faculty-panel { min-width: 0; padding: 20px; border: 1px solid #E2DED5; border-radius: 16px; background: #fff; }
 .admin-faculty-panel > header { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; }
 .admin-faculty-panel > header h2 { margin: 2px 0 0; color: #17213D; font: 600 22px/1.2 "Source Serif 4", serif; }
@@ -5832,6 +5836,7 @@ math {
 @media (max-width: 760px) {
   .admin-faculty-toolbar { align-items: stretch; flex-direction: column; }
   .admin-faculty-toolbar input { width: 100%; }
+  .admin-faculty-toolbar select { width: 100%; }
   .admin-faculty-toolbar > span { margin-left: 0; }
   .admin-faculty-grid { grid-template-columns: minmax(0, 1fr); }
 }

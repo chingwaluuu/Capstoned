@@ -8,11 +8,17 @@
   <div class="admin-faculty-toolbar">
     <label for="faculty-post-search">Find a post</label>
     <input id="faculty-post-search" type="search" placeholder="Search title, teacher, subject, or status" data-faculty-post-search>
+    <label for="faculty-post-section">Show</label>
+    <select id="faculty-post-section" data-faculty-post-section aria-label="Filter faculty posts by section">
+      <option value="all">All posts</option>
+      <option value="lessons">Lessons</option>
+      <option value="assessments">Practice assessments</option>
+    </select>
     <span>{{ materials|length }} lessons · {{ assessments|length }} practice assessments</span>
   </div>
 
-  <div class="admin-faculty-grid">
-    <section class="admin-faculty-panel" aria-labelledby="faculty-lessons-title">
+  <div class="admin-faculty-grid" data-faculty-post-grid data-view="all">
+    <section class="admin-faculty-panel" aria-labelledby="faculty-lessons-title" data-faculty-post-section-panel="lessons">
       <header>
         <div><p class="section-eyebrow">Teacher uploads</p><h2 id="faculty-lessons-title">Lessons</h2></div>
         <strong>{{ materials|length }}</strong>
@@ -48,7 +54,7 @@
       {% endif %}
     </section>
 
-    <section class="admin-faculty-panel" aria-labelledby="faculty-practice-title">
+    <section class="admin-faculty-panel" aria-labelledby="faculty-practice-title" data-faculty-post-section-panel="assessments">
       <header>
         <div><p class="section-eyebrow">Teacher-created practice</p><h2 id="faculty-practice-title">Practice assessments</h2></div>
         <strong>{{ assessments|length }}</strong>
@@ -80,11 +86,21 @@
 {% endblock %}
 {% block scripts %}
   <script>
-    document.querySelector('[data-faculty-post-search]')?.addEventListener('input', event => {
-      const query = event.target.value.trim().toLowerCase();
+    const postSearch = document.querySelector('[data-faculty-post-search]');
+    const sectionFilter = document.querySelector('[data-faculty-post-section]');
+    const postGrid = document.querySelector('[data-faculty-post-grid]');
+    const filterFacultyPosts = () => {
+      const query = postSearch?.value.trim().toLowerCase() || '';
+      const section = sectionFilter?.value || 'all';
+      if (postGrid) postGrid.dataset.view = section;
+      document.querySelectorAll('[data-faculty-post-section-panel]').forEach(panel => {
+        panel.hidden = section !== 'all' && panel.dataset.facultyPostSectionPanel !== section;
+      });
       document.querySelectorAll('[data-faculty-post]').forEach(item => {
         item.hidden = !item.dataset.search.includes(query);
       });
-    });
+    };
+    postSearch?.addEventListener('input', filterFacultyPosts);
+    sectionFilter?.addEventListener('change', filterFacultyPosts);
   </script>
 {% endblock %}
