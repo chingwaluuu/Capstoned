@@ -42,7 +42,7 @@
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
         <input type="hidden" name="action" value="set_term" />
         <div class="field">
-          <label for="review-material-term">Exam period</label>
+          <label for="review-material-term">Term</label>
           <select id="review-material-term" name="term">
             <option value="">Unassigned</option>
             {% for number, term_label in term_labels.items() %}
@@ -109,9 +109,9 @@
                   <form method="POST" action="{{ url_for('teacher_material_review', material_id=material.id) }}" data-confirm="Deploy this summary to students? They will be able to read it and practice from it." data-loading="Deploying…">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                     <input type="hidden" name="action" value="approve" />
-                    <label class="teacher-review-term-label" for="deploy-material-term">Exam period</label>
+                    <label class="teacher-review-term-label" for="deploy-material-term">Term</label>
                     <select class="teacher-review-term-select" id="deploy-material-term" name="term" required>
-                      <option value="" disabled {% if not material.term %}selected{% endif %}>Choose an exam period</option>
+                      <option value="" disabled {% if not material.term %}selected{% endif %}>Choose a term</option>
                       {% for number, term_label in term_labels.items() %}
                         <option value="{{ number }}" {% if material.term == number %}selected{% endif %}>{{ term_label }}</option>
                       {% endfor %}

@@ -397,7 +397,7 @@ def practice_source(subject_slug, material_slug):
         )
         if len(materials) < 2:
             return None, []
-        term_name = academic_term_labels().get(term, "Exam period")
+        term_name = academic_term_labels().get(term, "Term")
         title = f"{term_name} practice exam"
         # Reserve space for every topic before the AI helper's 12k source limit.
         per_topic = max(1, 10000 // len(materials))
@@ -2620,7 +2620,7 @@ def subject_hub(slug):
                     (
                         f"{term_labels[material.term]} · {material.school_year.name} · "
                         if material.term in term_labels and material.school_year
-                        else "Exam period not set · "
+                        else "Term not set · "
                     )
                     + ("Summary ready · Citations included" if has_student_ready_summary(material) else "Approved for study")
                 ),
@@ -3981,7 +3981,7 @@ def material_review_payload(material: Material, term_labels=None) -> dict:
         "term_label": (
             f"{term_labels[material.term]} · {material.school_year.name}"
             if material.term in term_labels and material.school_year
-            else "Exam period not set"
+            else "Term not set"
         ),
         "status": material.status,
         "source": material.source,
@@ -4027,7 +4027,7 @@ def teacher_materials(user):
                 flash("Upload rejected.", "success")
                 return redirect(url_for("teacher_materials"))
             if (material.term not in term_labels or not material.school_year_id) and material.source != "student":
-                flash("Choose an exam period for this lesson before deploying it.", "danger")
+                flash("Choose a term for this lesson before deploying it.", "danger")
                 return redirect(url_for("teacher_material_review", material_id=material.id))
             try:
                 deploy_material(material)
@@ -4043,7 +4043,7 @@ def teacher_materials(user):
         file = request.files.get("file")
         try:
             if term not in term_labels:
-                raise ExtractError("Choose the exam period this lesson belongs to.")
+                raise ExtractError("Choose the term this lesson belongs to.")
             if not year:
                 raise ExtractError("Ask your administrator to set the active school year first.")
             if file and file.filename:
@@ -4103,7 +4103,7 @@ def teacher_material_review(user, material_id):
             material.school_year_id = year.id if year else None
             db.session.commit()
             flash(
-                f"{material.title} assigned to {term_labels[term]}." if term else "Exam period assignment cleared.",
+                f"{material.title} assigned to {term_labels[term]}." if term else "Term assignment cleared.",
                 "success",
             )
             return redirect(url_for("teacher_material_review", material_id=material.id))
@@ -4127,7 +4127,7 @@ def teacher_material_review(user, material_id):
                 material.term = int(term_value)
                 material.school_year_id = year.id if year else None
             if material.term not in term_labels and material.source != "student":
-                flash("Choose an exam period for this lesson before deploying it.", "danger")
+                flash("Choose a term for this lesson before deploying it.", "danger")
                 return redirect(url_for("teacher_material_review", material_id=material.id))
             if material.term in term_labels and not material.school_year_id:
                 if not year:
@@ -4888,9 +4888,9 @@ def admin_settings(user):
         elif action == "add_term":
             name = request.form.get("name", "").strip()[:80]
             if not name:
-                flash("Enter a name for the exam period.", "danger")
+                flash("Enter a term name.", "danger")
             elif AcademicTerm.query.filter(AcademicTerm.name.ilike(name)).first():
-                flash("That exam period already exists.", "danger")
+                flash("That term already exists.", "danger")
             else:
                 order = db.session.query(db.func.max(AcademicTerm.sort_order)).scalar() or 0
                 db.session.add(AcademicTerm(name=name, sort_order=order + 1))
@@ -4901,19 +4901,19 @@ def admin_settings(user):
             name = request.form.get("name", "").strip()[:80]
             duplicate = AcademicTerm.query.filter(AcademicTerm.name.ilike(name), AcademicTerm.id != (term.id if term else -1)).first() if name else None
             if not term:
-                flash("That exam period could not be found.", "danger")
+                flash("That term could not be found.", "danger")
             elif not name:
-                flash("Enter a name for the exam period.", "danger")
+                flash("Enter a term name.", "danger")
             elif duplicate:
-                flash("That exam period already exists.", "danger")
+                flash("That term already exists.", "danger")
             else:
                 term.name = name
                 db.session.commit()
-                flash(f"Exam period renamed to {name}.", "success")
+                flash(f"Term renamed to {name}.", "success")
         elif action == "delete_term":
             term = db.session.get(AcademicTerm, request.form.get("term_id", type=int))
             if not term:
-                flash("That exam period could not be found.", "danger")
+                flash("That term could not be found.", "danger")
             else:
                 Material.query.filter_by(term=term.id).update(
                     {Material.term: None, Material.school_year_id: None},

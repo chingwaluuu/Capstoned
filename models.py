@@ -170,7 +170,7 @@ class SchoolYear(db.Model):
 
 
 class AcademicTerm(db.Model):
-    """Configurable exam period labels used to group lessons for practice."""
+    """Configurable term names used to group lessons for practice."""
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80), unique=True, nullable=False)
     sort_order = db.Column(db.Integer, nullable=False, default=0)

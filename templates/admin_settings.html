@@ -6,7 +6,7 @@
 {% block page_subtitle %}Manage the school details and defaults used throughout Bloom.{% endblock %}
 {% block content %}
 <div class="general-settings-layout">
-  <nav class="settings-local-nav" aria-label="Settings categories"><a class="is-current" href="#school-details"><span aria-hidden="true">▦</span> School details</a><a href="#defaults"><span aria-hidden="true">⚙</span> System defaults</a><a href="#exam-periods"><span aria-hidden="true">◷</span> Exam periods</a></nav>
+  <nav class="settings-local-nav" aria-label="Settings categories"><a class="is-current" href="#school-details"><span aria-hidden="true">▦</span> School details</a><a href="#defaults"><span aria-hidden="true">⚙</span> System defaults</a><a href="#terms"><span aria-hidden="true">◷</span> Terms</a></nav>
   <div class="general-settings-content">
     <form method="post" class="general-settings-form">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -14,12 +14,12 @@
       <section class="general-settings-card" id="defaults"><div class="settings-card-heading"><span class="settings-heading-icon" aria-hidden="true">⚙</span><div><h2>System defaults</h2><p>Choose the default school year for admin views.</p></div></div><div class="settings-form-field"><label for="default-year">Default school year</label><select id="default-year" name="default_school_year"><option value="">Choose a school year</option>{% for year in years %}<option value="{{ year.name }}" {% if settings.get('default_school_year') == year.name or (not settings.get('default_school_year') and year.active) %}selected{% endif %}>{{ year.name }}</option>{% endfor %}</select><small>School years and sections are managed in Section Management.</small></div></section>
       <div class="settings-save-row"><p>Your changes apply across the admin workspace.</p><button type="submit">Save changes</button></div>
     </form>
-    <section class="general-settings-card academic-terms-card" id="exam-periods" aria-labelledby="exam-periods-title">
-      <div class="settings-card-heading"><span class="settings-heading-icon" aria-hidden="true">◷</span><div><h2 id="exam-periods-title">Exam periods</h2><p>Add, rename, or remove the periods used to group lessons into student practice exams.</p></div></div>
+    <section class="general-settings-card academic-terms-card" id="terms" aria-labelledby="terms-title">
+      <div class="settings-card-heading"><span class="settings-heading-icon" aria-hidden="true">◷</span><div><h2 id="terms-title">Terms</h2><p>Add, rename, or remove the terms used to group lessons into student practice exams.</p></div></div>
       <form class="academic-term-add" method="post">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="action" value="add_term">
-        <div class="settings-form-field"><label for="new-term-name">New period name</label><input id="new-term-name" name="name" maxlength="80" placeholder="e.g. Prelim" required></div>
-        <button class="academic-term-add-button" type="submit">Add period</button>
+        <div class="settings-form-field"><label for="new-term-name">New term name</label><input id="new-term-name" name="name" maxlength="80" placeholder="e.g. Prelim" required></div>
+        <button class="academic-term-add-button" type="submit">Add term</button>
       </form>
       {% if terms %}
         <div class="academic-term-list">
@@ -27,11 +27,11 @@
             <div class="academic-term-row">
               <form class="academic-term-rename" method="post">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="action" value="rename_term"><input type="hidden" name="term_id" value="{{ row.term.id }}">
-                <label class="sr-only" for="term-name-{{ row.term.id }}">Period name</label><input id="term-name-{{ row.term.id }}" name="name" maxlength="80" value="{{ row.term.name }}" required>
+                <label class="sr-only" for="term-name-{{ row.term.id }}">Term name</label><input id="term-name-{{ row.term.id }}" name="name" maxlength="80" value="{{ row.term.name }}" required>
                 <span class="academic-term-count">{{ row.material_count }} lesson{% if row.material_count != 1 %}s{% endif %}</span>
                 <button class="academic-term-save" type="submit">Save name</button>
               </form>
-              <form method="post" data-confirm="Remove {{ row.term.name }}? Its lessons will be kept but unassigned from an exam period.">
+              <form method="post" data-confirm="Remove {{ row.term.name }}? Its lessons will be kept but unassigned from a term.">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="action" value="delete_term"><input type="hidden" name="term_id" value="{{ row.term.id }}">
                 <button class="academic-term-remove" type="submit">Remove</button>
               </form>
@@ -39,9 +39,9 @@
           {% endfor %}
         </div>
       {% else %}
-        <p class="academic-term-empty">No exam periods yet. Add one to let teachers assign lessons and prepare period practice exams.</p>
+        <p class="academic-term-empty">No terms yet. Add one to let teachers assign lessons and prepare term practice exams.</p>
       {% endif %}
-      <p class="academic-term-note">Removing a period keeps its lessons but clears their period assignment. The lessons can be assigned to another period later.</p>
+      <p class="academic-term-note">Removing a term keeps its lessons but clears their term assignment. The lessons can be assigned to another term later.</p>
     </section>
   </div>
 </div>

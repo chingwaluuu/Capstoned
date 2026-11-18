@@ -24,9 +24,9 @@
       </div>
 
       <div class="field">
-        <label for="material-term">Exam period</label>
+        <label for="material-term">Term</label>
         <select id="material-term" name="term" required>
-          <option value="" selected disabled>Choose an exam period</option>
+          <option value="" selected disabled>Choose a term</option>
           {% for number, term_label in term_labels.items() %}
             <option value="{{ number }}">{{ term_label }}</option>
           {% endfor %}
