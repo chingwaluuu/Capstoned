@@ -98,10 +98,10 @@
           </div>
           <span class="materials-section-count">{{ panels|length }}</span>
         </div>
-      {% if active_nav == 'users' %}<label class="admin-user-search-label" for="admin-user-search">Find an account</label><input class="admin-user-search" id="admin-user-search" type="search" placeholder="Search by name, email, role or subject" data-admin-user-search>{% endif %}
+      {% if active_nav == 'users' %}<label class="admin-user-search-label" for="admin-user-search">Find an account</label><input class="admin-user-search" id="admin-user-search" type="search" placeholder="Search by name, email, role, subject or section" data-admin-user-search>{% endif %}
       <div class="hub-list stack-md pro-stagger-in">
         {% for panel in panels %}
-          <article class="hub-card hub-card-stack pro-card-interactive" {% if active_nav == 'users' %}data-admin-user-card data-search="{{ (panel.kicker ~ ' ' ~ panel.title ~ ' ' ~ panel.meta)|lower }}"{% endif %}>
+          <article class="hub-card hub-card-stack pro-card-interactive" {% if active_nav == 'users' %}data-admin-user-card data-search="{{ (panel.kicker ~ ' ' ~ panel.title ~ ' ' ~ panel.meta ~ ' ' ~ panel.role ~ ' ' ~ panel.subject ~ ' ' ~ panel.section ~ ' ' ~ (panel.assignments|map(attribute='subject')|join(' ')) ~ ' ' ~ (panel.assignments|map(attribute='section_label')|join(' ')))|lower }}"{% endif %}>
             <div>
               <p class="hub-card-kicker home-tag is-hue">{{ panel.kicker }}</p>
               <h3 class="hub-card-title">{{ panel.title }}</h3>
@@ -171,6 +171,7 @@
             {% endif %}
           </article>
         {% endfor %}
+        {% if active_nav == 'users' %}<p class="empty-copy" data-admin-user-empty role="status" hidden>No accounts match your search. Try a different name, email, role, subject or section.</p>{% endif %}
       </div>
     </section>
   {% elif not form_blocks %}
@@ -180,5 +181,31 @@
     </article>
   {% endif %}
   {% if active_nav == 'users' %}</div>{% endif %}
-  {% if active_nav == 'users' %}<script>document.querySelector('[data-admin-user-search')?.addEventListener('input',e=>{const q=e.target.value.trim().toLowerCase();document.querySelectorAll('[data-admin-user-card]').forEach(card=>card.hidden=!card.dataset.search.includes(q))});</script>{% endif %}
+  {% if active_nav == 'users' %}<script>
+    (() => {
+      const search = document.querySelector('[data-admin-user-search]');
+      const cards = Array.from(document.querySelectorAll('[data-admin-user-card]'));
+      const emptyState = document.querySelector('[data-admin-user-empty]');
+      const count = document.querySelector('.materials-section-count');
+      if (!search || !cards.length) return;
+
+      const normalize = (value) => String(value || '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase();
+
+      search.addEventListener('input', () => {
+        const terms = normalize(search.value).trim().split(/\s+/).filter(Boolean);
+        let visible = 0;
+        cards.forEach((card) => {
+          const searchable = normalize(card.dataset.search);
+          const matches = terms.every((term) => searchable.includes(term));
+          card.hidden = !matches;
+          if (matches) visible += 1;
+        });
+        if (emptyState) emptyState.hidden = visible !== 0;
+        if (count) count.textContent = terms.length ? `${visible} of ${cards.length}` : String(cards.length);
+      });
+    })();
+  </script>{% endif %}
 {% endblock %}
