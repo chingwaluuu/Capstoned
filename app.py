@@ -1005,6 +1005,11 @@ def relative_time(when) -> str:
     return when.strftime("%b %d")
 
 
+def activity_date(when) -> str:
+    """Show the saved calendar date in progress tables instead of relative time."""
+    return when.strftime("%b %d") if when else ""
+
+
 def unread_message_count(user_id: int) -> int:
     return (
         ChatMessage.query.join(Conversation)
@@ -1421,7 +1426,7 @@ def build_admin_class_monitor(section_name: str | None = None) -> dict:
                 "status": status,
                 "status_label": status_label,
                 "last_title": last.title if last else "—",
-                "last_when": relative_time(last.submitted_at) if last and last.submitted_at else "No activity yet",
+                "last_when": activity_date(last.submitted_at) if last and last.submitted_at else "No activity yet",
                 "photo_url": url_for("user_photo", user_id=student.id) if student.avatar_filename else None,
                 "initials": "".join(part[:1] for part in (student.name or "S").split()[:2]).upper(),
             }
@@ -2167,7 +2172,7 @@ def teacher_student_progress(user, subject_slug: str) -> list[dict]:
                 "practice_n": sum(1 for item in attempts if item.kind == "practice"),
                 "assessment_n": sum(1 for item in attempts if item.kind == "assessment"),
                 "last_title": last.title if last else "No attempts yet",
-                "last_when": relative_time(last.submitted_at) if last else "",
+                "last_when": activity_date(last.submitted_at) if last else "",
                 "last_href": url_for("attempt_review", attempt_id=last.id) if last else None,
                 "message_href": url_for("messages_thread", user_id=student.id),
             }
