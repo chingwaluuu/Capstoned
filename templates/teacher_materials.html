@@ -18,24 +18,27 @@
       <p class="materials-upload-form-kicker">Add a lesson</p>
       <h2 class="materials-upload-form-title" id="upload-title">Upload material</h2>
 
-      <div class="field">
-        <label for="title">Material title</label>
-        <input id="title" name="title" type="text" placeholder="Ecosystems" required />
+      <div class="materials-upload-meta-fields">
+        <div class="field">
+          <label for="title">Material title</label>
+          <input id="title" name="title" type="text" placeholder="Ecosystems" required />
+        </div>
+
+        <div class="field">
+          <label for="material-term">Term</label>
+          <select id="material-term" name="term" required>
+            <option value="" selected disabled>Choose a term</option>
+            {% for number, term_label in term_labels.items() %}
+              <option value="{{ number }}">{{ term_label }}</option>
+            {% endfor %}
+          </select>
+          <small>
+            {% if active_school_year %}For {{ active_school_year.name }}. Term exams combine approved lessons assigned to the same term.{% else %}An administrator must set the active school year before lessons can be grouped into term exams.{% endif %}
+          </small>
+        </div>
       </div>
 
-      <div class="field">
-        <label for="material-term">Term</label>
-        <select id="material-term" name="term" required>
-          <option value="" selected disabled>Choose a term</option>
-          {% for number, term_label in term_labels.items() %}
-            <option value="{{ number }}">{{ term_label }}</option>
-          {% endfor %}
-        </select>
-        <small>
-          {% if active_school_year %}For {{ active_school_year.name }}. Practice exams combine approved lessons assigned to the same period.{% else %}An administrator must set the active school year before lessons can be grouped into practice exams.{% endif %}
-        </small>
-      </div>
-
+      <div class="materials-upload-inputs">
       <div class="field">
         <span class="sr-only" id="file-label">File</span>
         <div class="materials-dropzone" data-dropzone>
@@ -52,6 +55,7 @@
       <div class="field materials-paste-field">
         <p class="materials-paste-divider"><span>Or paste text</span></p>
         <textarea id="notes" name="notes" rows="4" placeholder="Paste lesson text here..."></textarea>
+      </div>
       </div>
 
       <div class="materials-upload-actions">

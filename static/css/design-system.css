@@ -4183,6 +4183,39 @@
   margin-top: 0;
 }
 
+/* Teacher materials: compact, aligned upload controls and review lists */
+.pro-body.teacher-materials-page .materials-upload-form { max-width: none; gap: 0; padding: 24px; }
+.pro-body.teacher-materials-page .materials-upload-form-title { margin-bottom: 16px; font-size: 18px; font-weight: 600; }
+.pro-body.teacher-materials-page .materials-upload-meta-fields { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
+.pro-body.teacher-materials-page .materials-upload-meta-fields .field { min-width: 0; margin-bottom: 10px; }
+.pro-body.teacher-materials-page .materials-upload-meta-fields small { display: block; margin-top: 6px; color: #667085; font-size: 11px; line-height: 1.4; }
+.pro-body.teacher-materials-page .materials-upload-inputs { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; align-items: stretch; }
+.pro-body.teacher-materials-page .materials-upload-inputs > .field { min-width: 0; margin-bottom: 12px; }
+.pro-body.teacher-materials-page .materials-dropzone { min-height: 112px; box-sizing: border-box; padding: 16px; }
+.pro-body.teacher-materials-page .materials-paste-field { margin-top: 0; }
+.pro-body.teacher-materials-page .materials-paste-divider { margin-bottom: 8px; }
+.pro-body.teacher-materials-page .materials-upload-form textarea { height: 112px; min-height: 112px; max-height: 112px; resize: vertical; }
+.pro-body.teacher-materials-page .materials-upload-actions { padding-top: 4px; }
+.pro-body.teacher-materials-page .teacher-materials-library { gap: 22px; }
+.pro-body.teacher-materials-page .teacher-materials-library .section-heading-row { align-items: center; margin-bottom: 2px; }
+.pro-body.teacher-materials-page .teacher-materials-library .hub-list { gap: 12px; }
+.pro-body.teacher-materials-page .teacher-materials-library .hub-card { min-height: 104px; display: flex; align-items: center; justify-content: space-between; gap: 20px; box-sizing: border-box; padding: 20px 22px; }
+.pro-body.teacher-materials-page .teacher-materials-library .hub-card > div { min-width: 0; flex: 1; }
+.pro-body.teacher-materials-page .teacher-materials-library .hub-card-title { margin: 4px 0 3px; line-height: 1.3; }
+.pro-body.teacher-materials-page .teacher-materials-library .hub-card-meta { line-height: 1.45; overflow-wrap: anywhere; }
+.pro-body.teacher-materials-page .teacher-materials-library .hub-card > .today-action { flex: 0 0 auto; white-space: nowrap; }
+@media (max-width: 1000px) {
+  .pro-body.teacher-materials-page .materials-upload-inputs { grid-template-columns: 1fr; }
+  .pro-body.teacher-materials-page .materials-dropzone { min-height: 88px; }
+  .pro-body.teacher-materials-page .materials-upload-form textarea { height: 104px; min-height: 104px; max-height: 180px; }
+}
+@media (max-width: 620px) {
+  .pro-body.teacher-materials-page .materials-upload-meta-fields { grid-template-columns: 1fr; gap: 0; }
+  .pro-body.teacher-materials-page .materials-upload-form { padding: 20px 16px; }
+  .pro-body.teacher-materials-page .teacher-materials-library .hub-card { align-items: flex-start; flex-direction: column; gap: 12px; }
+  .pro-body.teacher-materials-page .teacher-materials-library .hub-card > .today-action { align-self: flex-start; }
+}
+
 .pro-body.teacher-materials-page .materials-upload-form {
   position: sticky;
   top: 88px;
