@@ -1,4 +1,6 @@
 import csv
+import contextvars
+from concurrent.futures import ThreadPoolExecutor
 import io
 import json
 import logging
@@ -106,6 +108,8 @@ app.secret_key = SECRET_KEY
 os.makedirs(app.instance_path, exist_ok=True)
 app.config["SQLALCHEMY_DATABASE_URI"] = database_uri()
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+# Discard dead connections (e.g. after a Railway Postgres restart) instead of erroring on them.
+app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {"pool_pre_ping": True, "pool_recycle": 280}
 app.config["MAX_CONTENT_LENGTH"] = 20 * 1024 * 1024
 app.config["UPLOAD_FOLDER"] = os.path.join(app.instance_path, "uploads")
 # Used when "Keep me signed in" is checked. Without it, the session lasts until the browser closes.
@@ -2976,24 +2980,39 @@ def general_exam_setup():
         provider_names, model_names = [], []
         fallback_used = False
         try:
+            # Build every subject's source text here (ORM objects stay on this thread), then call the AI
+            # for all subjects at once so total wait is the slowest subject, not the sum of all of them.
+            subject_texts = {}
             for slug in subject_slugs:
-                subject_meta = SUBJECTS[slug]
                 lesson_materials = grouped[slug]
                 per_lesson = max(1, 10000 // len(lesson_materials))
-                subject_text = "\n\n".join(
+                subject_texts[slug] = "\n\n".join(
                     f"TOPIC: {item.title}\n{(item.extracted_text or '')[:per_lesson]}"
                     for item in lesson_materials
                 )
-                subject_questions, usage = generate_hots_questions(
-                    f"{subject_meta['name']} General Exam",
-                    subject_text,
-                    subject_meta["name"],
+
+            def _generate_subject(slug):
+                return generate_hots_questions(
+                    f"{SUBJECTS[slug]['name']} General Exam",
+                    subject_texts[slug],
+                    SUBJECTS[slug]["name"],
                     focus,
                     question_counts[slug],
                     selected_types,
                     difficulty,
                     include_usage=True,
                 )
+
+            with ThreadPoolExecutor(max_workers=min(len(subject_slugs), 4)) as pool:
+                futures = {
+                    slug: pool.submit(contextvars.copy_context().run, _generate_subject, slug)
+                    for slug in subject_slugs
+                }
+                generated_by_subject = {slug: futures[slug].result() for slug in subject_slugs}
+
+            for slug in subject_slugs:
+                subject_meta = SUBJECTS[slug]
+                subject_questions, usage = generated_by_subject[slug]
                 if len(subject_questions) != question_counts[slug]:
                     raise RuntimeError(f"Generation returned an incomplete {subject_meta['name']} question set")
                 for question in subject_questions:
@@ -5833,9 +5852,18 @@ def too_large(_error):
 
 @app.errorhandler(500)
 def server_error(_error):
+    # A failed DB statement leaves the session unusable; reset it so this page can still render.
+    try:
+        db.session.rollback()
+    except Exception:
+        pass
+    try:
+        error_user = current_user()
+    except Exception:
+        error_user = None
     return render_template(
         "error.html",
-        user=current_user(),
+        user=error_user,
         code=500,
         title="Something went wrong",
         message="Bloom hit an unexpected error. Try again in a moment, or go home and continue from there.",

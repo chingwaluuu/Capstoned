@@ -3,6 +3,7 @@ import os
 import re
 import urllib.error
 import urllib.request
+import time
 from contextvars import ContextVar
 
 
@@ -278,7 +279,24 @@ def _complete_json(prompt: str) -> dict:
         return {}
 
 
+# Hard cap on the total time one AI request may spend across providers/models. Kept well under the
+# gunicorn worker timeout so a slow provider falls back to local questions instead of killing the request.
+AI_TIME_BUDGET_SECONDS = float(os.environ.get("AI_TIME_BUDGET_SECONDS", "90"))
+_AI_DEADLINE = ContextVar("ai_deadline", default=None)
+
+
+def _remaining_budget() -> float:
+    deadline = _AI_DEADLINE.get()
+    if deadline is None:
+        return AI_TIME_BUDGET_SECONDS
+    remaining = deadline - time.monotonic()
+    if remaining <= 1:
+        raise TimeoutError("AI time budget exhausted")
+    return remaining
+
+
 def _complete(prompt: str) -> str:
+    _AI_DEADLINE.set(time.monotonic() + AI_TIME_BUDGET_SECONDS)
     global _LAST_AI_ERROR
     _LAST_AI_ERROR = ""
     _LAST_AI_USAGE.set(None)
@@ -352,7 +370,7 @@ def _openai(prompt: str, key: str) -> tuple[str, dict]:
         },
         method="POST",
     )
-    with urllib.request.urlopen(req, timeout=60) as resp:
+    with urllib.request.urlopen(req, timeout=_remaining_budget()) as resp:
         payload = json.loads(resp.read().decode("utf-8"))
     usage = payload.get("usage") or {}
     def token_value(name):
@@ -401,7 +419,7 @@ def _gemini(prompt: str, key: str) -> tuple[str, dict]:
             method="POST",
         )
         try:
-            with urllib.request.urlopen(req, timeout=60) as resp:
+            with urllib.request.urlopen(req, timeout=_remaining_budget()) as resp:
                 payload = json.loads(resp.read().decode("utf-8"))
             candidates = payload.get("candidates") or []
             if not candidates:
@@ -423,6 +441,9 @@ def _gemini(prompt: str, key: str) -> tuple[str, dict]:
             }
         except Exception as exc:
             last_error = exc
+            # Timeouts/network errors affect every model; only try the next model for model-specific HTTP errors.
+            if not isinstance(exc, urllib.error.HTTPError):
+                break
             continue
     raise last_error or RuntimeError("Gemini request failed")
 
