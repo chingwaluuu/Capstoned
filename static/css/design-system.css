@@ -6455,6 +6455,180 @@ math {
 /* Teacher profile settings: use the full canvas and keep the controls compact. */
 .pro-body.teacher-workspace.profile-page .profile-shell{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:stretch}.pro-body.teacher-workspace.profile-page .profile-main-col,.pro-body.teacher-workspace.profile-page .profile-aside-col{display:contents}.pro-body.teacher-workspace.profile-page .profile-photo-edit{grid-column:1/-1;grid-template-columns:minmax(0,1fr) minmax(320px,.85fr);gap:20px;padding:18px 22px}.pro-body.teacher-workspace.profile-page .profile-photo-form{grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:12px}.pro-body.teacher-workspace.profile-page .profile-photo-choose{height:92px;min-height:92px;flex-direction:row;gap:12px;padding:12px}.pro-body.teacher-workspace.profile-page .profile-photo-choose-icon .fi{font-size:1.6rem}.pro-body.teacher-workspace.profile-page .profile-photo-actions{align-items:center}.pro-body.teacher-workspace.profile-page .profile-account,.pro-body.teacher-workspace.profile-page .profile-security{min-width:0;padding:18px 20px}.pro-body.teacher-workspace.profile-page .profile-identity{width:auto;max-width:none;margin-inline:var(--pro-space-page-x)}@media(max-width:760px){.pro-body.teacher-workspace.profile-page .profile-shell{grid-template-columns:minmax(0,1fr)}.pro-body.teacher-workspace.profile-page .profile-account,.pro-body.teacher-workspace.profile-page .profile-security{grid-column:1}.pro-body.teacher-workspace.profile-page .profile-photo-edit,.pro-body.teacher-workspace.profile-page .profile-photo-form{grid-template-columns:minmax(0,1fr)}.pro-body.teacher-workspace.profile-page .profile-photo-actions{flex-direction:row;align-items:center}}
 
+/* General Exam builder: full-width alignment, consistent type, and Bloom navy. */
+.pro-body.student.general-exam-setup-page {
+  --color-primary: #1F2A5C;
+  --color-primary-press: #172047;
+  --brand-primary: #1F2A5C;
+  --brand-primary-press: #172047;
+  --bloom-primary: #1F2A5C;
+  --bloom-active: #172047;
+  --border: #DED9CF;
+  --border-subtle: #DED9CF;
+  font-family: Inter, "Segoe UI", sans-serif;
+}
+
+.pro-body.student.general-exam-setup-page .pro-hero {
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.pro-body.student.general-exam-setup-page .pro-hero-title {
+  margin: 0;
+  color: #1F2A5C;
+  font-family: Inter, "Segoe UI", sans-serif;
+  font-size: clamp(27px, 3vw, 34px);
+  font-weight: 750;
+  line-height: 1.16;
+  letter-spacing: -0.035em;
+}
+
+.pro-body.student.general-exam-setup-page .pro-hero-sub {
+  max-width: 760px;
+  margin-top: 7px;
+  color: #59657D;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.pro-body.student.general-exam-setup-page .pro-hero-aside {
+  align-self: center;
+}
+
+.pro-body.student.general-exam-setup-page .pro-hero-aside .editorial-text-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid #D8DCE8;
+  border-radius: 999px;
+  color: #1F2A5C;
+  font-size: 13px;
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.pro-body.student.general-exam-setup-page .pro-hero-aside .editorial-text-link:hover {
+  border-color: #1F2A5C;
+  background: #F1F3F9;
+}
+
+.pro-body.student.general-exam-setup-page .general-exam-builder {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  gap: 14px;
+  font-family: Inter, "Segoe UI", sans-serif;
+}
+
+.pro-body.student.general-exam-setup-page :is(.general-exam-summary, .general-exam-split, .general-exam-subject, .general-exam-options) {
+  border-color: #DED9CF;
+  border-radius: 15px;
+  box-shadow: 0 5px 18px rgba(31, 42, 92, .045);
+}
+
+.pro-body.student.general-exam-setup-page .general-exam-summary {
+  min-height: 78px;
+  padding: 14px 20px;
+  gap: 16px;
+}
+
+.pro-body.student.general-exam-setup-page .general-exam-summary-number,
+.pro-body.student.general-exam-setup-page .general-exam-summary-label {
+  font-family: Inter, "Segoe UI", sans-serif;
+}
+
+.pro-body.student.general-exam-setup-page .general-exam-summary-number { color: #1F2A5C; font-size: 28px; }
+.pro-body.student.general-exam-setup-page .general-exam-summary p { color: #59657D; font-size: 13px; line-height: 1.5; }
+.pro-body.student.general-exam-setup-page .general-exam-quota { background: #EEF0F6; color: #354267; font-size: 12px; font-weight: 650; }
+
+.pro-body.student.general-exam-setup-page .general-exam-split {
+  grid-template-columns: minmax(220px, 1fr) auto;
+  gap: 8px 18px;
+  padding: 14px 20px;
+}
+
+.pro-body.student.general-exam-setup-page .general-exam-split h2 { color: #1F2A5C; font-size: 15px; font-weight: 700; }
+.pro-body.student.general-exam-setup-page .general-exam-split-options label { min-height: 38px; border-radius: 999px; color: #46516A; }
+.pro-body.student.general-exam-setup-page .general-exam-split-options label:has(input:checked) { border-color: #1F2A5C; background: #EEF0F6; color: #1F2A5C; }
+.pro-body.student.general-exam-setup-page .general-exam-count-status { font-size: 12px; line-height: 1.4; }
+.pro-body.student.general-exam-setup-page .general-exam-count-status.is-valid { color: #16734B; }
+.pro-body.student.general-exam-setup-page .general-exam-count-status.is-invalid { color: #9A3439; }
+
+.pro-body.student.general-exam-setup-page .general-exam-subjects {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: stretch;
+  gap: 14px;
+}
+
+.pro-body.student.general-exam-setup-page .general-exam-subject {
+  min-height: 0;
+  padding: 0 15px 12px;
+  overflow: hidden;
+  border-top: 3px solid #1F2A5C;
+  background: #FFFFFF;
+}
+
+.pro-body.student.general-exam-setup-page .general-exam-subject[data-subject-card="english"] { border-top-color: #7265C8; }
+.pro-body.student.general-exam-setup-page .general-exam-subject[data-subject-card="mathematics"] { border-top-color: #D7933D; }
+.pro-body.student.general-exam-setup-page .general-exam-subject[data-subject-card="science"] { border-top-color: #378B68; }
+.pro-body.student.general-exam-setup-page .general-exam-subject.is-selected { box-shadow: 0 0 0 2px rgba(31, 42, 92, .10), 0 7px 20px rgba(31, 42, 92, .07); }
+
+.pro-body.student.general-exam-setup-page .general-exam-subject-head {
+  display: flex;
+  min-height: 58px;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid #EAE7E0;
+}
+
+.pro-body.student.general-exam-setup-page .general-exam-subject-toggle { position: relative; display: grid; flex: 0 0 22px; width: 22px; height: 22px; place-items: center; cursor: pointer; }
+.pro-body.student.general-exam-setup-page .general-exam-subject-toggle input { position: absolute; width: 22px; height: 22px; margin: 0; opacity: 0; cursor: pointer; }
+.pro-body.student.general-exam-setup-page .general-exam-subject-toggle span { width: 19px; height: 19px; border: 1.5px solid #AAAFAF; border-radius: 6px; background: #fff; }
+.pro-body.student.general-exam-setup-page .general-exam-subject-toggle input:checked + span { border-color: #1F2A5C; background: #1F2A5C; box-shadow: inset 0 0 0 4px #fff; }
+.pro-body.student.general-exam-setup-page .general-exam-subject-toggle input:focus-visible + span { outline: 3px solid rgba(31, 42, 92, .22); outline-offset: 2px; }
+.pro-body.student.general-exam-setup-page .general-exam-subject-toggle input:disabled + span { background: #F1F0EC; cursor: not-allowed; }
+.pro-body.student.general-exam-setup-page .general-exam-subject-title { flex: 1; margin: 0; color: #1F2A5C; font-size: 16px; font-weight: 720; line-height: 1.25; }
+.pro-body.student.general-exam-setup-page .general-exam-subject-count { padding: 5px 9px; border-radius: 999px; background: #F4F3EF; color: #687187; font-size: 11px; white-space: nowrap; }
+.pro-body.student.general-exam-setup-page .general-exam-subject.is-selected .general-exam-subject-count { background: #EEF0F6; color: #1F2A5C; font-weight: 700; }
+
+.pro-body.student.general-exam-setup-page .general-exam-lessons { max-height: 245px; gap: 6px; padding: 10px 0 2px; }
+.pro-body.student.general-exam-setup-page .general-exam-lesson { align-items: center; min-height: 42px; padding: 9px 10px; border-color: transparent; color: #29344F; font-size: 13px; line-height: 1.4; }
+.pro-body.student.general-exam-setup-page .general-exam-lesson:hover { background: #F7F7F5; }
+.pro-body.student.general-exam-setup-page .general-exam-lesson:has(input:checked) { border-color: #D8DEED; background: #F2F4F9; color: #1F2A5C; }
+.pro-body.student.general-exam-setup-page .general-exam-lesson input { width: 16px; height: 16px; accent-color: #1F2A5C; }
+.pro-body.student.general-exam-setup-page .general-exam-lesson small { padding: 3px 7px; border-radius: 999px; background: #F1EFE8; font-size: 10px; }
+.pro-body.student.general-exam-setup-page .general-exam-no-lessons { padding: 12px 2px; color: #687187; font-size: 13px; }
+.pro-body.student.general-exam-setup-page .general-exam-question-count { margin-top: 9px; padding-top: 10px; color: #1F2A5C; }
+.pro-body.student.general-exam-setup-page .general-exam-question-count input { border-color: #D5D8E2; font-family: Inter, "Segoe UI", sans-serif; }
+
+.pro-body.student.general-exam-setup-page .general-exam-options { padding: 13px 18px; }
+.pro-body.student.general-exam-setup-page .general-exam-options summary { color: #1F2A5C; font-family: Inter, "Segoe UI", sans-serif; font-size: 14px; }
+.pro-body.student.general-exam-setup-page .general-exam-setting select { border-color: #D5D8E2; font-family: Inter, "Segoe UI", sans-serif; }
+.pro-body.student.general-exam-setup-page .general-exam-types label { min-height: 36px; border-radius: 999px; color: #354267; }
+.pro-body.student.general-exam-setup-page .general-exam-types input { accent-color: #1F2A5C; }
+
+.pro-body.student.general-exam-setup-page .general-exam-submit-row { min-height: 54px; padding: 0 2px 8px; }
+.pro-body.student.general-exam-setup-page .general-exam-submit-row p { color: #687187; font-size: 12px; line-height: 1.45; }
+.pro-body.student.general-exam-setup-page .general-exam-submit.btn-primary { flex: 0 0 auto; width: auto; min-width: 245px; min-height: 44px; padding: 0 20px; border: 1px solid #1F2A5C; border-radius: 999px; background: #1F2A5C; color: #FFFFFF; font-family: Inter, "Segoe UI", sans-serif; font-size: 13px; font-weight: 700; }
+.pro-body.student.general-exam-setup-page .general-exam-submit.btn-primary:hover { border-color: #172047; background: #172047; }
+.pro-body.student.general-exam-setup-page .general-exam-submit.btn-primary:disabled { border-color: #AEB5C8; background: #AEB5C8; color: #FFFFFF; opacity: 1; }
+
+@media (max-width: 1000px) {
+  .pro-body.student.general-exam-setup-page .general-exam-subjects { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 700px) {
+  .pro-body.student.general-exam-setup-page .pro-hero { align-items: flex-start; }
+  .pro-body.student.general-exam-setup-page .pro-hero-aside { align-self: flex-start; }
+  .pro-body.student.general-exam-setup-page .general-exam-subjects { grid-template-columns: minmax(0, 1fr); }
+  .pro-body.student.general-exam-setup-page .general-exam-summary { align-items: center; }
+  .pro-body.student.general-exam-setup-page .general-exam-summary p { flex-basis: calc(100% - 100px); }
+  .pro-body.student.general-exam-setup-page .general-exam-submit-row { align-items: stretch; }
+  .pro-body.student.general-exam-setup-page .general-exam-submit.btn-primary { width: 100%; min-width: 0; }
+}
+
 .pro-body.admin-users-page .account-delete-form{grid-column:1/-1}.pro-body.admin-users-page .account-delete-button{width:100%;min-height:40px;border:1px solid #B42332;border-radius:10px;background:#FFF1F2;color:#B42332;font:600 12px Inter,sans-serif;cursor:pointer}.pro-body.admin-users-page .account-delete-button:hover{border-color:#941B28;background:#B42332;color:#fff}
 
 .pro-body.admin-users-page .hub-list{align-items:start;align-content:start}.pro-body.admin-users-page .hub-list>[data-admin-user-card]{align-self:start}

@@ -26,12 +26,15 @@
 
     <section class="general-exam-subjects" aria-label="Choose lessons by subject">
       {% for group in subject_groups %}
-        <fieldset class="general-exam-subject" data-subject-card="{{ group.slug }}">
-          <legend>
-            <span class="general-exam-subject-check"><input type="checkbox" data-subject-toggle="{{ group.slug }}" aria-label="Include {{ group.name }}" {% if not group.materials %}disabled{% endif %}></span>
-            <span class="general-exam-subject-title">{{ group.name }}</span>
+        <section class="general-exam-subject" data-subject-card="{{ group.slug }}" role="group" aria-labelledby="general-subject-{{ group.slug }}">
+          <header class="general-exam-subject-head">
+            <label class="general-exam-subject-toggle" aria-label="Include {{ group.name }}">
+              <input type="checkbox" data-subject-toggle="{{ group.slug }}" {% if not group.materials %}disabled{% endif %}>
+              <span aria-hidden="true"></span>
+            </label>
+            <h2 class="general-exam-subject-title" id="general-subject-{{ group.slug }}">{{ group.name }}</h2>
             <span class="general-exam-subject-count" data-subject-count>Not selected</span>
-          </legend>
+          </header>
           {% if group.materials %}
             <div class="general-exam-lessons">
               {% for material in group.materials %}
@@ -49,7 +52,7 @@
             <span>Questions from {{ group.name }}</span>
             <input type="number" name="question_count_{{ group.slug }}" min="1" max="{{ question_total }}" value="1" inputmode="numeric" data-question-count="{{ group.slug }}" disabled>
           </label>
-        </fieldset>
+        </section>
       {% endfor %}
     </section>
 
