@@ -9,7 +9,7 @@
     <section class="hots-generate-card" aria-labelledby="hots-generate-title">
       <p class="hots-kicker">Create</p>
       <h2 id="hots-generate-title" class="hots-card-title">Generate a HOTS set</h2>
-      <p class="hots-help">Questions stay grounded in the uploaded lesson text. Review before publishing.</p>
+      <p class="hots-help">Generate from one lesson or combine all approved lessons from a term into one exam. Review questions before publishing.</p>
       {% if subject_slug == "mathematics" %}
         <aside class="hots-math-guide" aria-label="Math notation guide">
           <strong>Math notation</strong>
@@ -22,12 +22,21 @@
           <input type="hidden" name="action" value="generate" />
           <div class="hots-generate-grid">
             <div class="field">
-              <label for="material_id">Approved material</label>
+              <label for="source_key">Lesson or term exam</label>
               <div class="hots-select">
-                <select id="material_id" name="material_id" required>
+                <select id="source_key" name="source_key" required>
+                  <optgroup label="Single lesson">
                   {% for material in materials %}
-                    <option value="{{ material.id }}">{{ material.title }}</option>
+                    <option value="lesson:{{ material.id }}">{{ material.title }}</option>
                   {% endfor %}
+                  </optgroup>
+                  {% if term_options %}
+                    <optgroup label="Term exams · all lessons combined">
+                      {% for item in term_options %}
+                        <option value="term:{{ item.term.id }}">{{ item.term.name }} · {{ item.year.name }} ({{ item.lesson_count }} lessons)</option>
+                      {% endfor %}
+                    </optgroup>
+                  {% endif %}
                 </select>
                 <span class="hots-select-icon" aria-hidden="true">
                   <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
@@ -58,6 +67,8 @@
                 <select id="count" name="count">
                   <option value="3">3</option>
                   <option value="5" selected>5</option>
+                  <option value="10">10</option>
+                  <option value="15">15</option>
                 </select>
                 <span class="hots-select-icon" aria-hidden="true">
                   <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
@@ -83,7 +94,7 @@
             </div>
           </div>
           <p class="hots-help hots-help-after">Difficulty changes how complex the scenarios are. Bloom’s level still stays Analyze, Evaluate, or Create.</p>
-          <button type="submit" class="btn-primary hots-generate-submit">Generate HOTS set</button>
+          <button type="submit" class="btn-primary hots-generate-submit">Generate assessment</button>
         </form>
       {% else %}
         <p class="hots-help">Upload and approve a material first.</p>
@@ -107,6 +118,7 @@
             <h2 class="hots-set-title">{{ assessment.title }}</h2>
             <p class="hots-set-meta">
               {{ assessment.questions|length }} questions
+              {% if assessment.term_label %} · {{ assessment.term_label }} Term Exam · {{ assessment.school_year_label }}{% endif %}
               {% if assessment.difficulty %} · Difficulty: {{ difficulty_label(assessment.difficulty) }}{% endif %}
               {% if assessment.deadline %} · Due {{ assessment.deadline.strftime("%b %d · %I:%M %p") }}{% endif %}
             </p>
@@ -149,7 +161,7 @@
           </div>
 
           {% if assessment.status == "draft" %}
-            <form class="hots-publish-form" method="POST" action="{{ url_for('teacher_hots') }}" data-confirm="Publish this HOTS assessment to the section?" data-loading="Publishing to section…">
+            <form class="hots-publish-form" method="POST" action="{{ url_for('teacher_hots') }}" data-confirm="Publish this assessment to students?" data-loading="Publishing assessment…">
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
               <input type="hidden" name="action" value="publish" />
               <input type="hidden" name="assessment_id" value="{{ assessment.id }}" />
@@ -157,14 +169,14 @@
                 <label for="deadline-{{ assessment.id }}">Deadline</label>
                 <input id="deadline-{{ assessment.id }}" name="deadline" type="datetime-local" />
               </div>
-              <button type="submit" class="btn-primary hots-generate-submit">Publish to section</button>
+              <button type="submit" class="btn-primary hots-generate-submit">Publish assessment</button>
             </form>
           {% endif %}
         </section>
       {% else %}
         <article class="hots-set-card">
           <h3 class="hots-set-title">No HOTS sets yet</h3>
-          <p class="hots-set-meta">Generate from an approved lesson, review each item, then publish.</p>
+          <p class="hots-set-meta">Generate from an approved lesson or combine all approved lessons in a term. Review questions, then publish.</p>
         </article>
       {% endfor %}
     </section>

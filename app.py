@@ -418,6 +418,37 @@ def practice_source(subject_slug, material_slug):
     )
 
 
+def term_exam_source(subject_slug, term_id, year):
+    """Build one topic-labeled source from every approved lesson in a term."""
+    term = db.session.get(AcademicTerm, term_id)
+    if not term or not year:
+        return None, []
+    materials = (
+        Material.query.filter_by(
+            subject_slug=subject_slug,
+            status="approved",
+            term=term.id,
+            school_year_id=year.id,
+        )
+        .order_by(Material.title.asc())
+        .all()
+    )
+    if not materials:
+        return None, []
+    per_topic = max(1, 10000 // len(materials))
+    source_text = "\n\n".join(
+        f"TOPIC: {material.title}\n{(material.extracted_text or '')[:per_topic]}"
+        for material in materials
+    )
+    return {
+        "term": term,
+        "year": year,
+        "materials": materials,
+        "title": f"{term.name} Term Exam · {year.name}",
+        "text": source_text,
+    }, materials
+
+
 def ensure_schema():
     inspector = sa_inspect(db.engine)
     tables = set(inspector.get_table_names())
@@ -427,6 +458,10 @@ def ensure_schema():
         ("quiz_draft", "difficulty", "VARCHAR(20) DEFAULT 'medium'"),
         ("attempt", "difficulty", "VARCHAR(20)"),
         ("assessment", "difficulty", "VARCHAR(20)"),
+        ("assessment", "term_id", "INTEGER REFERENCES academic_term(id) ON DELETE SET NULL"),
+        ("assessment", "school_year_id", "INTEGER REFERENCES school_year(id) ON DELETE SET NULL"),
+        ("assessment", "term_label", "VARCHAR(80)"),
+        ("assessment", "school_year_label", "VARCHAR(20)"),
         ("user", "avatar_filename", "VARCHAR(255)"),
         ("user", "is_active", "BOOLEAN NOT NULL DEFAULT TRUE"),
         ("user", "section_id", "INTEGER REFERENCES school_section(id) ON DELETE SET NULL"),
@@ -4200,30 +4235,64 @@ def teacher_hots(user):
     if request.method == "POST":
         action = request.form.get("action", "generate")
         if action == "generate":
-            material = Material.query.filter_by(id=request.form.get("material_id", type=int), subject_slug=slug, status="approved").first()
-            if not material:
-                flash("Choose an approved material first.", "danger")
+            source_key = request.form.get("source_key", "")
+            source_kind, _, source_id = source_key.partition(":")
+            material = None
+            term_source = None
+            if source_kind == "lesson" and source_id.isdigit():
+                material = Material.query.filter_by(
+                    id=int(source_id), subject_slug=slug, status="approved"
+                ).first()
+                if not material:
+                    flash("Choose an approved lesson for this subject.", "danger")
+                    return redirect(url_for("teacher_hots"))
+                source_title = material.title
+                source_text = material.extracted_text or ""
+                assessment_title = f"{material.title} HOTS Assessment"
+            elif source_kind == "term" and source_id.isdigit():
+                term_source, _ = term_exam_source(slug, int(source_id), active_school_year())
+                if not term_source:
+                    flash("That term has no approved lessons for the active school year.", "danger")
+                    return redirect(url_for("teacher_hots"))
+                source_title = term_source["title"]
+                source_text = term_source["text"]
+                assessment_title = term_source["title"]
+            else:
+                flash("Choose an approved lesson or a term exam source.", "danger")
                 return redirect(url_for("teacher_hots"))
             try:
-                count = max(1, min(int(request.form.get("count") or 5), 8))
+                count = max(1, min(int(request.form.get("count") or 5), 15))
             except ValueError:
                 count = 5
             bloom = request.form.get("bloom") or "mixed"
             difficulty = normalize_difficulty(request.form.get("difficulty"))
-            questions = generate_hots_questions(
-                material.title,
-                material.extracted_text,
-                SUBJECTS[slug]["name"],
-                bloom,
-                count,
-                ["mcq", "essay", "problem"],
-                difficulty,
-            )
+            try:
+                questions = generate_hots_questions(
+                    source_title,
+                    source_text,
+                    SUBJECTS[slug]["name"],
+                    bloom,
+                    count,
+                    ["mcq", "essay", "problem"],
+                    difficulty,
+                )
+            except Exception:
+                db.session.rollback()
+                logger.exception("Assessment question generation failed")
+                flash("Could not generate the assessment. Please try again.", "danger")
+                return redirect(url_for("teacher_hots"))
+            if not questions:
+                flash("No questions were generated. Check that the selected lessons have text.", "danger")
+                return redirect(url_for("teacher_hots"))
             assessment = Assessment(
-                slug=unique_slug(f"{material.title}-hots", Assessment),
-                title=f"{material.title} HOTS Assessment",
+                slug=unique_slug(assessment_title, Assessment),
+                title=assessment_title,
                 subject_slug=slug,
-                material_id=material.id,
+                material_id=material.id if material else None,
+                term_id=term_source["term"].id if term_source else None,
+                school_year_id=term_source["year"].id if term_source else None,
+                term_label=term_source["term"].name if term_source else None,
+                school_year_label=term_source["year"].name if term_source else None,
                 created_by=user["id"],
                 status="draft",
                 difficulty=difficulty,
@@ -4245,7 +4314,14 @@ def teacher_hots(user):
                     )
                 )
             db.session.commit()
-            flash("HOTS set generated. Review items before publishing.", "success")
+            if term_source:
+                flash(
+                    f"{term_source['term'].name} Term Exam generated from "
+                    f"{len(term_source['materials'])} approved lessons. Review items before publishing.",
+                    "success",
+                )
+            else:
+                flash("HOTS set generated. Review items before publishing.", "success")
         elif action == "publish":
             assessment = Assessment.query.filter_by(id=request.form.get("assessment_id", type=int), subject_slug=slug).first()
             if assessment:
@@ -4259,14 +4335,26 @@ def teacher_hots(user):
                 else:
                     assessment.deadline = datetime.utcnow() + timedelta(days=2)
                 db.session.commit()
-                flash("Assessment published to the section.", "success")
+                flash("Assessment published to students.", "success")
         elif action == "regenerate":
             question = db.session.get(Question, request.form.get("question_id", type=int))
             if question and question.assessment.subject_slug == slug:
-                material = question.assessment.material
+                assessment = question.assessment
+                material = assessment.material
+                source_title = material.title if material else assessment.title
+                source_text = material.extracted_text if material else question.prompt
+                if assessment.term_id and assessment.school_year_id:
+                    term_source, _ = term_exam_source(
+                        slug,
+                        assessment.term_id,
+                        db.session.get(SchoolYear, assessment.school_year_id),
+                    )
+                    if term_source:
+                        source_title = term_source["title"]
+                        source_text = term_source["text"]
                 generated = generate_hots_questions(
-                    material.title if material else question.assessment.title,
-                    material.extracted_text if material else question.prompt,
+                    source_title,
+                    source_text,
                     SUBJECTS[slug]["name"],
                     question.bloom,
                     1,
@@ -4287,7 +4375,16 @@ def teacher_hots(user):
                 flash("Question regenerated.", "success")
         return redirect(url_for("teacher_hots"))
 
-    materials = Material.query.filter_by(subject_slug=slug, status="approved").all()
+    materials = Material.query.filter_by(subject_slug=slug, status="approved").order_by(Material.title).all()
+    year = active_school_year()
+    term_options = []
+    if year:
+        for term in AcademicTerm.query.order_by(AcademicTerm.sort_order, AcademicTerm.id):
+            lesson_count = Material.query.filter_by(
+                subject_slug=slug, status="approved", term=term.id, school_year_id=year.id
+            ).count()
+            if lesson_count:
+                term_options.append({"term": term, "year": year, "lesson_count": lesson_count})
     assessments = Assessment.query.filter_by(subject_slug=slug).order_by(Assessment.created_at.desc()).all()
     return render_template(
         "teacher_hots.html",
@@ -4296,6 +4393,7 @@ def teacher_hots(user):
         role_nav=teacher_nav(),
         active_nav="hots",
         materials=materials,
+        term_options=term_options,
         assessments=assessments,
         subject_name=SUBJECTS[slug]["name"],
         subject_slug=slug,
@@ -5081,6 +5179,9 @@ def admin_settings(user):
             if not term:
                 flash("That term could not be found.", "danger")
             else:
+                Assessment.query.filter_by(term_id=term.id).update(
+                    {Assessment.term_id: None}, synchronize_session=False
+                )
                 Material.query.filter_by(term=term.id).update(
                     {Material.term: None, Material.school_year_id: None},
                     synchronize_session=False,

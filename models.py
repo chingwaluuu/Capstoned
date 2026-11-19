@@ -62,6 +62,10 @@ class Assessment(db.Model):
     title = db.Column(db.String(200), nullable=False)
     subject_slug = db.Column(db.String(40), nullable=False)
     material_id = db.Column(db.Integer, db.ForeignKey("material.id"))
+    term_id = db.Column(db.Integer, db.ForeignKey("academic_term.id", ondelete="SET NULL"))
+    school_year_id = db.Column(db.Integer, db.ForeignKey("school_year.id", ondelete="SET NULL"))
+    term_label = db.Column(db.String(80))
+    school_year_label = db.Column(db.String(20))
     created_by = db.Column(db.Integer, db.ForeignKey("user.id"))
     status = db.Column(db.String(20), default="draft")  # draft | published | closed
     deadline = db.Column(db.DateTime)
