@@ -42,6 +42,24 @@
       <button class="admin-ai-usage-apply" type="submit"><i class="fi fi-rr-filter" aria-hidden="true"></i><span>Apply filters</span></button>
     </form>
 
+    <section class="admin-general-exam-reset" id="general-exam-limits" aria-labelledby="general-exam-limits-title">
+      <div class="admin-general-exam-reset-copy">
+        <span class="admin-general-exam-reset-kicker">STUDENT PRACTICE</span>
+        <h2 id="general-exam-limits-title">General Exam daily limit</h2>
+        <p>Reset one student’s count for today. This does not remove their submitted exams or results.</p>
+      </div>
+      <form method="post" action="{{ url_for('admin_reset_general_exam_limit') }}" class="admin-general-exam-reset-form">
+        <label for="general-exam-student">Student account</label>
+        <select id="general-exam-student" name="student_id" required>
+          <option value="">Choose a student</option>
+          {% for student in general_exam_students %}
+            <option value="{{ student.id }}">{{ student.name }} · {{ student.used_today }}/{{ general_exam_daily_limit }} used today</option>
+          {% endfor %}
+        </select>
+        <button type="submit" class="admin-general-exam-reset-button">Reset today’s count</button>
+      </form>
+    </section>
+
     <section class="admin-ai-usage-stats" aria-label="Usage totals">
       <article class="admin-ai-usage-stat"><span>Practice generations</span><strong>{{ usage_totals.generations }}</strong></article>
       <article class="admin-ai-usage-stat"><span>Total provider tokens</span><strong>{{ "{:,}".format(usage_totals.total_tokens) }}</strong><small>Only where reported by the provider</small></article>

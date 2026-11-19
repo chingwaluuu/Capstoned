@@ -5471,6 +5471,22 @@ def admin_reports(user):
         .limit(100)
         .all()
     )
+    generation_start, generation_end = practice_generation_day_window()
+    used_today_by_user = dict(
+        db.session.query(PracticeGeneration.user_id, db.func.count(PracticeGeneration.id))
+        .filter(
+            PracticeGeneration.subject_slug == GENERAL_EXAM_GENERATION_KEY,
+            PracticeGeneration.created_at >= generation_start,
+            PracticeGeneration.created_at < generation_end,
+        )
+        .group_by(PracticeGeneration.user_id)
+        .all()
+    )
+    general_exam_students = [
+        {"id": student.id, "name": student.name, "email": student.email,
+         "used_today": used_today_by_user.get(student.id, 0)}
+        for student in User.query.filter_by(role="student", is_active=True).order_by(User.name).all()
+    ]
     return render_template(
         "admin_ai_usage.html",
         user=user,
@@ -5482,6 +5498,8 @@ def admin_reports(user):
         selected_period=selected_period,
         selected_questions=selected_questions,
         subjects=usage_subjects,
+        general_exam_students=general_exam_students,
+        general_exam_daily_limit=GENERAL_EXAMS_PER_DAY,
         usage_rows=rows,
         usage_totals={
             "generations": totals[0],
@@ -5491,6 +5509,32 @@ def admin_reports(user):
             "local_fallbacks": totals[4],
         },
     )
+
+
+@app.route("/admin/reports/general-exam-limit/reset", methods=["POST"])
+@require_role("admin")
+def admin_reset_general_exam_limit(user):
+    student_id = request.form.get("student_id", type=int)
+    student = User.query.filter_by(id=student_id, role="student").first() if student_id else None
+    if not student:
+        flash("Choose a student account to reset.", "danger")
+        return redirect(url_for("admin_reports") + "#general-exam-limits")
+
+    start, end = practice_generation_day_window()
+    db.session.query(User.id).filter_by(id=student.id).with_for_update().first()
+    deleted = PracticeGeneration.query.filter_by(
+        user_id=student.id,
+        subject_slug=GENERAL_EXAM_GENERATION_KEY,
+    ).filter(
+        PracticeGeneration.created_at >= start,
+        PracticeGeneration.created_at < end,
+    ).delete(synchronize_session=False)
+    db.session.commit()
+    if deleted:
+        flash(f"Reset today’s General Exam count for {student.name}. They can generate up to {GENERAL_EXAMS_PER_DAY} more today.", "success")
+    else:
+        flash(f"{student.name} has no General Exam generations used today.", "info")
+    return redirect(url_for("admin_reports") + "#general-exam-limits")
 
 
 @app.route("/admin/settings", methods=["GET", "POST"])

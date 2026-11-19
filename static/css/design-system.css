@@ -6631,3 +6631,14 @@ math {
 .pro-body.admin-users-page .hub-list{align-items:start;align-content:start}.pro-body.admin-users-page .hub-list>[data-admin-user-card]{align-self:start}
 
 .pro-body.admin-users-page .admin-users-layout [data-admin-user-card][hidden]{display:none!important}
+
+.pro-body.admin-ai-usage-page .admin-general-exam-reset{display:grid;grid-template-columns:minmax(0,1fr) minmax(320px,.95fr);align-items:center;gap:22px;margin:16px 0;padding:18px 20px;border:1px solid #DED9CF;border-radius:15px;background:#FFF;box-shadow:0 5px 18px rgba(31,42,92,.045)}
+.pro-body.admin-ai-usage-page .admin-general-exam-reset-kicker{color:#59657D;font:700 10px Inter,"Segoe UI",sans-serif;letter-spacing:.1em}
+.pro-body.admin-ai-usage-page .admin-general-exam-reset h2{margin:5px 0;color:#1F2A5C;font:700 17px Inter,"Segoe UI",sans-serif}
+.pro-body.admin-ai-usage-page .admin-general-exam-reset p{margin:0;color:#687187;font:400 13px/1.5 Inter,"Segoe UI",sans-serif}
+.pro-body.admin-ai-usage-page .admin-general-exam-reset-form{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:8px 10px}
+.pro-body.admin-ai-usage-page .admin-general-exam-reset-form label{grid-column:1/-1;color:#354267;font:600 12px Inter,"Segoe UI",sans-serif}
+.pro-body.admin-ai-usage-page .admin-general-exam-reset-form select{width:100%;min-width:0;min-height:42px;padding:0 12px;border:1px solid #D5D8E2;border-radius:10px;background:#FFF;color:#1F2A5C;font:500 13px Inter,"Segoe UI",sans-serif}
+.pro-body.admin-ai-usage-page .admin-general-exam-reset-button{min-height:42px;padding:0 16px;border:1px solid #1F2A5C;border-radius:999px;background:#1F2A5C;color:#FFF;font:700 12px Inter,"Segoe UI",sans-serif;white-space:nowrap;cursor:pointer}
+.pro-body.admin-ai-usage-page .admin-general-exam-reset-button:hover{border-color:#172047;background:#172047}
+@media(max-width:760px){.pro-body.admin-ai-usage-page .admin-general-exam-reset{grid-template-columns:minmax(0,1fr);gap:14px;padding:16px}.pro-body.admin-ai-usage-page .admin-general-exam-reset-form{grid-template-columns:minmax(0,1fr)}.pro-body.admin-ai-usage-page .admin-general-exam-reset-form label{grid-column:auto}.pro-body.admin-ai-usage-page .admin-general-exam-reset-button{width:100%}}
