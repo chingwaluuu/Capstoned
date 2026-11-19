@@ -108,7 +108,16 @@
       event.preventDefault();
       status.focus();
       status.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
     }
+    form.dataset.submitting = "true";
+    form.setAttribute("aria-busy", "true");
+    status.textContent = "Generating questions from your selected lessons. Please keep this page open.";
+    status.classList.remove("is-invalid");
+    status.classList.add("is-valid");
+    status.setAttribute("aria-busy", "true");
+    submit.disabled = true;
+    submit.textContent = "Generating exam…";
   });
   sync();
 })();

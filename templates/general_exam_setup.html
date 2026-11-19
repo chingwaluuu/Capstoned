@@ -8,7 +8,7 @@
 {% block page_subtitle %}Choose approved lessons from any subject. Each question uses material from its own subject only.{% endblock %}
 {% block page_actions %}<a class="editorial-text-link" href="{{ url_for('practice') }}">Back to Practice</a>{% endblock %}
 {% block content %}
-  <form class="general-exam-builder" method="post" action="{{ url_for('general_exam_setup') }}" data-question-total="{{ question_total }}" data-general-exam-builder>
+  <form class="general-exam-builder" method="post" action="{{ url_for('general_exam_setup') }}" data-question-total="{{ question_total }}" data-general-exam-builder data-loading="Generating your 30-question exam. This may take a few minutes…">
     <section class="general-exam-summary" aria-label="Exam settings">
       <div><span class="general-exam-summary-number">{{ question_total }}</span><span class="general-exam-summary-label">questions total</span></div>
       <p>Choose one or more subjects. You can split the questions evenly or set each subject’s count yourself.</p>
@@ -81,4 +81,4 @@
     </footer>
   </form>
 {% endblock %}
-{% block scripts %}<script src="{{ url_for('static', filename='js/general_exam_setup.js') }}?v=general-exam-2" defer></script>{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/general_exam_setup.js') }}?v=general-exam-3" defer></script>{% endblock %}
