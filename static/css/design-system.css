@@ -6566,13 +6566,10 @@ math {
   min-height: 0;
   padding: 0 15px 12px;
   overflow: hidden;
-  border-top: 3px solid #1F2A5C;
+  border-top: 1px solid #DED9CF;
   background: #FFFFFF;
 }
 
-.pro-body.student.general-exam-setup-page .general-exam-subject[data-subject-card="english"] { border-top-color: #7265C8; }
-.pro-body.student.general-exam-setup-page .general-exam-subject[data-subject-card="mathematics"] { border-top-color: #D7933D; }
-.pro-body.student.general-exam-setup-page .general-exam-subject[data-subject-card="science"] { border-top-color: #378B68; }
 .pro-body.student.general-exam-setup-page .general-exam-subject.is-selected { box-shadow: 0 0 0 2px rgba(31, 42, 92, .10), 0 7px 20px rgba(31, 42, 92, .07); }
 
 .pro-body.student.general-exam-setup-page .general-exam-subject-head {
