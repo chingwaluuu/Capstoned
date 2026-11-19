@@ -10,7 +10,7 @@
     <header class="review-head" aria-labelledby="result-title">
       <p class="review-context">
         <span>{{ subject.name }}</span>
-        <span>{% if kind == 'assessment' %}HOTS assessment{% else %}Practice check{% endif %}</span>
+        <span>{% if is_general_practice %}General Exam{% elif kind == 'assessment' %}HOTS assessment{% else %}Practice check{% endif %}</span>
         {% if difficulty_name %}<span>{{ difficulty_name }}</span>{% endif %}
       </p>
       <h1 id="result-title" class="pro-hero-title review-title">{{ hero_title }}</h1>
@@ -43,6 +43,7 @@
             <div class="review-item-head">
               <p class="review-item-meta">
                 <span>Question {{ loop.index }}</span>
+                {% if is_general_practice and item.subject_name %}<span class="review-item-subject">{{ item.subject_name }}</span>{% endif %}
                 {% if item.bloom %}<span class="review-item-bloom">{{ item.bloom }}</span>{% endif %}
               </p>
               <span class="review-item-status is-{{ item.status }}">{{ item.status_label }}</span>
@@ -121,7 +122,7 @@
           </div>
         {% endif %}
         <nav class="review-exit" aria-label="Leave review">
-          <a class="editorial-text-link" href="{{ url_for('subject_hub', slug=subject.slug, tab='practice') }}">Back to Practice</a>
+          <a class="editorial-text-link" href="{% if is_general_practice %}{{ url_for('practice') }}{% else %}{{ url_for('subject_hub', slug=subject.slug, tab='practice') }}{% endif %}">Back to Practice</a>
           <a class="editorial-text-link" href="{{ url_for('home') }}">Go to Home</a>
         </nav>
       </aside>

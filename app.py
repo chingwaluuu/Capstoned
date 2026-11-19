@@ -312,7 +312,7 @@ def practice_generations_used_today(user_id: int, subject_slug: str) -> int:
     ).count()
 
 
-def reserve_practice_generation(user_id: int, subject_slug: str):
+def reserve_practice_generation(user_id: int, subject_slug: str, limit: int = PRACTICE_GENERATIONS_PER_SUBJECT_DAILY):
     """Reserve one of today's generations before calling the external AI service."""
     start, end = practice_generation_day_window()
     # Lock the account row so concurrent requests for one student serialize on PostgreSQL.
@@ -324,7 +324,7 @@ def reserve_practice_generation(user_id: int, subject_slug: str):
         PracticeGeneration.created_at >= start,
         PracticeGeneration.created_at < end,
     ).count()
-    if used >= PRACTICE_GENERATIONS_PER_SUBJECT_DAILY:
+    if used >= limit:
         db.session.commit()
         return used, None
     reservation = PracticeGeneration(user_id=user_id, subject_slug=subject_slug)
@@ -1291,20 +1291,53 @@ def session_user_payload(user: User) -> dict:
     return payload
 
 
+def is_general_exam_attempt(attempt: Attempt) -> bool:
+    return attempt.kind == "practice" and attempt.title.startswith("General Exam ·")
+
+
+def attempt_includes_subject(attempt: Attempt, subject_slug: str) -> bool:
+    if not is_general_exam_attempt(attempt):
+        return attempt.subject_slug == subject_slug
+    return any(item.get("subject_slug") == subject_slug for item in attempt.review_items())
+
+
+def general_exam_subject_percent(review_items: list[dict], subject_slug: str) -> int | None:
+    scored = [
+        item for item in review_items
+        if item.get("subject_slug") == subject_slug and item.get("auto_scored")
+    ]
+    if not scored:
+        return None
+    return int(round(100 * sum(item.get("status") == "good" for item in scored) / len(scored)))
+
+
 def bloom_progress(user_id: int, subject_slug: str) -> tuple[int, str, bool]:
     """Return average auto-scored practice/assessment score for a subject.
 
     This is NOT curriculum completion. Callers must label it as an average score.
     """
-    attempts = Attempt.query.filter_by(user_id=user_id, subject_slug=subject_slug).all()
+    attempts = [
+        attempt for attempt in Attempt.query.filter(
+            Attempt.user_id == user_id,
+            or_(Attempt.subject_slug == subject_slug, Attempt.title.like("General Exam ·%")),
+        ).all()
+        if attempt_includes_subject(attempt, subject_slug)
+    ]
     if not attempts:
         return 0, "Start with a summary or Practice Check", False
     percents = []
     blooms = {"Analyze": 0, "Evaluate": 0, "Create": 0}
     for attempt in attempts:
-        if attempt.score_total_auto:
+        is_general = is_general_exam_attempt(attempt)
+        if is_general:
+            percent = general_exam_subject_percent(attempt.review_items(), subject_slug)
+            if percent is not None:
+                percents.append(percent)
+        elif attempt.score_total_auto:
             percents.append(int(100 * attempt.score_auto / attempt.score_total_auto))
         for item in attempt.review_items():
+            if is_general and item.get("subject_slug") != subject_slug:
+                continue
             bloom = item.get("bloom")
             if bloom in blooms and item.get("status") == "good":
                 blooms[bloom] += 1
@@ -1398,10 +1431,23 @@ def build_admin_class_monitor(section_name: str | None = None) -> dict:
     attempts_by_user: dict[int, list[Attempt]] = {}
     for attempt in attempts:
         attempts_by_user.setdefault(attempt.user_id, []).append(attempt)
-        subject_attempt_counts[attempt.subject_slug] = subject_attempt_counts.get(attempt.subject_slug, 0) + 1
+        is_general = is_general_exam_attempt(attempt)
+        exam_items = attempt.review_items() if is_general else []
+        subject_slugs = (
+            {item.get("subject_slug") for item in exam_items if item.get("subject_slug")}
+            if is_general else {attempt.subject_slug}
+        )
+        for slug in subject_slugs:
+            subject_attempt_counts[slug] = subject_attempt_counts.get(slug, 0) + 1
         percent = attempt_score_percent(attempt)
-        if percent is not None and attempt.subject_slug in subject_scores:
+        if is_general:
+            for slug in subject_slugs:
+                subject_percent = general_exam_subject_percent(exam_items, slug)
+                if subject_percent is not None and slug in subject_scores:
+                    subject_scores[slug].append(subject_percent)
+        elif percent is not None and attempt.subject_slug in subject_scores:
             subject_scores[attempt.subject_slug].append(percent)
+        if percent is not None:
             scored_percents.append(percent)
         for item in attempt.review_items():
             bloom = item.get("bloom")
@@ -1937,6 +1983,9 @@ def score_answers(questions: list[dict], form) -> tuple[list[dict], int, int, st
         review_items.append(
             {
                 "bloom": q.get("bloom"),
+                "subject_slug": q.get("subject_slug"),
+                "subject_name": q.get("subject_name"),
+                "auto_scored": q.get("type") == "mcq",
                 "prompt": q.get("prompt"),
                 "your_answer": your_answer,
                 "correct_answer": correct_answer,
@@ -2197,7 +2246,10 @@ def teacher_student_progress(user, subject_slug: str) -> list[dict]:
                 "tone": assessment_score_tone(percent if has_progress else None),
                 "insight": insight if has_progress else "No attempts yet",
                 "progress_label": progress_display_label(percent, has_progress, insight if has_progress else ""),
-                "practice_n": sum(1 for item in attempts if item.kind == "practice"),
+                "practice_n": sum(
+                    1 for item in attempts
+                    if item.kind == "practice" and attempt_includes_subject(item, subject_slug)
+                ),
                 "assessment_n": sum(1 for item in attempts if item.kind == "assessment"),
                 "message_href": url_for("messages_thread", user_id=student.id),
             }
@@ -2717,7 +2769,9 @@ def subject_hub(slug):
             )
 
     result_items = []
-    for attempt in Attempt.query.filter_by(user_id=user["id"], subject_slug=slug).order_by(Attempt.submitted_at.desc()):
+    for attempt in Attempt.query.filter_by(user_id=user["id"]).order_by(Attempt.submitted_at.desc()):
+        if not attempt_includes_subject(attempt, slug):
+            continue
         result_items.append(
             {
                 "kicker": attempt.kind.title(),
@@ -2833,6 +2887,275 @@ def practice_setup(subject_slug, material_slug):
     }
     context.update(announcements_context(user))
     return render_template("practice_setup.html", **context)
+
+
+GENERAL_EXAM_GENERATION_KEY = "general_exam"
+GENERAL_EXAMS_PER_DAY = 2
+GENERAL_EXAM_QUESTION_TOTAL = 30
+
+
+@app.route("/practice/general", methods=["GET", "POST"])
+def general_exam_setup():
+    user = require_user()
+    if not user:
+        return redirect(url_for("login"))
+    if user["role"] != "student":
+        return redirect(url_for("home"))
+
+    materials_by_subject = {
+        slug: Material.query.filter_by(subject_slug=slug, status="approved")
+        .order_by(Material.title.asc(), Material.id.asc())
+        .all()
+        for slug in SUBJECTS
+    }
+    used = practice_generations_used_today(user["id"], GENERAL_EXAM_GENERATION_KEY)
+    selected_difficulty = normalize_difficulty(request.form.get("difficulty") or session.get("practice_difficulty"))
+    if request.method == "POST":
+        selected_ids = list(dict.fromkeys(request.form.getlist("material_ids", type=int)))
+        selected_materials = (
+            Material.query.filter(Material.id.in_(selected_ids), Material.status == "approved").all()
+            if selected_ids else []
+        )
+        valid_by_id = {item.id: item for item in selected_materials}
+        if not selected_ids or set(selected_ids) != set(valid_by_id) or any(
+            material.subject_slug not in SUBJECTS for material in selected_materials
+        ):
+            flash("Choose at least one approved lesson.", "danger")
+            return redirect(url_for("general_exam_setup"))
+
+        grouped = {}
+        for material_id in selected_ids:
+            material = valid_by_id[material_id]
+            grouped.setdefault(material.subject_slug, []).append(material)
+        subject_slugs = [slug for slug in SUBJECTS if slug in grouped]
+        if not subject_slugs or len(subject_slugs) > GENERAL_EXAM_QUESTION_TOTAL:
+            flash("Choose one or more subjects with approved lessons.", "danger")
+            return redirect(url_for("general_exam_setup"))
+
+        distribution = request.form.get("distribution", "even")
+        if distribution == "even":
+            base, remainder = divmod(GENERAL_EXAM_QUESTION_TOTAL, len(subject_slugs))
+            question_counts = {
+                slug: base + (1 if index < remainder else 0)
+                for index, slug in enumerate(subject_slugs)
+            }
+        else:
+            try:
+                question_counts = {
+                    slug: int(request.form.get(f"question_count_{slug}", "0"))
+                    for slug in subject_slugs
+                }
+            except (TypeError, ValueError):
+                question_counts = {}
+            if (
+                len(question_counts) != len(subject_slugs)
+                or any(value < 1 or value > GENERAL_EXAM_QUESTION_TOTAL for value in question_counts.values())
+                or sum(question_counts.values()) != GENERAL_EXAM_QUESTION_TOTAL
+            ):
+                flash("Set at least one question per selected subject, and make the counts add up to 30.", "danger")
+                return redirect(url_for("general_exam_setup"))
+
+        difficulty = normalize_difficulty(request.form.get("difficulty"))
+        focus = request.form.get("focus", "mixed")
+        if focus not in {"mixed", "c4", "c5", "c6"}:
+            focus = "mixed"
+        allowed_types = {"mcq", "essay", "problem"}
+        selected_types = [item for item in request.form.getlist("types") if item in allowed_types]
+        if not selected_types:
+            selected_types = ["mcq", "essay", "problem"]
+
+        _, reservation_id = reserve_practice_generation(
+            user["id"], GENERAL_EXAM_GENERATION_KEY, GENERAL_EXAMS_PER_DAY
+        )
+        if reservation_id is None:
+            flash("You’ve used both General Exam generations for today. Try again tomorrow.", "danger")
+            return redirect(url_for("general_exam_setup"))
+
+        questions = []
+        source_words = prompt_words = generated_words = input_tokens = output_tokens = total_tokens = 0
+        provider_names, model_names = [], []
+        fallback_used = False
+        try:
+            for slug in subject_slugs:
+                subject_meta = SUBJECTS[slug]
+                lesson_materials = grouped[slug]
+                per_lesson = max(1, 10000 // len(lesson_materials))
+                subject_text = "\n\n".join(
+                    f"TOPIC: {item.title}\n{(item.extracted_text or '')[:per_lesson]}"
+                    for item in lesson_materials
+                )
+                subject_questions, usage = generate_hots_questions(
+                    f"{subject_meta['name']} General Exam",
+                    subject_text,
+                    subject_meta["name"],
+                    focus,
+                    question_counts[slug],
+                    selected_types,
+                    difficulty,
+                    include_usage=True,
+                )
+                if len(subject_questions) != question_counts[slug]:
+                    raise RuntimeError(f"Generation returned an incomplete {subject_meta['name']} question set")
+                for question in subject_questions:
+                    question["id"] = len(questions) + 1
+                    question["subject_slug"] = slug
+                    question["subject_name"] = subject_meta["name"]
+                    questions.append(question)
+                source_words += usage.get("source_words", 0)
+                prompt_words += usage.get("prompt_words", 0)
+                generated_words += usage.get("generated_words", 0)
+                input_tokens += usage.get("input_tokens") or 0
+                output_tokens += usage.get("output_tokens") or 0
+                total_tokens += usage.get("total_tokens") or 0
+                if usage.get("provider"):
+                    provider_names.append(usage["provider"])
+                if usage.get("model"):
+                    model_names.append(usage["model"])
+                fallback_used = fallback_used or usage.get("used_local_fallback", False)
+        except Exception:
+            release_practice_generation(reservation_id)
+            db.session.rollback()
+            logger.exception("General exam generation failed")
+            flash("Bloom couldn’t complete the General Exam. Your daily generation was returned; please try again.", "danger")
+            return redirect(url_for("general_exam_setup"))
+
+        subject_names = [SUBJECTS[slug]["name"] for slug in subject_slugs]
+        exam_title = "General Exam · " + " + ".join(subject_names)
+        provider_label = " + ".join(dict.fromkeys(provider_names))[:40] or None
+        model_label = " + ".join(dict.fromkeys(model_names))[:100] or None
+        bloom_label = {"mixed": "Mixed HOTS", "c4": "Analyze", "c5": "Evaluate", "c6": "Create"}.get(focus, "Mixed HOTS")
+        QuizDraft.query.filter_by(user_id=user["id"], kind="general_practice").delete()
+        draft = QuizDraft(
+            user_id=user["id"],
+            kind="general_practice",
+            subject_slug=subject_slugs[0],
+            material_slug="__general_exam__",
+            title=exam_title,
+            bloom_label=bloom_label,
+            difficulty=difficulty,
+            questions_json=json.dumps(questions),
+        )
+        db.session.add(draft)
+        db.session.add(PracticeUsage(
+            user_id=user["id"],
+            subject_slug="general",
+            material_title=exam_title,
+            question_count=len(questions),
+            source_words=source_words,
+            prompt_words=prompt_words,
+            generated_words=generated_words,
+            provider=provider_label,
+            model=model_label,
+            input_tokens=input_tokens if provider_names else None,
+            output_tokens=output_tokens if provider_names else None,
+            total_tokens=total_tokens if provider_names else None,
+            used_local_fallback=fallback_used,
+        ))
+        db.session.commit()
+        session["general_exam_draft_id"] = draft.id
+        session["general_exam_usage"] = {
+            "draft_id": draft.id,
+            "source_words": source_words,
+            "prompt_words": prompt_words,
+            "generated_words": generated_words,
+            "provider": provider_label or "",
+            "model": model_label or "",
+            "input_tokens": input_tokens if provider_names else None,
+            "output_tokens": output_tokens if provider_names else None,
+            "total_tokens": total_tokens if provider_names else None,
+            "used_local_fallback": fallback_used,
+        }
+        session["practice_difficulty"] = difficulty
+        if fallback_used:
+            flash("Bloom used local fallback questions for one or more subjects. Questions remain grouped by subject.", "warning")
+        else:
+            flash("Your General Exam is ready. Each subject’s questions use only that subject’s selected lessons.", "success")
+        return redirect(url_for("general_exam_take"))
+
+    context = {
+        "user": user,
+        "subject_groups": [
+            {"slug": slug, "name": meta["name"], "materials": materials_by_subject[slug]}
+            for slug, meta in SUBJECTS.items()
+        ],
+        "term_labels": academic_term_labels(),
+        "difficulties": list(DIFFICULTIES.values()),
+        "selected_difficulty": selected_difficulty,
+        "used_today": used,
+        "daily_limit": GENERAL_EXAMS_PER_DAY,
+        "question_total": GENERAL_EXAM_QUESTION_TOTAL,
+        "can_generate": used < GENERAL_EXAMS_PER_DAY,
+    }
+    context.update(announcements_context(user))
+    return render_template("general_exam_setup.html", **context)
+
+
+@app.route("/practice/general/take")
+def general_exam_take():
+    user = require_user()
+    if not user:
+        return redirect(url_for("login"))
+    draft = db.session.get(QuizDraft, session.get("general_exam_draft_id"))
+    if not draft or draft.user_id != user["id"] or draft.kind != "general_practice":
+        flash("Create a General Exam from Practice first.", "danger")
+        return redirect(url_for("general_exam_setup"))
+    questions = draft.questions()
+    if not questions:
+        flash("That General Exam is empty. Please generate it again.", "danger")
+        return redirect(url_for("general_exam_setup"))
+    subject_names = list(dict.fromkeys(q.get("subject_name", "") for q in questions if q.get("subject_name")))
+    context = {
+        "user": user,
+        "subject": {"slug": "general", "name": "General Exam"},
+        "material_slug": "__general_exam__",
+        "material_title": draft.title,
+        "is_term_review": False,
+        "term_topics": [],
+        "questions": questions,
+        "bloom_label": draft.bloom_label or "Mixed HOTS",
+        "difficulty_key": draft.difficulty or "medium",
+        "difficulty_name": difficulty_label(draft.difficulty),
+        "draft_id": draft.id,
+        "is_general_exam": True,
+        "general_exam_subjects": subject_names,
+        "generation_usage": (
+            session.get("general_exam_usage")
+            if (session.get("general_exam_usage") or {}).get("draft_id") == draft.id
+            else None
+        ),
+    }
+    context.update(announcements_context(user))
+    return render_template("practice_take.html", **context)
+
+
+@app.route("/practice/general/submit", methods=["POST"])
+def general_exam_submit():
+    user = require_user()
+    if not user:
+        return redirect(url_for("login"))
+    draft = db.session.get(QuizDraft, session.get("general_exam_draft_id"))
+    if not draft or draft.user_id != user["id"] or draft.kind != "general_practice":
+        flash("Please create a General Exam before submitting.", "danger")
+        return redirect(url_for("general_exam_setup"))
+    review_items, earned, auto_total, encouragement = score_answers(draft.questions(), request.form)
+    attempt = Attempt(
+        user_id=user["id"],
+        kind="practice",
+        subject_slug=draft.subject_slug,
+        title=draft.title,
+        score_auto=earned,
+        score_total_auto=auto_total,
+        review_json=json.dumps(review_items),
+        encouragement=encouragement,
+        difficulty=draft.difficulty,
+    )
+    db.session.add(attempt)
+    db.session.delete(draft)
+    db.session.commit()
+    session.pop("general_exam_draft_id", None)
+    session.pop("general_exam_usage", None)
+    flash("General Exam submitted. Review your subject-by-subject feedback below.", "success")
+    return redirect(url_for("attempt_review", attempt_id=attempt.id))
 
 
 @app.route("/subjects/<subject_slug>/practice/<material_slug>/take", methods=["GET", "POST"])
@@ -3008,8 +3331,16 @@ def attempt_review(attempt_id):
     if not can_view_attempt(user, attempt):
         flash("You do not have access to that result.", "danger")
         return redirect(url_for("results" if user["role"] == "student" else "home"))
-    meta = SUBJECTS.get(attempt.subject_slug, {"name": "Subject", "slug": attempt.subject_slug})
     review_items = attempt.review_items()
+    is_general_practice = attempt.kind == "practice" and attempt.title.startswith("General Exam ·")
+    general_exam_subjects = list(dict.fromkeys(
+        item.get("subject_name") for item in review_items if item.get("subject_name")
+    ))
+    meta = SUBJECTS.get(attempt.subject_slug, {"name": "Subject", "slug": attempt.subject_slug})
+    display_subject = (
+        " + ".join(general_exam_subjects)
+        if is_general_practice and general_exam_subjects else meta["name"]
+    )
     score_label = (
         f"{attempt.score_auto}/{attempt.score_total_auto} automatic items"
         if attempt.score_total_auto
@@ -3049,14 +3380,23 @@ def attempt_review(attempt_id):
             hero_title = "This assessment is closed."
 
     next_steps = []
-    ask_teacher = ask_teacher_context(user, meta["name"], attempt.title)
+    ask_teacher = ask_teacher_context(user, meta["name"], attempt.title) if not is_general_practice else None
     if user["role"] == "student":
         material = None
         if attempt.assessment and attempt.assessment.material_id:
             material = db.session.get(Material, attempt.assessment.material_id)
-        if not material:
+        if not material and not is_general_practice:
             material = nearest_approved_material(attempt.subject_slug, attempt.submitted_at)
-        if assessment_exhausted:
+        if is_general_practice:
+            next_steps.append({
+                "kicker": "Build another set",
+                "title": "Create another General Exam",
+                "meta": "Choose lessons from one or more subjects and set your 30-question split.",
+                "action": "Build a General Exam",
+                "href": url_for("general_exam_setup"),
+                "primary": True,
+            })
+        elif assessment_exhausted:
             ask_teacher = ask_teacher_context(
                 user,
                 meta["name"],
@@ -3167,7 +3507,9 @@ def attempt_review(attempt_id):
     good_count = sum(1 for item in review_items if item.get("status") == "good")
     context = {
         "user": user,
-        "subject": {"name": meta["name"], "slug": attempt.subject_slug},
+        "subject": {"name": display_subject, "slug": attempt.subject_slug},
+        "is_general_practice": is_general_practice,
+        "general_exam_subjects": general_exam_subjects,
         "material_title": attempt.title,
         "score_label": score_label,
         "encouragement": encouragement,
@@ -3408,6 +3750,8 @@ def practice():
         "practice_items": practice_items,
         "practice_subjects": subject_filters,
         "practice_available_count": len(ready),
+        "general_exam_used_today": practice_generations_used_today(user["id"], GENERAL_EXAM_GENERATION_KEY),
+        "general_exam_daily_limit": GENERAL_EXAMS_PER_DAY,
     }
     context.update(announcements_context(user))
     return render_template("practice_hub.html", **context)
@@ -3431,6 +3775,11 @@ def results():
     items = []
     today = datetime.utcnow().date()
     for attempt in query.all():
+        attempt_review_items = attempt.review_items()
+        exam_subjects = list(dict.fromkeys(
+            entry.get("subject_name") for entry in attempt_review_items if entry.get("subject_name")
+        ))
+        is_general_exam = attempt.kind == "practice" and attempt.title.startswith("General Exam ·")
         score_pending = bool(
             attempt.kind == "assessment"
             and attempt.assessment
@@ -3488,7 +3837,11 @@ def results():
             {
                 "kind": attempt.kind.title(),
                 "kind_slug": attempt.kind,
-                "subject": SUBJECTS.get(attempt.subject_slug, {}).get("name", ""),
+                "subject": (
+                    " + ".join(exam_subjects)
+                    if is_general_exam and exam_subjects
+                    else SUBJECTS.get(attempt.subject_slug, {}).get("name", "")
+                ),
                 "subject_slug": attempt.subject_slug,
                 "title": attempt.title,
                 "meta": attempt_meta(attempt),
@@ -4475,7 +4828,10 @@ def teacher_monitor(user):
                 ],
             }
         )
-    practice_n = Attempt.query.filter_by(kind="practice", subject_slug=slug).count()
+    practice_n = sum(
+        1 for attempt in Attempt.query.filter_by(kind="practice").all()
+        if attempt_includes_subject(attempt, slug)
+    )
     return render_template(
         "teacher_monitor.html",
         user=user,
@@ -5081,15 +5437,13 @@ def admin_reports(user):
     selected_period = request.args.get("period", "all").strip().lower()
     selected_questions = request.args.get("questions", "all").strip().lower()
     query = PracticeUsage.query
-    if selected_subject in SUBJECTS:
+    usage_subjects = {**SUBJECTS, "general": {"name": "General Exam"}}
+    if selected_subject in usage_subjects:
         query = query.filter_by(subject_slug=selected_subject)
     if selected_provider == "local":
         query = query.filter(PracticeUsage.used_local_fallback.is_(True))
     elif selected_provider in {"gemini", "openai"}:
-        query = query.filter(
-            PracticeUsage.used_local_fallback.is_(False),
-            PracticeUsage.provider.ilike(selected_provider),
-        )
+        query = query.filter(PracticeUsage.provider.ilike(f"%{selected_provider}%"))
     if selected_period in {"7d", "30d"}:
         days = 7 if selected_period == "7d" else 30
         query = query.filter(PracticeUsage.created_at >= datetime.utcnow() - timedelta(days=days))
@@ -5099,6 +5453,8 @@ def admin_reports(user):
         query = query.filter(PracticeUsage.question_count.between(6, 10))
     elif selected_questions == "11-15":
         query = query.filter(PracticeUsage.question_count.between(11, 15))
+    elif selected_questions == "16-30":
+        query = query.filter(PracticeUsage.question_count.between(16, 30))
     totals = query.with_entities(
         db.func.count(PracticeUsage.id),
         db.func.coalesce(db.func.sum(PracticeUsage.input_tokens), 0),
@@ -5125,7 +5481,7 @@ def admin_reports(user):
         selected_provider=selected_provider,
         selected_period=selected_period,
         selected_questions=selected_questions,
-        subjects=SUBJECTS,
+        subjects=usage_subjects,
         usage_rows=rows,
         usage_totals={
             "generations": totals[0],

@@ -1,21 +1,21 @@
 {% extends "layouts/pro.html" %}
 {% set active_tab = "practice" %}
-{% set topbar_sub = "Practice Check" %}
-{% block title %}Practice Check — Bloom{% endblock %}
+{% set topbar_sub = "General Exam" if is_general_exam else "Practice Check" %}
+{% block title %}{% if is_general_exam %}General Exam{% else %}Practice Check{% endif %} — Bloom{% endblock %}
 {% block body_class %}{% if user.role == 'student' %}student {% endif %}pro-focus student-refined{% endblock %}
 {% block page_header %}{% endblock %}
 {% block content_class %}pro-content-plain{% endblock %}
 {% block content %}
     <section class="take-shell practice-take-shell subject-accent-{{ subject.slug }}" aria-labelledby="take-title">
       <header class="take-window-head">
-        <a class="hub-back" href="{{ url_for('practice_setup', subject_slug=subject.slug, material_slug=material_slug) }}">Back to setup</a>
+        <a class="hub-back" href="{% if is_general_exam %}{{ url_for('general_exam_setup') }}{% else %}{{ url_for('practice_setup', subject_slug=subject.slug, material_slug=material_slug) }}{% endif %}">Back to setup</a>
         <div class="take-window-title-row">
-          <p class="take-window-kicker">{{ subject.name }} · {{ bloom_label }} · {{ difficulty_name }}</p>
+          <p class="take-window-kicker">{% if is_general_exam %}General Exam · {{ general_exam_subjects|join(' + ') }}{% else %}{{ subject.name }}{% endif %} · {{ bloom_label }} · {{ difficulty_name }}</p>
           <p class="take-progress-label" aria-live="polite">
             Question <strong id="progress-text">1</strong> of {{ questions|length }}
           </p>
           <h1 id="take-title" class="take-title">{{ material_title }}</h1>
-          <p class="take-window-note">{{ questions|length }} question{% if questions|length != 1 %}s{% endif %} · Answers save on this device. This does not affect school grades.</p>
+          <p class="take-window-note">{{ questions|length }} questions{% if is_general_exam %} · Subject questions stay separate{% endif %} · Answers save on this device. This does not affect school grades.</p>
           {% if is_term_review %}<p class="take-window-note">Term topics: {{ term_topics|join(' · ') }}</p>{% endif %}
           {% if generation_usage %}
             <details class="practice-usage">
@@ -58,14 +58,14 @@
         </ol>
       </div>
 
-      <form id="practice-take-form" method="POST" action="{{ url_for('practice_submit', subject_slug=subject.slug, material_slug=material_slug) }}" data-draft-key="bloom-practice:{{ draft_id }}" data-loading="Submitting your practice…">
+      <form id="practice-take-form" method="POST" action="{% if is_general_exam %}{{ url_for('general_exam_submit') }}{% else %}{{ url_for('practice_submit', subject_slug=subject.slug, material_slug=material_slug) }}{% endif %}" data-draft-key="bloom-practice:{{ draft_id }}" data-loading="Submitting your practice…">
         {% for q in questions %}
           <article
             class="take-card {% if loop.first %}is-active{% endif %}"
             data-question="{{ loop.index0 }}"
             {% if not loop.first %}hidden{% endif %}
           >
-            <p class="take-q-kicker">{{ q.bloom }} · {{ q.type_label }}</p>
+            <p class="take-q-kicker">{% if is_general_exam %}{{ q.subject_name }} · {% endif %}{{ q.bloom }} · {{ q.type_label }}</p>
             <h2 class="take-question">{{ q.prompt|math_notation }}</h2>
             <p class="summary-cite">Source: {{ q.citation }}</p>
 

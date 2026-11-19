@@ -15,6 +15,11 @@
         </h2>
         <p class="practice-count">{{ practice_available_count }} available</p>
       </header>
+      <a class="general-exam-entry" href="{{ url_for('general_exam_setup') }}">
+        <span class="general-exam-entry-mark" aria-hidden="true">30</span>
+        <span class="general-exam-entry-copy"><strong>Build a General Exam</strong><small>Choose approved lessons across subjects · 30 questions · {{ general_exam_daily_limit - general_exam_used_today }} of {{ general_exam_daily_limit }} remaining today</small></span>
+        <span class="general-exam-entry-action">Create exam <span aria-hidden="true">→</span></span>
+      </a>
       {% if practice_available_count %}
         <p class="practice-library-note">Review the lesson first if you want, then start a self-paced check of about 10 minutes.</p>
       {% endif %}

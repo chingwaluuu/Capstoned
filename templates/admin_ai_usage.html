@@ -36,6 +36,7 @@
           <option value="1-5" {% if selected_questions == '1-5' %}selected{% endif %}>1–5 questions</option>
           <option value="6-10" {% if selected_questions == '6-10' %}selected{% endif %}>6–10 questions</option>
           <option value="11-15" {% if selected_questions == '11-15' %}selected{% endif %}>11–15 questions</option>
+          <option value="16-30" {% if selected_questions == '16-30' %}selected{% endif %}>16–30 questions</option>
         </select>
       </label>
       <button class="admin-ai-usage-apply" type="submit"><i class="fi fi-rr-filter" aria-hidden="true"></i><span>Apply filters</span></button>
@@ -68,7 +69,7 @@
                   <td>{{ "{:,}".format(usage.source_words) }} / {{ "{:,}".format(usage.prompt_words) }} / {{ "{:,}".format(usage.generated_words) }}</td>
                   <td>{% if usage.total_tokens is not none %}{{ "{:,}".format(usage.input_tokens or 0) }} / {{ "{:,}".format(usage.output_tokens or 0) }} / {{ "{:,}".format(usage.total_tokens) }}{% else %}<span class="admin-ai-usage-muted">Not reported</span>{% endif %}</td>
                   <td>{% if usage.input_tokens is not none and usage.prompt_words %}{{ (usage.input_tokens / usage.prompt_words)|round(2) }}{% else %}—{% endif %} / {% if not usage.used_local_fallback and usage.output_tokens is not none and usage.generated_words %}{{ (usage.output_tokens / usage.generated_words)|round(2) }}{% else %}—{% endif %}</td>
-                  <td>{% if usage.used_local_fallback %}<span class="admin-ai-usage-fallback">Local fallback</span>{% else %}{{ usage.provider or "Unknown" }}{% if usage.model %}<small>{{ usage.model }}</small>{% endif %}{% endif %}</td>
+                  <td>{% if usage.provider %}{{ usage.provider }}{% if usage.model %}<small>{{ usage.model }}</small>{% endif %}{% elif usage.used_local_fallback %}<span class="admin-ai-usage-fallback">Local fallback</span>{% else %}Unknown{% endif %}{% if usage.used_local_fallback and usage.provider %}<small class="admin-ai-usage-fallback">Local fallback used for some subjects</small>{% endif %}</td>
                 </tr>
               {% endfor %}
             </tbody>

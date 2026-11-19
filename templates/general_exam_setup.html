@@ -1,0 +1,81 @@
+{% extends "layouts/pro.html" %}
+{% set active_tab = "practice" %}
+{% set topbar_sub = "General Exam" %}
+{% block title %}Build a General Exam — Bloom{% endblock %}
+{% block body_class %}student student-refined general-exam-setup-page{% endblock %}
+{% block page_kicker %}SELF-PACED PRACTICE{% endblock %}
+{% block page_title %}Build a General Exam{% endblock %}
+{% block page_subtitle %}Choose approved lessons from any subject. Each question uses material from its own subject only.{% endblock %}
+{% block page_actions %}<a class="editorial-text-link" href="{{ url_for('practice') }}">Back to Practice</a>{% endblock %}
+{% block content %}
+  <form class="general-exam-builder" method="post" action="{{ url_for('general_exam_setup') }}" data-question-total="{{ question_total }}" data-general-exam-builder>
+    <section class="general-exam-summary" aria-label="Exam settings">
+      <div><span class="general-exam-summary-number">{{ question_total }}</span><span class="general-exam-summary-label">questions total</span></div>
+      <p>Choose one or more subjects. You can split the questions evenly or set each subject’s count yourself.</p>
+      <span class="general-exam-quota">{{ used_today }} of {{ daily_limit }} used today</span>
+    </section>
+
+    <section class="general-exam-split" aria-labelledby="split-title">
+      <div><h2 id="split-title">Question split</h2><p>Custom counts must add up to {{ question_total }}.</p></div>
+      <div class="general-exam-split-options" role="radiogroup" aria-label="Question distribution">
+        <label><input type="radio" name="distribution" value="even" checked><span>Split evenly</span></label>
+        <label><input type="radio" name="distribution" value="custom"><span>Choose counts</span></label>
+      </div>
+      <p class="general-exam-count-status" data-count-status aria-live="polite">Select lessons to see the split.</p>
+    </section>
+
+    <section class="general-exam-subjects" aria-label="Choose lessons by subject">
+      {% for group in subject_groups %}
+        <fieldset class="general-exam-subject" data-subject-card="{{ group.slug }}">
+          <legend>
+            <span class="general-exam-subject-check"><input type="checkbox" data-subject-toggle="{{ group.slug }}" aria-label="Include {{ group.name }}" {% if not group.materials %}disabled{% endif %}></span>
+            <span class="general-exam-subject-title">{{ group.name }}</span>
+            <span class="general-exam-subject-count" data-subject-count>Not selected</span>
+          </legend>
+          {% if group.materials %}
+            <div class="general-exam-lessons">
+              {% for material in group.materials %}
+                <label class="general-exam-lesson">
+                  <input type="checkbox" name="material_ids" value="{{ material.id }}" data-lesson-subject="{{ group.slug }}">
+                  <span>{{ material.title }}</span>
+                  {% if material.term %}<small>{{ term_labels.get(material.term, 'Term') }}</small>{% endif %}
+                </label>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="general-exam-no-lessons">No approved lessons are available in this subject yet.</p>
+          {% endif %}
+          <label class="general-exam-question-count" data-question-count-wrap hidden>
+            <span>Questions from {{ group.name }}</span>
+            <input type="number" name="question_count_{{ group.slug }}" min="1" max="{{ question_total }}" value="1" inputmode="numeric" data-question-count="{{ group.slug }}" disabled>
+          </label>
+        </fieldset>
+      {% endfor %}
+    </section>
+
+    <details class="general-exam-options">
+      <summary>Question options</summary>
+      <div class="general-exam-option-grid">
+        <label class="general-exam-setting">Difficulty
+          <select name="difficulty">
+            {% for option in difficulties %}<option value="{{ option.key }}" {% if selected_difficulty == option.key %}selected{% endif %}>{{ option.label }}</option>{% endfor %}
+          </select>
+        </label>
+        <label class="general-exam-setting">Thinking focus
+          <select name="focus"><option value="mixed">Mixed skills</option><option value="c4">Analyze</option><option value="c5">Evaluate</option><option value="c6">Create</option></select>
+        </label>
+      </div>
+      <fieldset class="general-exam-types"><legend>Question types</legend>
+        <label><input type="checkbox" name="types" value="mcq" checked>Multiple choice</label>
+        <label><input type="checkbox" name="types" value="essay" checked>Essay</label>
+        <label><input type="checkbox" name="types" value="problem" checked>Problem-solving</label>
+      </fieldset>
+    </details>
+
+    <footer class="general-exam-submit-row">
+      <p>Ungraded practice · Resets daily at midnight Philippines time</p>
+      <button class="btn-primary general-exam-submit" type="submit" {% if not can_generate %}disabled{% endif %}>Generate 30-question exam</button>
+    </footer>
+  </form>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/general_exam_setup.js') }}?v=general-exam-1" defer></script>{% endblock %}
