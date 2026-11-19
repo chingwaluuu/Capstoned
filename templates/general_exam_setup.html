@@ -21,7 +21,7 @@
         <label><input type="radio" name="distribution" value="even" checked><span>Split evenly</span></label>
         <label><input type="radio" name="distribution" value="custom"><span>Choose counts</span></label>
       </div>
-      <p class="general-exam-count-status" data-count-status aria-live="polite">Select lessons to see the split.</p>
+      <p class="general-exam-count-status" data-count-status aria-live="polite" tabindex="-1">Select lessons to see the split.</p>
     </section>
 
     <section class="general-exam-subjects" aria-label="Choose lessons by subject">
@@ -81,4 +81,4 @@
     </footer>
   </form>
 {% endblock %}
-{% block scripts %}<script src="{{ url_for('static', filename='js/general_exam_setup.js') }}?v=general-exam-1" defer></script>{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/general_exam_setup.js') }}?v=general-exam-2" defer></script>{% endblock %}

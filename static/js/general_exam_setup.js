@@ -58,7 +58,8 @@
         : `${currentTotal} of ${totalQuestions} questions assigned${valid ? " · Ready to generate" : " · Counts must total 30"}.`;
     status.classList.toggle("is-valid", valid);
     status.classList.toggle("is-invalid", !valid);
-    submit.disabled = form.dataset.canGenerate !== "true" || !valid;
+    form.dataset.selectionValid = String(valid);
+    submit.disabled = form.dataset.canGenerate !== "true";
   }
 
   form.dataset.canGenerate = String(!submit.disabled);
@@ -99,9 +100,14 @@
 
   form.addEventListener("submit", (event) => {
     sync();
-    if (submit.disabled) {
+    if (form.dataset.canGenerate !== "true") {
       event.preventDefault();
-      status.focus?.();
+      return;
+    }
+    if (form.dataset.selectionValid !== "true") {
+      event.preventDefault();
+      status.focus();
+      status.scrollIntoView({ behavior: "smooth", block: "center" });
     }
   });
   sync();
