@@ -4870,6 +4870,46 @@ def admin_section(user):
                 db.session.add(SchoolSection(name=name, grade=grade, school_year_id=year.id))
                 db.session.commit()
                 flash("Section added.", "success")
+        elif action == "delete_section":
+            section = db.session.get(SchoolSection, request.form.get("section_id", type=int))
+            if not section:
+                flash("That section could not be found.", "danger")
+            else:
+                section_name = f"Grade {section.grade} · {section.name} · {section.school_year.name}"
+                students = User.query.filter_by(role="student", section_id=section.id).all()
+                linked_accounts = User.query.filter_by(section_id=section.id).all()
+                assignments = TeacherAssignment.query.filter_by(section_id=section.id).all()
+
+                # Preserve teacher assignment snapshots after the section is removed.
+                # If an equivalent legacy assignment already exists, keep that row and
+                # discard the duplicate before setting the remaining links to NULL.
+                for assignment in assignments:
+                    legacy_duplicate = TeacherAssignment.query.filter(
+                        TeacherAssignment.id != assignment.id,
+                        TeacherAssignment.teacher_id == assignment.teacher_id,
+                        TeacherAssignment.subject == assignment.subject,
+                        TeacherAssignment.section_id.is_(None),
+                    ).first()
+                    if legacy_duplicate:
+                        db.session.delete(assignment)
+                    else:
+                        assignment.section_id = None
+
+                for account in linked_accounts:
+                    account.section_id = None
+                    account.section = "Unassigned"
+
+                db.session.delete(section)
+                try:
+                    db.session.commit()
+                    flash(
+                        f"{section_name} removed. {len(students)} student(s) were unassigned; "
+                        "historical records were kept.",
+                        "success",
+                    )
+                except IntegrityError:
+                    db.session.rollback()
+                    flash("This section could not be removed because related records still depend on it.", "danger")
         elif action == "assign":
             section = db.session.get(SchoolSection, request.form.get("section_id", type=int))
             selected_ids = request.form.getlist("student_ids", type=int)
